@@ -18,7 +18,7 @@ using Amplitude.Framework;
 
 namespace CultureUnlockFromTerritories
 {
-    [BepInPlugin(pluginGuid, "Culture Unlock From Territories", "1.0.0.0")]
+    [BepInPlugin(pluginGuid, "Culture Unlock From Territories", "1.0.0.1")]
     public class CultureUnlockFromTerritories : BaseUnityPlugin
     {
 		public const string pluginGuid = "gedemon.humankind.cultureunlockfromterritories";
@@ -489,7 +489,7 @@ namespace CultureUnlockFromTerritories
 							}
 						}
 
-						if (territoriesLost > territoriesCount * 0.75)
+						if (territoriesLost > territoriesCount * 0.5)
 						{
 							Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, AI limitation from territory loss = {territoriesLost} / {territoriesCount}");
 							lockedByTerritory = true;
