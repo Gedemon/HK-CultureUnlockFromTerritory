@@ -18,7 +18,7 @@ using Amplitude.Framework;
 
 namespace CultureUnlockFromTerritories
 {
-    [BepInPlugin(pluginGuid, "Culture Unlock From Territories", "1.0.0.1")]
+    [BepInPlugin(pluginGuid, "Culture Unlock From Territories", "1.0.0.2")]
     public class CultureUnlockFromTerritories : BaseUnityPlugin
     {
 		public const string pluginGuid = "gedemon.humankind.cultureunlockfromterritories";
@@ -99,7 +99,7 @@ namespace CultureUnlockFromTerritories
         [HarmonyPrefix]
         public static bool LockFaction(CivilizationsManager __instance, StaticString factionName, int lockingEmpireIndex)
         {
-            if (!(CultureUnlock.IsGiantEarthMap() && CultureUnlock.HasNoCapitalTerritory(factionName.ToString())))
+            if (CultureUnlock.IsGiantEarthMap() && CultureUnlock.HasNoCapitalTerritory(factionName.ToString()))
             {
                 return false;
             }
