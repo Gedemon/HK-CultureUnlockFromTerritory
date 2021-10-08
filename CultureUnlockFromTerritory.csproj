@@ -54,8 +54,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.WorldGenerator.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\Assembly-CSharp.dll</HintPath>
+    <Reference Include="Amplitude.UI, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\publicized_assemblies\Amplitude.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\publicized_assemblies\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>D:\Steam\steamapps\common\Humankind\BepInEx\core\BepInEx.dll</HintPath>
@@ -77,6 +82,10 @@
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
