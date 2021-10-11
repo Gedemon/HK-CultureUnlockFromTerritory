@@ -37,7 +37,7 @@
     </Reference>
     <Reference Include="Amplitude, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\Amplitude.dll</HintPath>
+      <HintPath>..\..\..\publicized_assemblies\Amplitude.dll</HintPath>
     </Reference>
     <Reference Include="Amplitude.Framework, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
@@ -90,7 +90,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CultureUnlock.cs" />
-    <Compile Include="CultureUnlockFromTerritories.cs" />
+    <Compile Include="CultureUnlockCivilizationsManagerPatch.cs" />
+    <Compile Include="CultureUnlockCollectibleManagerPatch.cs" />
+    <Compile Include="CultureUnlockDepartmentOfDevelopmentPatch.cs" />
+    <Compile Include="CultureUnlockFactionCardPatch.cs" />
+    <Compile Include="CultureUnlockBePinEx.cs" />
+    <Compile Include="CultureUnlockWorldPatch.cs" />
+    <Compile Include="HumankindModTool\GameOptionHelper.cs" />
+    <Compile Include="HumankindModTool\GameOptionInfo.cs" />
+    <Compile Include="HumankindModTool\GameOptionStateInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
