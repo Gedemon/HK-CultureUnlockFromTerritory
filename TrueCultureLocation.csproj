@@ -7,8 +7,8 @@
     <ProjectGuid>{50464BFA-DCE1-4753-A76F-9C22EB3858ED}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CultureUnlockFromTerritories</RootNamespace>
-    <AssemblyName>CultureUnlockFromTerritories</AssemblyName>
+    <RootNamespace>TrueCultureLocation</RootNamespace>
+    <AssemblyName>Gedemon.TrueCultureLocation</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -89,13 +89,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CultureUnlock.cs" />
-    <Compile Include="CultureUnlockCivilizationsManagerPatch.cs" />
-    <Compile Include="CultureUnlockCollectibleManagerPatch.cs" />
-    <Compile Include="CultureUnlockDepartmentOfDevelopmentPatch.cs" />
-    <Compile Include="CultureUnlockFactionCardPatch.cs" />
-    <Compile Include="CultureUnlockBePinEx.cs" />
-    <Compile Include="CultureUnlockWorldPatch.cs" />
+    <Compile Include="TrueCultureLocationOptionManagerPatch.cs" />
+    <Compile Include="TrueCultureLocation.cs" />
+    <Compile Include="TrueCultureLocationCivilizationsManagerPatch.cs" />
+    <Compile Include="TrueCultureLocationCollectibleManagerPatch.cs" />
+    <Compile Include="TrueCultureLocationDepartmentOfDevelopmentPatch.cs" />
+    <Compile Include="TrueCultureLocationFactionCardPatch.cs" />
+    <Compile Include="TrueCultureLocationBePinEx.cs" />
+    <Compile Include="TrueCultureLocationWorldPatch.cs" />
     <Compile Include="HumankindModTool\GameOptionHelper.cs" />
     <Compile Include="HumankindModTool\GameOptionInfo.cs" />
     <Compile Include="HumankindModTool\GameOptionStateInfo.cs" />

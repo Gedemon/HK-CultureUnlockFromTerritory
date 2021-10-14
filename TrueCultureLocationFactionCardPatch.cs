@@ -5,7 +5,7 @@ using HarmonyLib;
 using Amplitude.Mercury.Interop;
 using Amplitude.Mercury.UI;
 
-namespace Gedemon.CultureUnlock
+namespace Gedemon.TrueCultureLocation
 {
 
 	[HarmonyPatch(typeof(FactionCard))]
@@ -25,7 +25,7 @@ namespace Gedemon.CultureUnlock
 
 			bool flag = (status & FactionStatus.LockedByEmpireMiscFlags) != 0;
 
-			if (CultureUnlock.IsGiantEarthMap() && CultureUnlock.HasTerritory(factionName) && flag)
+			if (CultureUnlock.UseTrueCultureLocation() && CultureUnlock.HasTerritory(factionName) && flag)
 			{
 				if (CultureUnlock.HasNoCapitalTerritory(factionName))
 				{
@@ -48,7 +48,7 @@ namespace Gedemon.CultureUnlock
 
 				}
 
-				if (CultureUnlockFromTerritories.EraIndexCityRequiredForUnlock() < __instance.FactionDefinition.EraIndex + 1)
+				if (TrueCultureLocation.GetEraIndexCityRequiredForUnlock() < __instance.FactionDefinition.EraIndex + 1)
 					__instance.lockedLabel.Text += Environment.NewLine + "(City or Attached to a City)";
 				else
 					__instance.lockedLabel.Text += Environment.NewLine + "(an Outpost is enough)";

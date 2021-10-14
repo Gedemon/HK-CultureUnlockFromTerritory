@@ -9,7 +9,7 @@ using Amplitude.Mercury.Sandbox;
 using FailureFlags = Amplitude.Mercury.Simulation.FailureFlags;
 using Amplitude.Framework;
 
-namespace Gedemon.CultureUnlock
+namespace Gedemon.TrueCultureLocation
 {
 
 	[HarmonyPatch(typeof(DepartmentOfDevelopment))]
@@ -19,7 +19,7 @@ namespace Gedemon.CultureUnlock
 		[HarmonyPatch(nameof(ApplyFactionChange))]
 		public static void ApplyFactionChange(DepartmentOfDevelopment __instance)
 		{
-			if (CultureUnlock.IsGiantEarthMap())
+			if (CultureUnlock.UseTrueCultureLocation())
 			{
 				IDictionary<Settlement, List<int>> territoryToDetachAndCreate = new Dictionary<Settlement, List<int>>();
 				IDictionary<Settlement, List<int>> territoryToDetachAndFree = new Dictionary<Settlement, List<int>>();
@@ -29,10 +29,10 @@ namespace Gedemon.CultureUnlock
 				MajorEmpire majorEmpire = __instance.majorEmpire;
 				StaticString nextFactionName = __instance.nextFactionName;
 
-				bool keepOnlyCultureTerritory = CultureUnlockFromTerritories.KeepOnlyCultureTerritory();
-				bool keepTerritoryAttached = CultureUnlockFromTerritories.KeepTerritoryAttached();
+				bool keepOnlyCultureTerritory = TrueCultureLocation.KeepOnlyCultureTerritory();
+				bool keepTerritoryAttached = TrueCultureLocation.KeepTerritoryAttached();
 
-				if ((!majorEmpire.IsControlledByHuman) && CultureUnlockFromTerritories.NoTerritoryLossForAI())
+				if ((!majorEmpire.IsControlledByHuman) && TrueCultureLocation.NoTerritoryLossForAI())
 				{
 					keepOnlyCultureTerritory = false;
 				}
@@ -126,6 +126,8 @@ namespace Gedemon.CultureUnlock
 							if (CultureUnlock.HasTerritory(nextFactionName.ToString(), territory.Index))
 								hasTerritoryFromNewCulture = true;
 						}
+
+						//settlement.PublicOrderCurrent.Value
 
 						bool keepSettlement = hasTerritoryFromNewCulture && keepTerritoryAttached;
 
@@ -284,7 +286,7 @@ namespace Gedemon.CultureUnlock
 		public static void ApplyFactionChangePost(DepartmentOfDevelopment __instance)
 		{
 
-			if (CultureUnlock.IsGiantEarthMap())
+			if (CultureUnlock.UseTrueCultureLocation())
 			{
 				MajorEmpire majorEmpire = __instance.majorEmpire;
 
@@ -397,9 +399,8 @@ namespace Gedemon.CultureUnlock
 			FactionStatus factionStatus = FactionStatus.Unlocked;
 
 			/* Gedemon <<<<< */
-			bool IsGiantEarth = CultureUnlock.IsGiantEarthMap();
 
-			if (IsGiantEarth)
+			if (CultureUnlock.UseTrueCultureLocation())
 			{
 				bool lockedByTerritory = true;
 				bool lockedByStartingSlot = true;
@@ -420,7 +421,7 @@ namespace Gedemon.CultureUnlock
 						{
 							Amplitude.Mercury.Simulation.Territory territory = settlement.Region.Entity.Territories[k];
 							bool anyTerritory = majorEmpire.DepartmentOfDevelopment.CurrentEraIndex == 0 || CultureUnlock.HasNoCapitalTerritory(civilizationName);
-							bool validSettlement = (CultureUnlockFromTerritories.EraIndexCityRequiredForUnlock() > majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1 || settlement.SettlementStatus == SettlementStatuses.City);
+							bool validSettlement = (TrueCultureLocation.GetEraIndexCityRequiredForUnlock() > majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1 || settlement.SettlementStatus == SettlementStatuses.City);
 							if (CultureUnlock.HasTerritory(civilizationName, territory.Index, anyTerritory))
 							{
 								if (validSettlement)
@@ -431,14 +432,14 @@ namespace Gedemon.CultureUnlock
 								}
 								else
 								{
-									Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Territory for {factionDefinition.Name} from Territory ID = {territory.Index}, but is invalid ({settlement.SettlementStatus}, nextEraID = {majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1}, cityRequiredAtEraID = {CultureUnlockFromTerritories.EraIndexCityRequiredForUnlock()}) ");
+									Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Territory for {factionDefinition.Name} from Territory ID = {territory.Index}, but is invalid ({settlement.SettlementStatus}, nextEraID = {majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1}, cityRequiredAtEraID = {TrueCultureLocation.GetEraIndexCityRequiredForUnlock()}) ");
 								}
 							}
 						}
 					}
 
 					// Check for AI Decision control
-					if ((!majorEmpire.IsControlledByHuman) && CultureUnlockFromTerritories.LimitDecisionForAI() && (!lockedByTerritory) && (!CultureUnlockFromTerritories.NoTerritoryLossForAI()))
+					if ((!majorEmpire.IsControlledByHuman) && TrueCultureLocation.UseLimitDecisionForAI() && (!lockedByTerritory) && (!TrueCultureLocation.NoTerritoryLossForAI()))
 					{
 						int territoriesLost = 0;
 						int territoriesCount = 0;
@@ -462,7 +463,7 @@ namespace Gedemon.CultureUnlock
 									territoriesRemovedFromSettlement += 1;
 							}
 
-							bool keepSettlement = hasTerritoryFromNewCulture && CultureUnlockFromTerritories.KeepTerritoryAttached();
+							bool keepSettlement = hasTerritoryFromNewCulture && TrueCultureLocation.KeepTerritoryAttached();
 
 							if (!keepSettlement)
 							{
@@ -512,7 +513,7 @@ namespace Gedemon.CultureUnlock
 
 			if (!StaticString.IsNullOrEmpty(nextFactionName))
 			{
-				if (CultureUnlock.IsGiantEarthMap() && CultureUnlock.HasNoCapitalTerritory(nextFactionName.ToString()))
+				if (CultureUnlock.UseTrueCultureLocation() && CultureUnlock.HasNoCapitalTerritory(nextFactionName.ToString()))
 				{
 					Diagnostics.Log($"[Gedemon] in LockedByYou check, nextFactionName = {nextFactionName}, factionDefinition.Name = {factionDefinition.Name}, factionStatus = {factionStatus}");
 				}

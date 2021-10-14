@@ -3,7 +3,7 @@ using Amplitude.Mercury.Simulation;
 using Amplitude;
 using HarmonyLib;
 
-namespace Gedemon.CultureUnlock
+namespace Gedemon.TrueCultureLocation
 {
 
 	[HarmonyPatch(typeof(CivilizationsManager))]
@@ -13,7 +13,7 @@ namespace Gedemon.CultureUnlock
 		[HarmonyPrefix]
 		public static bool IsLockedBy(CivilizationsManager __instance, ref int __result, StaticString factionName)
 		{
-			if (CultureUnlock.IsGiantEarthMap() && CultureUnlock.HasNoCapitalTerritory(factionName.ToString()))
+			if (CultureUnlock.UseTrueCultureLocation() && CultureUnlock.HasNoCapitalTerritory(factionName.ToString()))
 			{
 				__result = -1;
 				return false;
@@ -28,7 +28,7 @@ namespace Gedemon.CultureUnlock
 		[HarmonyPrefix]
 		public static bool LockFaction(CivilizationsManager __instance, StaticString factionName, int lockingEmpireIndex)
 		{
-			if (CultureUnlock.IsGiantEarthMap() && CultureUnlock.HasNoCapitalTerritory(factionName.ToString()))
+			if (CultureUnlock.UseTrueCultureLocation() && CultureUnlock.HasNoCapitalTerritory(factionName.ToString()))
 			{
 				return false;
 			}

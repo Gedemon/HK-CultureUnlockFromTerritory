@@ -56,7 +56,6 @@ namespace HumankindModTool
 				option.CanBeRandomized = false;
 				lastKey = (option.Key = (byte)(lastKey + 1));
 				option.XmlSerializableName = gameOptionName;
-				//((Object)option).set_name(gameOptionName);
 				option.name = gameOptionName;
 				option.Default = optionVal.DefaultValue;
 				option.States = new OptionState[optionVal.States.Count];
@@ -133,11 +132,10 @@ namespace HumankindModTool
 				}
 				FieldInfo optionGroupNameField = typeof(OptionsGroupUIMapper).GetField("optionsName", BindingFlags.Instance | BindingFlags.NonPublic);
 				OptionUIMapper optionMapper = ScriptableObject.CreateInstance<OptionUIMapper>();
-				//((Object)optionMapper).set_name(gameOptionName);
 				optionMapper.name = gameOptionName;
 				optionMapper.XmlSerializableName = gameOptionName;
 				optionMapper.OptionFlags = OptionUIMapper.Flags.None;
-				optionMapper.ControlType = UIControlType.Toggle;
+				optionMapper.ControlType = optionVal.ControlType;
 				optionMapper.Title = "%" + gameOptionName + "Title";
 				optionMapper.Description = "%" + gameOptionName + "Description";
 				optionMapper.Initialize();

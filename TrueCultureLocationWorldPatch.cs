@@ -3,25 +3,32 @@ using Amplitude.Mercury.Simulation;
 using Amplitude;
 using HarmonyLib;
 using Amplitude.Mercury.Interop;
+using Amplitude.Mercury.Data.World;
 
-namespace Gedemon.CultureUnlock
+namespace Gedemon.TrueCultureLocation
 {
 	[HarmonyPatch(typeof(World))]
 	public class CultureUnlockWorld
 	{
-		/*
-		[HarmonyPrefix]
+		//*
+		[HarmonyPostfix]
 		[HarmonyPatch(nameof(SetRandomContinentName))]
-		public static bool SetRandomContinentName(World __instance)
+		public static void SetRandomContinentName(World __instance, ref ContinentInfo continentInfo, ref List<ContinentNamingPoolDefinition> possiblePools)
 		{
-			Diagnostics.LogWarning($"[Gedemon] in SetRandomContinentName, continentIndex = {0}");
-			if (CultureUnlock.ContinentHasName(x))
+			if (CultureUnlock.IsCompatibleMap() && continentInfo.TerritoryIndexes.Length > 0)
             {
-				//territory.NameKey = CultureUnlock.GetTerritoryName(territory.TerritoryIndex);
-				return false; // don't run original SetRandomContinentName()
+
+				Territory territory = __instance.Territories[continentInfo.TerritoryIndexes[0]];
+				int continentIndex = territory.ContinentIndex;
+				Diagnostics.LogWarning($"[Gedemon] in SetRandomContinentName, continentIndex = {continentIndex}");
+				Diagnostics.Log($"[Gedemon] has name = {CultureUnlock.ContinentHasName(continentIndex)} ");
+				if (CultureUnlock.ContinentHasName(continentIndex))
+				{
+					Diagnostics.Log($"[Gedemon] get name = {CultureUnlock.GetContinentName(continentIndex)} ");
+					continentInfo.ContinentName = CultureUnlock.GetContinentName(continentIndex);
+				}
 			}
-			else
-				return true; // run original SetRandomContinentName()
+
 		}
 		//*/
 
@@ -29,7 +36,7 @@ namespace Gedemon.CultureUnlock
 		[HarmonyPatch(nameof(SetRandomTerritoryName))]
 		public static bool SetRandomTerritoryName(World __instance, ref TerritoryInfo territory, List<string> availableName, Dictionary<string, int> alreadyUsedTerritoryNameOccurence)
 		{
-			if (CultureUnlock.IsGiantEarthMap() && CultureUnlock.TerritoryHasName(territory.TerritoryIndex))
+			if (CultureUnlock.IsCompatibleMap() && CultureUnlock.TerritoryHasName(territory.TerritoryIndex))
 			{
 				territory.NameKey = CultureUnlock.GetTerritoryName(territory.TerritoryIndex);
 				return false; // don't run original SetRandomTerritoryName()
@@ -48,21 +55,27 @@ namespace Gedemon.CultureUnlock
 			for (int i = 0; i < length; i++)
 			{
 				ref TerritoryInfo reference = ref __instance.TerritoryInfo.Data[i];
-				if (CultureUnlock.IsGiantEarthMap() && CultureUnlock.TerritoryHasName(reference.TerritoryIndex))
+				if (CultureUnlock.UseTrueCultureLocation() && CultureUnlock.TerritoryHasName(reference.TerritoryIndex))
 				{
 					reference.LocalizedName = CultureUnlock.GetTerritoryName(reference.TerritoryIndex);
 				}
 				else
 				{
-					// debug by displaying idx when there is no real name set
-					reference.LocalizedName = reference.TerritoryIndex.ToString();
-					/*
-					reference.LocalizedName = service.Localize(reference.NameKey);
-					if (reference.OccurenceIndex > 1)
+					// debug compatible maps by displaying index where there is no real name set
+					if (CultureUnlock.IsCompatibleMap())
 					{
-						reference.LocalizedName += $" -- {reference.OccurenceIndex}";
+						reference.LocalizedName = reference.TerritoryIndex.ToString();
 					}
-					//*/
+					else
+                    {
+						//*
+						reference.LocalizedName = service.Localize(reference.NameKey);
+						if (reference.OccurenceIndex > 1)
+						{
+							reference.LocalizedName += $" -- {reference.OccurenceIndex}";
+						}
+						//*/
+					}
 				}
 			}
 			return false; // don't run original LocalizeTerritory(), this method fully replaces it
@@ -77,22 +90,29 @@ namespace Gedemon.CultureUnlock
 			Diagnostics.Log($"[Gedemon] Current Map Hash = {CultureUnlock.CurrentMapHash}");
 
 			int num = __instance.Territories.Length;
+			int maxNum = 255;
 
 			string mapString = "";
 
-			for (int i = 0; i < num; i++)
+			for (int i = 0; i < maxNum; i++)
 			{
-				Territory territory = __instance.Territories[i];
-				int numTiles = territory.TileIndexes.Length;
+				int numTiles = 0;
+				if (i<num)
+                {
+					Territory territory = __instance.Territories[i];
+					numTiles = territory.TileIndexes.Length;
+				}
+				
 				//Diagnostics.Log($"[Gedemon] Building Map String, territory[{i}] = {numTiles}");
-				mapString += numTiles.ToString() + ",";
+				mapString += (numTiles>999 ? "999," : numTiles < 10 ? "00" + numTiles.ToString() + "," : numTiles < 100 ? "0" + numTiles.ToString() + "," : numTiles.ToString() + ",");
 			}
 
 			CultureUnlock.CurrentMapHash = mapString.GetHashCode();
 
 			Diagnostics.LogError($"[Gedemon] Calculated Current Map Hash = {CultureUnlock.CurrentMapHash}");
+			//Diagnostics.Log($"[Gedemon] Map string = {mapString}");
 
-			if (!CultureUnlock.IsGiantEarthMap())
+			if (!CultureUnlock.IsCompatibleMap())
 				Diagnostics.LogError($"[Gedemon] Unknown Map");
 		}
 		//*/

@@ -11,18 +11,18 @@ using Amplitude.Mercury.WorldGenerator;
 using Amplitude.Serialization;
 using BepInEx.Configuration;
 
-namespace Gedemon.CultureUnlock
+namespace Gedemon.TrueCultureLocation
 {
 	public class CultureUnlock
 	{
 
 		static readonly IDictionary<string, List<int>> listTerritories = new Dictionary<string, List<int>>  // CivName, list of territory indexes
 				{
-					{ "Civilization_Era1_Phoenicia",                new List<int>() { 188, 190, 106, 127, 95 } }, // Morocco, Carthage, Liban, Lybia, South Spain
+					{ "Civilization_Era1_Phoenicia",                new List<int>() { 188, 190, 106, 127, 95, 100, 99, 22 } }, // Morocco, Carthage, Liban, Lybia, South Spain
 					{ "Civilization_Era1_EgyptianKingdom",          new List<int>() { 128 } }, // Egypt
 					{ "Civilization_Era1_HittiteEmpire",            new List<int>() { 123, 118 } }, // East/West Anatiolia
 					{ "Civilization_Era1_Babylon",                  new List<int>() { 142 } }, // Iraq
-					{ "Civilization_Era1_Assyria",                  new List<int>() { 142 } }, // Iraq
+					{ "Civilization_Era1_Assyria",                  new List<int>() { 142, 226, 149, 124, 228, 205, 206 } }, // Iraq + Steppe
 					{ "Civilization_Era1_HarappanCivilization",     new List<int>() { 207, 147, 145 } }, // Pakistan, North India
 					{ "Civilization_Era1_MycenaeanCivilization",    new List<int>() { 101, 102, 238 } }, // Greece, Balkans, Thrace
 					{ "Civilization_Era1_Nubia",                    new List<int>() { 233, 132, 209, 213 } }, // Sudan, Abyssinian, Ethiopia/Somalia, Central African Republic
@@ -36,7 +36,7 @@ namespace Gedemon.CultureUnlock
 					{ "Civilization_Era2_Goths",                    new List<int>() { 109, 117, 119 } }, // South Sweden, Poland, Ukraine
 					{ "Civilization_Era2_CelticCivilization",       new List<int>() { 24, 19, 20, 21, 22, 96 } }, // France, British islands, NW Spain
 					{ "Civilization_Era2_Carthage",                 new List<int>() { 190, 188, 98, 95 } }, // Carthage, Morroco, Sardaigna, South Spain
-					{ "Civilization_Era2_AncientGreece",            new List<int>() { 101, 102, 238, 103, 118, 100 } }, // Greece, Balkans, Bulgaria/Romania, West Anatolia, South Italy
+					{ "Civilization_Era2_AncientGreece",            new List<int>() { 101, 102, 238, 103, 118 } }, // Greece, Balkans, Bulgaria/Romania, Anatolia
 					{ "Civilization_Era2_AksumiteEmpire",           new List<int>() { 132, 209, 143, 233 } }, // Abyssinia, Ethiopia/Somalia, Sudan, Yemen
 					{ "Civilization_Era3_Vikings",                  new List<int>() { 107, 109, 111, 112, 191, 152, 17, 11 } }, // Norway, Sweden 
 					{ "Civilization_Era3_UmayyadCaliphate",         new List<int>() { 106, 123, 142, 143, 227, 144, 243, 146, 207, 128, 127, 190, 188, 95 } }, // Syria, Weast Anatolia, Iraq, Saudi Arabia, Iran, Afghanistan, Pakistan, Egypt, Libya, Carthage, Morroco, South Spain
@@ -83,17 +83,27 @@ namespace Gedemon.CultureUnlock
 		static readonly IDictionary<string, List<int>> listSlots = new Dictionary<string, List<int>>  // civName, list of player slots (majorEmpire.Index) starting at 0
                 {
 					{ "Civilization_Era1_Assyria", new List<int>() { 6, 7 } },
-					{ "Civilization_Era1_OlmecCivilization", new List<int>() { 8, 9 } }
 				};
 
 		static readonly List<string> firstEraBackup = new List<string> { "Civilization_Era1_Assyria", };
 
 		static readonly List<string> noCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_HittiteEmpire", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire" };
 
+
+		static readonly IDictionary<int, string> continentNames = new Dictionary<int, string>
+				{
+					{ 0, "Oceans"},
+					{ 1, "Americas"},
+					{ 2, "Eurasiafrica"},
+					{ 3, "Australia"},
+					{ 5, "Greenland"},
+				};
+
 		static readonly IDictionary<int, string> territoryNames = new Dictionary<int, string>
 				{
 					{ 0, "Mare Beringianum"},
 					{ 1, "Chatanga"},
+					{ 2, "Flumen Cromwellianum"},
 					{ 3, "Insulae Aleutiae"},
 					{ 4, "Alasca"},
 					{ 5, "Saskatchewan"}, // South Alberta+South Saskatchewan
@@ -131,19 +141,21 @@ namespace Gedemon.CultureUnlock
 					{ 37, "Te Waipounamu"},
 					{ 38, "Cambosia"},
 					{ 39, "Tasmania"},
+					{ 40, "Magnus Sinus Australianus"},
 					{ 41, "Mexicum"},
 					{ 42, "Samoa"},
+					{ 43, "Oceanus Indicus"},
 					{ 44, "Mare Tasmanianum"},
 					{ 45, "Guatemala"}, // Central America
-					{ 46, "Amazonensis"},
-					{ 47, "Aequatoria"},
+					{ 46, "Amazonia"},
+					{ 47, "Peruvia"},
 					{ 48, "Columbia"},
-					{ 49, "Paraensis"}, // North Brazil
+					{ 49, "Caatinga"}, // North Brazil
 					{ 50, "Guiana"},
 					{ 51, "Patagonia"}, // South Chile, Argentina
-					{ 52, "Altiplanus"}, // South Peru / North Chile
-					{ 53, "Bolivia"},
-					{ 54, "Bahiensis"},
+					{ 52, "Atacama"}, // South Peru / North Chile
+					{ 53, "Pantanal"},
+					{ 54, "Brasilia Australis"},
 					{ 55, "Mare Caribaeum"},
 					{ 56, "Florida"},
 					{ 57, "Antillae"},
@@ -165,8 +177,9 @@ namespace Gedemon.CultureUnlock
 					{ 73, "Polynesia Centralis"},
 					{ 74, "Insulae Salomanis"},
 					{ 75, "Polynesia Australis"},
+					{ 76, "Flumen Circumpolare Antarcticum"},
 					{ 77, "Insulae Galapagenses"},
-					{ 78, "Flumen Peruvianum"},
+					{ 78, "Gyrus Pacifici Australis"},
 					{ 79, "Flumen Humboldtianum"},
 					{ 80, "Insulae Bonin"},
 					{ 81, "Insulae Atlanticae Australis"},
@@ -175,6 +188,7 @@ namespace Gedemon.CultureUnlock
 					{ 84, "Polynesia Borealis"},
 					{ 85, "Fretum Drakeanum"},
 					{ 86, "Oceanus Atlanticus Australis"},
+					{ 87, "Flumen Benguelense"},
 					{ 88, "Flumen Aequatoriale Australe"},
 					{ 89, "Mare Sargassum"},
 					{ 90, "Oceanus Atlanticus"},
@@ -186,8 +200,8 @@ namespace Gedemon.CultureUnlock
 					{ 96, "Castella"},
 					{ 97, "Aragonia"},
 					{ 98, "Sardinia"},
-					{ 99, "Langobardia"},
-					{ 100, "Sicilia"},
+					{ 99, "Italia Annonaria"},
+					{ 100, "Italia Suburbicaria"},
 					{ 101, "Graecia"},
 					{ 102, "Illyria"},
 					{ 103, "Dacia"},
@@ -225,9 +239,10 @@ namespace Gedemon.CultureUnlock
 					{ 135, "Madagascaria"},
 					{ 136, "Cape"},
 					{ 137, "Congo"},
+					{ 138, "Flumen Agulhas" },
 					{ 139, "Oceanus Indicus Occidentalis"},
 					{ 140, "Mare Arabicum"},
-					{ 141, "Sri Lanka"},
+					{ 141, "SriLanca"},
 					{ 142, "Mesopotamia"},
 					{ 143, "Hidiazum"},
 					{ 144, "Media"},
@@ -267,6 +282,10 @@ namespace Gedemon.CultureUnlock
 					{ 178, "Borneum"},
 					{ 179, "Casmiria"},
 					{ 180, "Melanesia"},
+					{ 181, "Flumen Australianum Occidentale"},
+					{ 182, "Gyrus Indici"},
+					{ 183, "Archipelagus Crozetense"},
+					{ 184, "Oceanus Indicus Australis"},
 					{ 185, "Oceanus Atlanticus Septentrionalis"},
 					{ 186, "Mare Norvegicum"},
 					{ 187, "Tarim"},
@@ -284,7 +303,7 @@ namespace Gedemon.CultureUnlock
 					{ 199, "Athabasca"}, // North Alberta+North Saskatchewan
 					{ 200, "Dene"}, // Nothwest Territories
 					{ 201, "Laboratoria"},
-					{ 202, "Pampa"},
+					{ 202, "Flumen Argenteum"},
 					{ 203, "Terra Ignium"},
 					{ 204, "Nivata"},
 					{ 205, "Chorasmia"},
@@ -328,13 +347,20 @@ namespace Gedemon.CultureUnlock
 					{ 243, "Persia"},
 					{ 244, "Amdo"},
 					{ 245, "Transoxiana"},
-					{ 246, "Ultima Thule"},
-					//{ 247, ""},
-					//{ 248, ""},
+					{ 246, "Chilia"},
+					{ 247, "Venetiola"},
+					{ 248, "Paraensis"},
+					{ 249, "Flumen Brasiliense"},
+					{ 250, "Ultima Thule"},
+					//{ 251, ""},
+					//{ 252, ""},
+					//{ 253, ""},
+					//{ 254, ""},
+					//{ 255, ""}, // Last Index !
 				};
 
 		public static readonly int knowledgeForBackupCiv = 50;
-		public static readonly List<int> GiantEarthHash = new List<int> { -210494639 /*1.1.0*/, };
+		public static readonly List<int> CompatibleMapHash = new List<int> { 33903987 /*1.1.0*/, };
 
         public static int CurrentMapHash { get; set; } = 0;
 
@@ -398,39 +424,32 @@ namespace Gedemon.CultureUnlock
 		{
 			return territoryNames[territoryIndex];
 		}
-
-		public static bool IsGiantEarthMap()
+		 
+		public static bool ContinentHasName(int continentIndex)
 		{
-			if (WorldPosition.WorldHeight.Equals(94) && WorldPosition.WorldWidth.Equals(180))
+			return continentNames.ContainsKey(continentIndex);
+		}
+
+		public static string GetContinentName(int continentIndex)
+		{
+			return continentNames[continentIndex];
+		}
+
+		public static bool UseTrueCultureLocation()
+		{
+			if (IsCompatibleMap() && TrueCultureLocation.IsEnabled())
 			{
-				if (GiantEarthHash.Contains(CurrentMapHash))
-				{
-					return true;
-				}
+				return true;
 			}
 			return false;
 		}
-		public static void CalculateCurrentMapHash()
+		public static bool IsCompatibleMap()
 		{
-			Diagnostics.Log($"[Gedemon] Current Map Hash = {CurrentMapHash}");
-
-			int num = Amplitude.Mercury.Sandbox.Sandbox.World.Territories.Length;
-
-			string mapString = "";
-
-			for (int i = 0; i < num; i++)
+			if (CompatibleMapHash.Contains(CurrentMapHash))
 			{
-				Territory territory = Amplitude.Mercury.Sandbox.Sandbox.World.Territories[i];
-				int numTiles = territory.TileIndexes.Length;
-				//Diagnostics.Log($"[Gedemon] Building Map String, territory[{i}] = {numTiles}");
-				mapString += numTiles.ToString()+",";
+				return true;
 			}
-
-			CurrentMapHash = mapString.GetHashCode();
-
-			Diagnostics.LogError($"[Gedemon] Calculated Current Map Hash = {CurrentMapHash}");
-
-			LogTerritoryStats();
+			return false;
 		}
 
 		public static void LogTerritoryStats()
