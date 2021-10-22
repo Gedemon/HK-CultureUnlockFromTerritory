@@ -9,7 +9,7 @@ namespace Gedemon.TrueCultureLocation
 {
 
 	[HarmonyPatch(typeof(FactionCard))]
-	public class CultureUnlockFactionCard
+	public class TCL_FactionCard
 	{
 
 		[HarmonyPostfix]

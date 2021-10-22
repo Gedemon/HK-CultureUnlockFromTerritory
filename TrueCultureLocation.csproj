@@ -43,12 +43,22 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\publicized_assemblies\Amplitude.Framework.dll</HintPath>
     </Reference>
+    <Reference Include="Amplitude.Graphics">
+      <HintPath>..\..\..\publicized_assemblies\Amplitude.Graphics.dll</HintPath>
+    </Reference>
     <Reference Include="Amplitude.Mercury.Data, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.Data.dll</HintPath>
     </Reference>
     <Reference Include="Amplitude.Mercury.Firstpass">
       <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.Firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="Amplitude.Mercury.Fx">
+      <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.Fx.dll</HintPath>
+    </Reference>
+    <Reference Include="Amplitude.Mercury.Terrain, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.Terrain.dll</HintPath>
     </Reference>
     <Reference Include="Amplitude.Mercury.WorldGenerator, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -87,16 +97,20 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TrueCultureLocationOptionManagerPatch.cs" />
+    <Compile Include="Amplitude.Framework\OptionManagerPatch.cs" />
+    <Compile Include="Amplitude.Mercury.Firstpass\DepartmentOfDefensePatch.cs" />
+    <Compile Include="Assembly-CSharp\GamePatch.cs" />
+    <Compile Include="Amplitude.Mercury.Firstpass\MajorEmpirePatch.cs" />
+    <Compile Include="CultureUnlock.cs" />
+    <Compile Include="Amplitude.Mercury.Firstpass\CivilizationsManagerPatch.cs" />
+    <Compile Include="Amplitude.Mercury.Firstpass\CollectibleManagerPatch.cs" />
+    <Compile Include="Amplitude.Mercury.Firstpass\DepartmentOfDevelopmentPatch.cs" />
+    <Compile Include="Assembly-CSharp\FactionCardPatch.cs" />
     <Compile Include="TrueCultureLocation.cs" />
-    <Compile Include="TrueCultureLocationCivilizationsManagerPatch.cs" />
-    <Compile Include="TrueCultureLocationCollectibleManagerPatch.cs" />
-    <Compile Include="TrueCultureLocationDepartmentOfDevelopmentPatch.cs" />
-    <Compile Include="TrueCultureLocationFactionCardPatch.cs" />
-    <Compile Include="TrueCultureLocationBePinEx.cs" />
-    <Compile Include="TrueCultureLocationWorldPatch.cs" />
+    <Compile Include="Amplitude.Mercury.Firstpass\WorldPatch.cs" />
     <Compile Include="HumankindModTool\GameOptionHelper.cs" />
     <Compile Include="HumankindModTool\GameOptionInfo.cs" />
     <Compile Include="HumankindModTool\GameOptionStateInfo.cs" />

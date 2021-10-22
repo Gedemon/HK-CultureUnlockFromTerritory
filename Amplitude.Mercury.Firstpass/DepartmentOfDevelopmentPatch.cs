@@ -8,17 +8,21 @@ using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Sandbox;
 using FailureFlags = Amplitude.Mercury.Simulation.FailureFlags;
 using Amplitude.Framework;
+using HumankindModTool;
 
 namespace Gedemon.TrueCultureLocation
 {
 
 	[HarmonyPatch(typeof(DepartmentOfDevelopment))]
-	public class CultureUnlockDepartmentOfDevelopment
+	public class TCL_DepartmentOfDevelopment
 	{
 		[HarmonyPrefix]
 		[HarmonyPatch(nameof(ApplyFactionChange))]
 		public static void ApplyFactionChange(DepartmentOfDevelopment __instance)
 		{
+			Diagnostics.LogError($"[Gedemon] in ApplyFactionChange, {__instance.majorEmpire.PersonaName} is changing faction from  {__instance.majorEmpire.FactionDefinition.Name} to {__instance.nextFactionName}");
+			Diagnostics.Log($"[Gedemon] UseTrueCultureLocation() = {CultureUnlock.UseTrueCultureLocation()}, KeepOnlyCultureTerritory =  {TrueCultureLocation.KeepOnlyCultureTerritory()},  KeepTerritoryAttached = {TrueCultureLocation.KeepTerritoryAttached()}, NoTerritoryLossForAI = {TrueCultureLocation.NoTerritoryLossForAI()}, TerritoryLossOption = {GameOptionHelper.GetGameOption(TrueCultureLocation.TerritoryLossOption)}");
+
 			if (CultureUnlock.UseTrueCultureLocation())
 			{
 				IDictionary<Settlement, List<int>> territoryToDetachAndCreate = new Dictionary<Settlement, List<int>>();
@@ -40,7 +44,6 @@ namespace Gedemon.TrueCultureLocation
 				// Territory check on Culture Change after Neolithic
 				if (majorEmpire.DepartmentOfDevelopment.CurrentEraIndex != 0 && majorEmpire.FactionDefinition.Name != nextFactionName && keepOnlyCultureTerritory)
 				{
-					Diagnostics.LogWarning($"[Gedemon] in ApplyFactionChange, {majorEmpire.PersonaName} is changing faction from  {majorEmpire.FactionDefinition.Name} to {nextFactionName}");
 
 					// relocate capital first, if needed
 					Settlement Capital = majorEmpire.Capital;
@@ -345,46 +348,7 @@ namespace Gedemon.TrueCultureLocation
 				}
 				//*/
 
-				/*
-				IDatabase<FactionDefinition> database2 = Databases.GetDatabase<FactionDefinition>();
-				foreach (FactionDefinition faction in database2)
-				{
-					Diagnostics.LogWarning($"[Gedemon] FactionDefinition {faction.name} {faction.Name} ");
-					foreach (string settlementName in faction.LocalizedSettlementNames)
-					{
-						Diagnostics.LogWarning($"[Gedemon] settlementName {settlementName}");
-					}
-				}
-				*/
-
-				/*
-				List<EmpireStabilityDefinition> list = new List<EmpireStabilityDefinition>();
-				int num = stabilityDefinitions.Length;
-				for (int i = 0; i < num; i++)
-				{
-					EmpireStabilityDefinition empireStabilityDefinition = stabilityDefinitions[i];
-					if (empireStabilityDefinition.RangeMin > empireStabilityDefinition.RangeMax)
-					{
-						Diagnostics.LogError("The stability defintion '{0}' have a min range value higher than the max range value.", empireStabilityDefinition.Name);
-					}
-					list.Add(empireStabilityDefinition);
-				}
-				//*/
-
-				/*
-				IDatabase<PublicOrderEffectDefinition> database2 = Databases.GetDatabase<PublicOrderEffectDefinition>();
-				foreach (PublicOrderEffectDefinition data in database2)
-				{
-					Diagnostics.LogWarning($"[Gedemon] PublicOrderEffectDefinition {data.name} {data.Name} ");
-					Diagnostics.Log($"[Gedemon] RangeMax = {data.PublicOrderRangeMax}, RangeMaxType = {data.RangeMaxType} ");
-					Diagnostics.Log($"[Gedemon] RangeMin = {data.PublicOrderRangeMin}, RangeMinType = {data.RangeMinType} ");
-					Diagnostics.Log($"[Gedemon] XmlSerializableName = {data.XmlSerializableName}, GenerateSettlementCrisis = {data.GenerateSettlementCrisis}");
-					//data.
-				}
-				//*/
-
-
-				// to refresh culture symbol in UI
+				// hack to refresh culture symbol in UI
 				Sandbox.EmpireNamesRepository.SandboxStarted_InitializeEmpireNames(SimulationPasses.PassContext.OrderProcessed, "EmpireNamesRepository_RefreshEmpireNames");
 			}
 		}
@@ -405,7 +369,7 @@ namespace Gedemon.TrueCultureLocation
 				bool lockedByTerritory = true;
 				bool lockedByStartingSlot = true;
 
-				Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} (ID={majorEmpire.Index}, EraStars ={majorEmpire.EraStarsCount.Value}/{majorEmpire.DepartmentOfDevelopment.CurrentEraStarRequirement}, knw={majorEmpire.KnowledgeStock.Value}, pop={majorEmpire.SumOfPopulationAndUnits.Value}) from {majorEmpire.FactionDefinition.Name} check to unlock {factionDefinition.Name}");
+				//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} (ID={majorEmpire.Index}, EraStars ={majorEmpire.EraStarsCount.Value}/{majorEmpire.DepartmentOfDevelopment.CurrentEraStarRequirement}, knw={majorEmpire.KnowledgeStock.Value}, pop={majorEmpire.SumOfPopulationAndUnits.Value}) from {majorEmpire.FactionDefinition.Name} check to unlock {factionDefinition.Name}");
 
 				string civilizationName = factionDefinition.Name.ToString();
 				if (CultureUnlock.HasTerritory(civilizationName))
@@ -426,13 +390,13 @@ namespace Gedemon.TrueCultureLocation
 							{
 								if (validSettlement)
 								{
-									Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Territory unlock for {factionDefinition.Name} from Territory ID = {territory.Index}");
+									//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Territory unlock for {factionDefinition.Name} from Territory ID = {territory.Index}");
 									lockedByTerritory = false;
 									break;
 								}
 								else
 								{
-									Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Territory for {factionDefinition.Name} from Territory ID = {territory.Index}, but is invalid ({settlement.SettlementStatus}, nextEraID = {majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1}, cityRequiredAtEraID = {TrueCultureLocation.GetEraIndexCityRequiredForUnlock()}) ");
+									//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Territory for {factionDefinition.Name} from Territory ID = {territory.Index}, but is invalid ({settlement.SettlementStatus}, nextEraID = {majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1}, cityRequiredAtEraID = {TrueCultureLocation.GetEraIndexCityRequiredForUnlock()}) ");
 								}
 							}
 						}
@@ -473,7 +437,7 @@ namespace Gedemon.TrueCultureLocation
 
 						if (territoriesLost > territoriesCount * 0.5)
 						{
-							Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, AI limitation from territory loss = {territoriesLost} / {territoriesCount}");
+							//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, AI limitation from territory loss = {territoriesLost} / {territoriesCount}");
 							lockedByTerritory = true;
 						}
 					}
@@ -482,7 +446,7 @@ namespace Gedemon.TrueCultureLocation
 				if (CultureUnlock.IsUnlockedByPlayerSlot(civilizationName, majorEmpire.Index))
 				{
 					lockedByStartingSlot = false;
-					Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Starting Slot unlock for {factionDefinition.Name} from majorEmpire.Index = {majorEmpire.Index}");
+					//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Starting Slot unlock for {factionDefinition.Name} from majorEmpire.Index = {majorEmpire.Index}");
 				}
 
 				if (lockedByTerritory && lockedByStartingSlot)
@@ -515,12 +479,12 @@ namespace Gedemon.TrueCultureLocation
 			{
 				if (CultureUnlock.UseTrueCultureLocation() && CultureUnlock.HasNoCapitalTerritory(nextFactionName.ToString()))
 				{
-					Diagnostics.Log($"[Gedemon] in LockedByYou check, nextFactionName = {nextFactionName}, factionDefinition.Name = {factionDefinition.Name}, factionStatus = {factionStatus}");
+					//Diagnostics.Log($"[Gedemon] in LockedByYou check, nextFactionName = {nextFactionName}, factionDefinition.Name = {factionDefinition.Name}, factionStatus = {factionStatus}");
 				}
 				else
 				{
 					factionStatus = ((!(factionDefinition.Name == nextFactionName)) ? (factionStatus | FactionStatus.LockedByEra) : (factionStatus | FactionStatus.LockedByYou));
-					Diagnostics.Log($"[Gedemon] in LockedByYou check, nextFactionName = {nextFactionName}, factionDefinition.Name = {factionDefinition.Name}, factionStatus = {factionStatus}");
+					//Diagnostics.Log($"[Gedemon] in LockedByYou check, nextFactionName = {nextFactionName}, factionDefinition.Name = {factionDefinition.Name}, factionStatus = {factionStatus}");
 				}
 			}
 			else
@@ -572,26 +536,12 @@ namespace Gedemon.TrueCultureLocation
 				}
 			}
 			/* Gedemon <<<<< */
-			Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} faction status for {factionDefinition.Name} is {factionStatus}");
+			//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} faction status for {factionDefinition.Name} is {factionStatus}");
 			/* Gedemon >>>>> */
 			__result = factionStatus;
 			return false;
 		}
 
-		/*
-		[HarmonyPrefix]
-		[HarmonyPatch(nameof(Load))]
-		public static bool Load(DepartmentOfDevelopment __instance)
-		{
-			if(__instance.Empire.Index == 0)
-            {
-				Diagnostics.LogWarning($"[Gedemon] in DepartmentOfDevelopment, Load");
-				CultureUnlock.CalculateCurrentMapHash(true);
-			}
-
-			return true;
-		}
-		//*/
 	}
 
 }
