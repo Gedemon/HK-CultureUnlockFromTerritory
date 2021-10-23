@@ -43,14 +43,14 @@ namespace Gedemon.TrueCultureLocation
 				DepartmentOfTheInterior.AttachSettlementToEmpire(settlement, __instance);
 
 
-				Diagnostics.LogWarning($"[Gedemon] before AttachSettlementToEmpire");
+				//Diagnostics.LogWarning($"[Gedemon] before AttachSettlementToEmpire");
 				//__instance.DepartmentOfTheInterior.CreateRegion(settlement);
 				//
-				Diagnostics.LogWarning($"[Gedemon] beforeSimulationController.AllocateSimulationEntity<Region>");
+				//Diagnostics.LogWarning($"[Gedemon] beforeSimulationController.AllocateSimulationEntity<Region>");
 				Region region = Amplitude.Framework.Simulation.SimulationController.AllocateSimulationEntity<Region>();
 				region.SurroundingTerritories.Count = 0;
 				region.Settlement.SetEntity(settlement);
-				Diagnostics.LogWarning($"[Gedemon] before Regions.Add(region)");
+				//Diagnostics.LogWarning($"[Gedemon] before Regions.Add(region)");
 				Amplitude.Mercury.Sandbox.Sandbox.World.Regions.Add(region);
 				settlement.Region.SetEntity(region);
 				//
@@ -88,30 +88,30 @@ namespace Gedemon.TrueCultureLocation
 				{
 					byte b = (byte)settlement.Empire.Entity.Index;
 					Region entity2 = settlement.Region.Entity;
-					Diagnostics.LogWarning($"[Gedemon] before TerritoryInfo");
+					//Diagnostics.LogWarning($"[Gedemon] before TerritoryInfo");
 					ref Amplitude.Mercury.Interop.TerritoryInfo reference3 = ref Amplitude.Mercury.Sandbox.Sandbox.World.TerritoryInfo.Data[territoryIndex];
 					int num4 = (reference3.Claimed ? reference3.EmpireIndex : (-1));
 					reference3.SettlementGUID = settlement.GUID;
 					reference3.SettlementIndex = settlement.PoolAllocationIndex;
-					Diagnostics.LogWarning($"[Gedemon] before PrimaryColor");
+					//Diagnostics.LogWarning($"[Gedemon] before PrimaryColor");
 					reference3.EmpireColor = Amplitude.Mercury.Sandbox.Sandbox.Empires[b].PrimaryColor;
 					reference3.EmpireIndex = b;
 					reference3.RegionGUID = entity2.GUID;
 					reference3.IsOwnedByCity = settlement.SettlementStatus == SettlementStatuses.City;
 					reference3.Claimed = true;
-					Diagnostics.LogWarning($"[Gedemon] before Frame");
+					//Diagnostics.LogWarning($"[Gedemon] before Frame");
 					Sandbox.World.TerritoryInfo.Frame = Amplitude.Mercury.Sandbox.Sandbox.Frame;
-					Diagnostics.LogWarning($"[Gedemon] before World.Territories");
+					//Diagnostics.LogWarning($"[Gedemon] before World.Territories");
 					Amplitude.Mercury.Simulation.Territory territory2 = Sandbox.World.Territories[territoryIndex];
-					Diagnostics.LogWarning($"[Gedemon] before SetEntity");
+					//Diagnostics.LogWarning($"[Gedemon] before SetEntity");
 					territory2.Region.SetEntity(entity2);
 					if (b != num4)
 					{
-						Diagnostics.LogWarning($"[Gedemon] before CultureManager.OnTerritoryOwnerChanged");
+						//Diagnostics.LogWarning($"[Gedemon] before CultureManager.OnTerritoryOwnerChanged");
 						Amplitude.Mercury.Sandbox.Sandbox.CultureManager.OnTerritoryOwnerChanged(territoryIndex, num4, b);
-						Diagnostics.LogWarning($"[Gedemon] before ReligionManager.OnTerritoryOwnerChanged");
+						//Diagnostics.LogWarning($"[Gedemon] before ReligionManager.OnTerritoryOwnerChanged");
 						Amplitude.Mercury.Sandbox.Sandbox.ReligionManager.OnTerritoryOwnerChanged(territoryIndex, num4, b);
-						Diagnostics.LogWarning($"[Gedemon] before SimulationEvent_TerritoryOwnerChanged Sandbox.World = {Sandbox.World},  territoryIndex = {territoryIndex} num4 = {num4} b = {b}");
+						//Diagnostics.LogWarning($"[Gedemon] before SimulationEvent_TerritoryOwnerChanged Sandbox.World = {Sandbox.World},  territoryIndex = {territoryIndex} num4 = {num4} b = {b}");
 						//SimulationEvent_TerritoryOwnerChanged.Raise(Sandbox.World, territoryIndex, num4, b);
 						//ControlAreaManager.cs
 						{
@@ -126,19 +126,19 @@ namespace Gedemon.TrueCultureLocation
 							}
 							if (num4 >= 0 || num5 >= 0)
 							{
-								Diagnostics.LogWarning($"[Gedemon] before Sandbox.ControlAreaManager.areaIndicesPerTerritory {Sandbox.ControlAreaManager}, {Sandbox.ControlAreaManager.areaIndicesPerTerritory}");
+								//Diagnostics.LogWarning($"[Gedemon] before Sandbox.ControlAreaManager.areaIndicesPerTerritory {Sandbox.ControlAreaManager}, {Sandbox.ControlAreaManager.areaIndicesPerTerritory}");
 								//
 								if (Sandbox.ControlAreaManager.areaIndicesPerTerritory != null)
 								{
 
-									Diagnostics.LogWarning($"[Gedemon] not null !");
+									//Diagnostics.LogWarning($"[Gedemon] not null !");
 									ControlAreaManager.AreaIndexWithProvider[] array = Sandbox.ControlAreaManager.areaIndicesPerTerritory[territoryIndex];
 									int num6 = array.Length;
 									for (int i = 0; i < num6; i++)
 									{
 										ControlAreaManager.AreaIndexWithProvider areaIndexWithProvider = array[i];
 										int areaIndex = areaIndexWithProvider.AreaIndex;
-										Diagnostics.LogWarning($"[Gedemon] before ControlAreaInfo.GetReferenceAt");
+										//Diagnostics.LogWarning($"[Gedemon] before ControlAreaInfo.GetReferenceAt");
 										ref ControlAreaInfo referenceAt = ref Sandbox.ControlAreaManager.ControlAreaInfo.GetReferenceAt(areaIndex);
 										if (num4 >= 0)
 										{
@@ -158,7 +158,7 @@ namespace Gedemon.TrueCultureLocation
 												areaIndexWithProvider.Provider.AreaOwnedBy(areaIndex, referenceAt.AssociatedInfoIndex, num5);
 											}
 										}
-										Diagnostics.LogWarning($"[Gedemon] before ControlAreaInfo.SetSynchronizationDirty");
+										//Diagnostics.LogWarning($"[Gedemon] before ControlAreaInfo.SetSynchronizationDirty");
 										Sandbox.ControlAreaManager.ControlAreaInfo.SetSynchronizationDirty();
 									}
 								}
@@ -184,21 +184,21 @@ namespace Gedemon.TrueCultureLocation
 						//
 						if (Sandbox.World.IsContinentOwnedByEmpire(territory2.ContinentIndex, b))
 						{
-							Diagnostics.LogWarning($"[Gedemon] before SimulationEvent_ContinentConquered");
+							//Diagnostics.LogWarning($"[Gedemon] before SimulationEvent_ContinentConquered");
 							SimulationEvent_ContinentConquered.Raise(Sandbox.World, territory2.ContinentIndex, b);
 						}
 					}
 				}
-				Diagnostics.LogWarning($"[Gedemon] after ClaimTerritory");
+				//Diagnostics.LogWarning($"[Gedemon] after ClaimTerritory");
 
 
 				//int num = worldPosition.ToTileIndex();
 				//int territoryIndex = Amplitude.Mercury.Sandbox.Sandbox.World.TileInfo.Data[num].TerritoryIndex;
 				ref Amplitude.Mercury.Interop.TerritoryInfo reference = ref Amplitude.Mercury.Sandbox.Sandbox.World.TerritoryInfo.Data[territoryIndex];
 				settlement.EntityName.LocalizationKey = reference.LocalizedName;
-				Diagnostics.LogWarning($"[Gedemon] before GatherAdjacentSettlements");
+				//Diagnostics.LogWarning($"[Gedemon] before GatherAdjacentSettlements");
 				DepartmentOfTheInterior.GatherAdjacentSettlements(settlement);
-				Diagnostics.LogWarning($"[Gedemon] before GatherTerritoryDistricts");
+				//Diagnostics.LogWarning($"[Gedemon] before GatherTerritoryDistricts");
 				__instance.DepartmentOfTheInterior.GatherTerritoryDistricts(settlement);
 				if (isImmediate)
 				{
@@ -225,7 +225,7 @@ namespace Gedemon.TrueCultureLocation
 					__instance.DepartmentOfTheInterior.UpdateAdministrativeCenter(district);
 					DepartmentOfTheInterior.UpdateDistrictsAfterSettlementCreation(settlement);
 				}
-				Diagnostics.LogWarning($"[Gedemon] before InitializeArmiesCollection");
+				//Diagnostics.LogWarning($"[Gedemon] before InitializeArmiesCollection");
 				DepartmentOfTheInterior.InitializeArmiesCollection(settlement);
 				if (isImmediate)
 				{
@@ -240,9 +240,9 @@ namespace Gedemon.TrueCultureLocation
 						__instance.SetMiscFlags(EmpireMiscFlags.HasAlreadyFoundACamp, set: true);
 					}
 				}
-				Diagnostics.LogWarning($"[Gedemon] before SimulationEvent_SettlementOwnerChanged");
+				//Diagnostics.LogWarning($"[Gedemon] before SimulationEvent_SettlementOwnerChanged");
 				SimulationEvent_SettlementOwnerChanged.Raise(__instance.DepartmentOfTheInterior, settlement, -1);
-				Diagnostics.LogWarning($"[Gedemon] after SimulationEvent_SettlementOwnerChanged");
+				//Diagnostics.LogWarning($"[Gedemon] after SimulationEvent_SettlementOwnerChanged");
 				if (__instance != null)
 				{
 					__instance.DepartmentOfCommunication.Notify(new Amplitude.Mercury.Interop.NewSettlementCreatedNotificationData
@@ -256,7 +256,6 @@ namespace Gedemon.TrueCultureLocation
 				//Amplitude.Mercury.Sandbox.Sandbox.Empires[__instance.Index].DepartmentOfTheInterior.CreateCampAt(SimulationEntityGUID.Zero, worldPosition, FixedPoint.Zero, true);
 				//__instance.DepartmentOfTheInterior.CreateCampAt(SimulationEntityGUID.Zero, startPosition, FixedPoint.Zero, false);
 			}
-
 
 		}
 		//*/
@@ -309,12 +308,12 @@ namespace Gedemon.TrueCultureLocation
 							}
 						}
 					}
-					if (!foundFaction)
-					{
-						Diagnostics.Log($"[Gedemon] no faction found, aborting...");
-						//__instance.RemoveMinorEmpire(minorEmpire);
-						return false;
-					}
+				}
+				if (!foundFaction)
+				{
+					Diagnostics.Log($"[Gedemon] no faction found, aborting...");
+					//__instance.RemoveMinorEmpire(minorEmpire);
+					return false;
 				}
 
 				// original method
@@ -489,7 +488,5 @@ namespace Gedemon.TrueCultureLocation
 	}
 	//*/
 
-
-	//
 
 }

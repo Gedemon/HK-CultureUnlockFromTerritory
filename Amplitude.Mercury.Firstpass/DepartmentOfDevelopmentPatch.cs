@@ -25,234 +25,48 @@ namespace Gedemon.TrueCultureLocation
 
 			if (CultureUnlock.UseTrueCultureLocation())
 			{
-				IDictionary<Settlement, List<int>> territoryToDetachAndCreate = new Dictionary<Settlement, List<int>>();
-				IDictionary<Settlement, List<int>> territoryToDetachAndFree = new Dictionary<Settlement, List<int>>();
-				List<Settlement> settlementToLiberate = new List<Settlement>();
-				List<Settlement> settlementToFree = new List<Settlement>();
+				IDictionary<Settlement, List<int>> territoryToDetachAndCreate = new Dictionary<Settlement, List<int>>();	// Territories attached to a City that we want to detach and keep separated because the city is going to be lost
+				IDictionary<Settlement, List<int>> territoryToDetachAndFree = new Dictionary<Settlement, List<int>>();      // Territories attached to a City that we want to detach because they are going to be lost, but not the city
+				List<Settlement> settlementToLiberate = new List<Settlement>();												// Full Settlements (including a City or being a single-territory City) that are lost
+				List<Settlement> settlementToFree = new List<Settlement>();													// Single Settlement (not a city) that are lost
 
 				MajorEmpire majorEmpire = __instance.majorEmpire;
+				MajorEmpire oldEmpire = null;
 				StaticString nextFactionName = __instance.nextFactionName;
+				Settlement capital = __instance.majorEmpire.Capital;
+				Settlement potentialCapital;// = capital;
 
-				bool keepOnlyCultureTerritory = TrueCultureLocation.KeepOnlyCultureTerritory();
-				bool keepTerritoryAttached = TrueCultureLocation.KeepTerritoryAttached();
+				bool useMajorEmpire = false;
+				bool capitalChanged = CultureChange.GetTerritoryChangesOnEvolve(__instance, out potentialCapital, ref territoryToDetachAndCreate, ref territoryToDetachAndFree, ref settlementToLiberate, ref settlementToFree);
 
-				if ((!majorEmpire.IsControlledByHuman) && TrueCultureLocation.NoTerritoryLossForAI())
+				Diagnostics.LogWarning($"[Gedemon] territoryToDetachAndCreate.Count = {territoryToDetachAndCreate.Count}, territoryToDetachAndFree.Count = {territoryToDetachAndFree.Count}, settlementToLiberate.Count = {settlementToLiberate.Count}, settlementToFree.Count = {settlementToFree.Count}.");
+				if (settlementToLiberate.Count > 0)
 				{
-					keepOnlyCultureTerritory = false;
+					useMajorEmpire = CultureChange.TryInitializeFreeMajorEmpireToReplace(majorEmpire, out oldEmpire);
 				}
 
-				// Territory check on Culture Change after Neolithic
-				if (majorEmpire.DepartmentOfDevelopment.CurrentEraIndex != 0 && majorEmpire.FactionDefinition.Name != nextFactionName && keepOnlyCultureTerritory)
-				{
-
-					// relocate capital first, if needed
-					Settlement Capital = majorEmpire.Capital;
-					District capitalMainDistrict = Capital.GetMainDistrict();
-					bool needNewCapital = !CultureUnlock.HasTerritory(nextFactionName.ToString(), capitalMainDistrict.Territory.Entity.Index);
-
-					if (needNewCapital && keepTerritoryAttached)
-					{
-						int count2 = Capital.Region.Entity.Territories.Count;
-						for (int k = 0; k < count2; k++)
-						{
-							Territory territory = Capital.Region.Entity.Territories[k];
-							if (CultureUnlock.HasTerritory(nextFactionName.ToString(), territory.Index))
-							{
-								needNewCapital = false;
-								break;
-							}
-						}
+				if (capitalChanged)
+                {
+					int territoryIndex = potentialCapital.GetMainDistrict().Territory.Entity.Index;
+					Diagnostics.LogWarning($"[Gedemon] {potentialCapital.SettlementStatus} {potentialCapital.EntityName} : try to set City as Capital in territory #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)}).");
+					if (potentialCapital.SettlementStatus != SettlementStatuses.City)
+                    {
+						majorEmpire.DepartmentOfTheInterior.CreateCityAt(majorEmpire.GUID, potentialCapital.GetMainDistrict().WorldPosition);
 					}
-
-					if (needNewCapital)
-					{
-						// need to find new Capital !
-						Diagnostics.LogWarning($"[Gedemon] {Capital.SettlementStatus} {Capital.EntityName} : Is Capital, need to find new Capital.");
-
-						// check existing settlements first
-						int count4 = majorEmpire.Settlements.Count;
-						for (int m = 0; m < count4; m++)
-						{
-							Settlement potentialCapital = majorEmpire.Settlements[m];
-							if (potentialCapital.SettlementStatus == SettlementStatuses.City)
-							{
-								District potentialDistrict = potentialCapital.GetMainDistrict();
-								if (CultureUnlock.HasTerritory(nextFactionName.ToString(), potentialDistrict.Territory.Entity.Index))
-								{
-									Diagnostics.LogWarning($"[Gedemon] {potentialCapital.SettlementStatus} {potentialCapital.EntityName} : try to set City as Capital in territory {potentialDistrict.Territory.Entity.Index}.");
-									majorEmpire.DepartmentOfTheInterior.SetCapital(potentialCapital, set: true);
-									majorEmpire.TurnWhenLastCapitalChanged = SandboxManager.Sandbox.Turn;
-									majorEmpire.CapturedCapital.SetEntity(null);
-									SimulationEvent_CapitalChanged.Raise(__instance, potentialCapital, Capital);
-									needNewCapital = false;
-								}
-							}
-						}
-
-						if (needNewCapital)
-						{
-							int count5 = majorEmpire.Settlements.Count;
-							for (int n = 0; n < count5; n++)
-							{
-								Settlement potentialCapital = majorEmpire.Settlements[n];
-								if (potentialCapital.SettlementStatus != SettlementStatuses.City)
-								{
-									District potentialDistrict = potentialCapital.GetMainDistrict();
-									if (CultureUnlock.HasTerritory(nextFactionName.ToString(), potentialDistrict.Territory.Entity.Index))
-									{
-										Diagnostics.LogWarning($"[Gedemon] {potentialCapital.SettlementStatus} {potentialCapital.EntityName} : try to Create new Capital in territory {potentialDistrict.Territory.Entity.Index}.");
-
-										Settlement newCapital = majorEmpire.DepartmentOfTheInterior.CreateCityAt(majorEmpire.GUID, potentialDistrict.WorldPosition);
-
-										majorEmpire.DepartmentOfTheInterior.SetCapital(newCapital, set: true);
-										majorEmpire.TurnWhenLastCapitalChanged = SandboxManager.Sandbox.Turn;
-										majorEmpire.CapturedCapital.SetEntity(null);
-										SimulationEvent_CapitalChanged.Raise(__instance, newCapital, Capital);
-										needNewCapital = false;
-									}
-								}
-							}
-						}
-					}
-
-					int count = majorEmpire.Settlements.Count;
-					for (int j = 0; j < count; j++)
-					{
-						Settlement settlement = majorEmpire.Settlements[j];
-
-						bool hasTerritoryFromNewCulture = false;
-
-						int count2 = settlement.Region.Entity.Territories.Count;
-						for (int k = 0; k < count2; k++)
-						{
-							Territory territory = settlement.Region.Entity.Territories[k];
-							if (CultureUnlock.HasTerritory(nextFactionName.ToString(), territory.Index))
-								hasTerritoryFromNewCulture = true;
-						}
-
-						//settlement.PublicOrderCurrent.Value
-
-						bool keepSettlement = hasTerritoryFromNewCulture && keepTerritoryAttached;
-
-						if (!keepSettlement)
-						{
-							if (settlement.SettlementStatus == SettlementStatuses.City)
-							{
-								District mainDistrict = settlement.GetMainDistrict();
-
-								bool giveSettlement = !CultureUnlock.HasTerritory(nextFactionName.ToString(), mainDistrict.Territory.Entity.Index);
-
-								Diagnostics.LogWarning($"[Gedemon] Settlement ID#{j}: City {settlement.EntityName} territories, give city = {giveSettlement}");
-
-								for (int k = 0; k < count2; k++)
-								{
-									Territory territory = settlement.Region.Entity.Territories[(count2 - 1) - k]; // start from last to avoid "CannotDetachConnectorTerritory"
-									if (territory.Index != mainDistrict.Territory.Entity.Index)
-									{
-										if (CultureUnlock.HasTerritory(nextFactionName.ToString(), territory.Index))
-										{
-											if (giveSettlement)
-											{
-												FailureFlags flag = majorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement);
-												if (flag == FailureFlags.None || flag == FailureFlags.CannotDetachConnectorTerritory)
-												{
-													Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Try to detach and create for territory index = {territory.Index}, is in new Culture Territory but loosing City");
-
-													if (territoryToDetachAndCreate.ContainsKey(settlement))
-													{
-														territoryToDetachAndCreate[settlement].Add(territory.Index);
-													}
-													else
-													{
-														territoryToDetachAndCreate.Add(settlement, new List<int> { territory.Index });
-													}
-												}
-												else
-												{
-													Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : FAILED to detach and create for territory index = {territory.Index}, {majorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement)}, is new Culture Territory but loosing city");
-												}
-											}
-											else
-											{
-												Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : No change for territory index = {territory.Index}, is in new Culture Territory and keeping City");
-											}
-										}
-										else
-										{
-											if (!giveSettlement)
-											{
-												FailureFlags flag = majorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement);
-												if (flag == FailureFlags.None || flag == FailureFlags.CannotDetachConnectorTerritory)
-												{
-													Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Try to detach for territory index = {territory.Index}, not in new Culture Territory and keeping city");
-
-													if (territoryToDetachAndFree.ContainsKey(settlement))
-													{
-														territoryToDetachAndFree[settlement].Add(territory.Index);
-													}
-													else
-													{
-														territoryToDetachAndFree.Add(settlement, new List<int> { territory.Index });
-													}
-												}
-												else
-												{
-													Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : FAILED to detach for territory index = {territory.Index}, {majorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement)}, not in new Culture Territory and keeping city");
-												}
-											}
-											else
-											{
-												Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : No change for territory index = {territory.Index}, not in new Culture Territory, as is city");
-											}
-
-										}
-									}
-								}
-								if (giveSettlement)
-								{
-									if (DepartmentOfTheInterior.CanLiberateSettlement(majorEmpire, settlement) == FailureFlags.None)
-									{
-										Diagnostics.LogWarning($"[Gedemon] City {settlement.EntityName} : Try to Liberate");
-										settlementToLiberate.Add(settlement);
-									}
-									else
-									{
-										Diagnostics.LogWarning($"[Gedemon] City {settlement.EntityName} : Can't Liberate ({DepartmentOfTheInterior.CanLiberateSettlement(majorEmpire, settlement)}), try to Free if new capital was found (need capital = {needNewCapital})");
-										if (!needNewCapital)
-										{
-											settlementToFree.Add(settlement);
-										}
-									}
-								}
-							}
-							else
-							{
-								Diagnostics.LogWarning($"[Gedemon] Settlement ID#{j}: Check {settlement.SettlementStatus} {settlement.EntityName} territory");
-
-								if (settlement.SettlementStatus != SettlementStatuses.None)
-								{
-									Territory territory = settlement.Region.Entity.Territories[0];
-									if (!CultureUnlock.HasTerritory(nextFactionName.ToString(), territory.Index))
-									{
-										Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Try to free for territory index = {territory.Index}, not city, not in new Culture Territory");
-										settlementToFree.Add(settlement);
-									}
-									else
-									{
-										Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : No change for territory index = {territory.Index}, not city, is in new Culture Territory");
-									}
-								}
-							}
-						}
-					}
+					majorEmpire.DepartmentOfTheInterior.SetCapital(potentialCapital, set: true);
+					majorEmpire.TurnWhenLastCapitalChanged = SandboxManager.Sandbox.Turn;
+					majorEmpire.CapturedCapital.SetEntity(null);
+					SimulationEvent_CapitalChanged.Raise(__instance, potentialCapital, capital);
 				}
 
 				int influenceRefund = 0;
+				MinorEmpire rebelFaction = null;
 
 				foreach (KeyValuePair<Settlement, List<int>> kvp in territoryToDetachAndCreate)
 				{
 					foreach (int territoryIndex in kvp.Value)
 					{
+						Diagnostics.LogWarning($"[Gedemon] territoryToDetachAndCreate => #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)}).");
 						influenceRefund += 30 + (50 * majorEmpire.Settlements.Count);
 						DepartmentOfTheInterior.DetachTerritoryFromCity(kvp.Key, territoryIndex, createNewSettlement: true);
 					}
@@ -262,24 +76,85 @@ namespace Gedemon.TrueCultureLocation
 				{
 					foreach (int territoryIndex in kvp.Value)
 					{
+						Diagnostics.LogWarning($"[Gedemon] territoryToDetachAndCreate => #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)}).");
 						influenceRefund += 30 + (50 * majorEmpire.Settlements.Count);
-						DepartmentOfTheInterior.DetachTerritoryFromCity(kvp.Key, territoryIndex, createNewSettlement: false);
+						Settlement settlement = DepartmentOfTheInterior.DetachTerritoryFromCity(kvp.Key, territoryIndex, createNewSettlement: true);
+						if(useMajorEmpire)
+                        {
+							DepartmentOfDefense.GiveSettlementTo(settlement, oldEmpire);
+						}
+						else
+                        {
+							if (rebelFaction == null)
+							{
+								rebelFaction = CultureChange.DoLiberateSettlement(settlement, majorEmpire);
+							}
+							else
+							{
+								DepartmentOfDefense.GiveSettlementTo(settlement, rebelFaction);
+							}
+						}
 					}
 				}
 
 				foreach (Settlement settlement in settlementToLiberate)
 				{
+					Diagnostics.LogWarning($"[Gedemon] settlementToLiberate => #{settlement.Region.Entity.Territories[0].Index} ({CultureUnlock.GetTerritoryName(settlement.Region.Entity.Territories[0].Index)}).");
 					influenceRefund += 30 + (50 * majorEmpire.Settlements.Count);
-					CultureUnlock.DoLiberateSettlement(settlement, majorEmpire);
+					if (useMajorEmpire)
+					{
+						DepartmentOfDefense.GiveSettlementTo(settlement, oldEmpire);
+					}
+					else
+					{
+						if (rebelFaction == null)
+						{
+							rebelFaction = CultureChange.DoLiberateSettlement(settlement, majorEmpire);
+						}
+						else
+						{
+							DepartmentOfDefense.GiveSettlementTo(settlement, rebelFaction);
+						}
+					}
 				}
 
 				foreach (Settlement settlement in settlementToFree) // districtToVisualupdate
 				{
+					Diagnostics.LogWarning($"[Gedemon] settlementToFree => #{settlement.Region.Entity.Territories[0].Index} ({CultureUnlock.GetTerritoryName(settlement.Region.Entity.Territories[0].Index)}).");
 					influenceRefund += 30 + (50 * majorEmpire.Settlements.Count);
-					majorEmpire.DepartmentOfTheInterior.FreeSettlement(settlement);
+					if (useMajorEmpire)
+					{
+						DepartmentOfDefense.GiveSettlementTo(settlement, oldEmpire);
+					}
+					else
+					{
+						if (rebelFaction == null)
+						{
+							rebelFaction = CultureChange.DoLiberateSettlement(settlement, majorEmpire);
+						}
+						else
+						{
+							DepartmentOfDefense.GiveSettlementTo(settlement, rebelFaction);
+						}
+					}
 				}
 
 				majorEmpire.DepartmentOfCulture.GainInfluence(influenceRefund);
+
+				/*
+				 * apply to new created empire
+				StaticString name = majorEmpire.FactionDefinition.Name;
+				bool num = name == nextFactionName;
+				majorEmpire.ChangeFaction(nextFactionName);
+				nextFactionName = StaticString.Empty;
+				isNextFactionConfirmed = false;
+				ApplyNextEra();
+				if (!num)
+				{
+					SimulationEvent_FactionChanged.Raise(this, Empire.Index);
+				}
+				SimulationEvent_EraChanged.Raise(this, Empire.Index, CurrentEraIndex, name);
+				//*/
 
 			}
 		}

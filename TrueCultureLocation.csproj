@@ -46,6 +46,9 @@
     <Reference Include="Amplitude.Graphics">
       <HintPath>..\..\..\publicized_assemblies\Amplitude.Graphics.dll</HintPath>
     </Reference>
+    <Reference Include="Amplitude.Mercury.AI.Brain">
+      <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.AI.Brain.dll</HintPath>
+    </Reference>
     <Reference Include="Amplitude.Mercury.Data, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.Data.dll</HintPath>
@@ -104,6 +107,7 @@
     <Compile Include="Amplitude.Mercury.Firstpass\DepartmentOfDefensePatch.cs" />
     <Compile Include="Assembly-CSharp\GamePatch.cs" />
     <Compile Include="Amplitude.Mercury.Firstpass\MajorEmpirePatch.cs" />
+    <Compile Include="CultureChange.cs" />
     <Compile Include="CultureUnlock.cs" />
     <Compile Include="Amplitude.Mercury.Firstpass\CivilizationsManagerPatch.cs" />
     <Compile Include="Amplitude.Mercury.Firstpass\CollectibleManagerPatch.cs" />

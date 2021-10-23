@@ -280,8 +280,8 @@ namespace Gedemon.TrueCultureLocation
 			ControlType = UIControlType.DropList,
 			Key = "GameOption_TCL_SettlingEmpireSlotsOption",
 			DefaultValue = "10",
-			Title = "[TCL] number of slot IDs that can create outposts",
-			Description = "Set how many Slots (from the setup screen) allow to create outposts (this option ignore humans player). Nomadic Tribes controlled by the AI players from higher slots will be able to spawn only as a new Empire on the location of a Culture that has not been taken after changing Era, or take control of some territories of an old Empire during a split.",
+			Title = "[TCL] number of slot IDs that start in Neolithic",
+			Description = "Set how many Slots (from the setup screen) are allowed to spawn in the Neolithic Era (this option ignore humans player slots). Empire controlled by the AI players from higher slots will be able to spawn only as a new Empire on the location of a Culture that has not been taken after changing Era, or take control of some territories of an old Empire during a split.",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			States = NumSettlingEmpireSlots
 		};
@@ -324,7 +324,7 @@ namespace Gedemon.TrueCultureLocation
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			DefaultValue = "Default",
 			Title = "Starting Position List",
-			Description = "Choose if you want to use the map's default Starting Positions, or another list)",
+			Description = "Choose if you want to use the map's default Starting Positions, or another list",
 			States =
 			{
 				new GameOptionStateInfo
@@ -548,10 +548,35 @@ namespace Gedemon.TrueCultureLocation
 				return Instance.StartingOutpostForAI;
 			}
 		}
+		public static bool HasStartingOutpost(int EmpireIndex)
+		{
+			bool IsHuman = IsEmpireHumanSlot(EmpireIndex);
+			Diagnostics.LogWarning($"[Gedemon] HasStartingOutpost EmpireIndex = {EmpireIndex}, IsHuman = {IsHuman},  StartingOutpostForAI = {Instance.StartingOutpostForAI}, StartingOutpostForHuman = {Instance.StartingOutpostForHuman}, option = {GameOptionHelper.GetGameOption(StartingOutpost)}");
+			if (!IsSettlingEmpire(EmpireIndex, IsHuman))
+			{
+				return false;
+			}
+			if (IsHuman)
+			{
+				return Instance.StartingOutpostForHuman;
+			}
+			else
+			{
+				return Instance.StartingOutpostForAI;
+			}
+		}
 
 		public static bool IsSettlingEmpire(int EmpireIndex, bool IsHuman)
 		{
 			if (EmpireIndex < GetSettlingEmpireSlots() || IsHuman)
+			{
+				return true;
+			}
+			return false;
+		}
+		public static bool IsSettlingEmpire(int EmpireIndex)
+		{
+			if (EmpireIndex < GetSettlingEmpireSlots() || IsEmpireHumanSlot(EmpireIndex))
 			{
 				return true;
 			}
@@ -639,5 +664,6 @@ namespace Gedemon.TrueCultureLocation
 		}
 	}
 	//*/
+
 
 }

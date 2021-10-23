@@ -7,6 +7,9 @@ using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Data.World;
 using System.Linq;
 using System.Collections.Generic;
+using Amplitude.Mercury.Options;
+using Amplitude.Mercury.Data.GameOptions;
+using HumankindModTool;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -36,6 +39,13 @@ namespace Gedemon.TrueCultureLocation
 				}
 			}
 			//*/
+
+			var gameOptionDefinitions = Databases.GetDatabase<GameOptionDefinition>();
+			foreach (var option in gameOptionDefinitions)
+			{
+                IGameOptionsService gameOptions = Services.GetService<IGameOptionsService>();
+                Diagnostics.LogWarning($"[Gedemon] gameOptions {option.name} = { gameOptions.GetOption(option.Name).CurrentValue}");
+			}
 		}
 	}
 

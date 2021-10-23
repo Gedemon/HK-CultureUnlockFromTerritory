@@ -46,8 +46,29 @@ namespace Gedemon.TrueCultureLocation
 				}
 			}
 
+			// Now that we have set the mandatory starting position, we can return false for the Army spawning location
+			if (!TrueCultureLocation.IsSettlingEmpire(majorEmpire.Index))
+			{
+				Diagnostics.LogWarning($"[Gedemon] return False for InitialArmyPosition");
+				spawnTileIndex = -1;
+				__result = false;
+				return false;
+            }
+
 			return true;
 		}
 		//*/
+
+		[HarmonyPatch("BeginTurnPass_SpawnNomadsIfNeeded")]
+		[HarmonyPrefix]
+		public static bool BeginTurnPass_SpawnNomadsIfNeeded(DepartmentOfDefense __instance, SimulationPasses.PassContext passContext, string name) //(Amplitude.Mercury.Sandbox.Sandbox __instance, object parameter)
+		{
+			if (!TrueCultureLocation.IsSettlingEmpire(__instance.Empire.Index))
+			{
+				Diagnostics.LogWarning($"[Gedemon] abort for BeginTurnPass_SpawnNomadsIfNeeded for Empire #{__instance.Empire.Index}");
+				return false;
+			}
+			return true;
+		}
 	}
 }

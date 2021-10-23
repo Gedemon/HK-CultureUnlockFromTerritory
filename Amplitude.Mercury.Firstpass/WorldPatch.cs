@@ -20,11 +20,11 @@ namespace Gedemon.TrueCultureLocation
 
 				Territory territory = __instance.Territories[continentInfo.TerritoryIndexes[0]];
 				int continentIndex = territory.ContinentIndex;
-				Diagnostics.LogWarning($"[Gedemon] in SetRandomContinentName, continentIndex = {continentIndex}");
-				Diagnostics.Log($"[Gedemon] has name = {CultureUnlock.ContinentHasName(continentIndex)} ");
+				//Diagnostics.LogWarning($"[Gedemon] in SetRandomContinentName, continentIndex = {continentIndex}");
+				//Diagnostics.Log($"[Gedemon] has name = {CultureUnlock.ContinentHasName(continentIndex)} ");
 				if (CultureUnlock.ContinentHasName(continentIndex))
 				{
-					Diagnostics.Log($"[Gedemon] get name = {CultureUnlock.GetContinentName(continentIndex)} ");
+					//Diagnostics.Log($"[Gedemon] get name = {CultureUnlock.GetContinentName(continentIndex)} ");
 					continentInfo.ContinentName = CultureUnlock.GetContinentName(continentIndex);
 				}
 			}

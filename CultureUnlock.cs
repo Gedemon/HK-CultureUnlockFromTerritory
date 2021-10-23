@@ -22,7 +22,7 @@ namespace Gedemon.TrueCultureLocation
 					{ 2, new Hexagon.OffsetCoords(60, 51)}, // India 
 					{ 3, new Hexagon.OffsetCoords(17, 52)}, // Carthage
 					{ 4, new Hexagon.OffsetCoords(86, 56)}, // China
-					{ 5, new Hexagon.OffsetCoords(27, 58)}, // Greece
+					{ 5, new Hexagon.OffsetCoords(28, 58)}, // Greece
 					{ 6, new Hexagon.OffsetCoords(31, 47)}, // Egypt
 					{ 7, new Hexagon.OffsetCoords(42, 57)}, // Assyria
 					{ 8, new Hexagon.OffsetCoords(38, 58)}, // Cappadocia
@@ -42,7 +42,7 @@ namespace Gedemon.TrueCultureLocation
 					{ 2, new Hexagon.OffsetCoords(60, 51)}, // India 
 					{ 3, new Hexagon.OffsetCoords(17, 52)}, // Carthage
 					{ 4, new Hexagon.OffsetCoords(86, 56)}, // China
-					{ 5, new Hexagon.OffsetCoords(27, 58)}, // Greece
+					{ 5, new Hexagon.OffsetCoords(28, 58)}, // Greece
 					{ 6, new Hexagon.OffsetCoords(31, 47)}, // Egypt
 					{ 7, new Hexagon.OffsetCoords(42, 57)}, // Assyria
 					{ 8, new Hexagon.OffsetCoords(38, 58)}, // Cappadocia
@@ -643,37 +643,7 @@ namespace Gedemon.TrueCultureLocation
 			Diagnostics.LogError($"[Gedemon] Total territories = {num}, average land tiles per Continent territory = {average} ({numLandTiles}/{numContinentTerritories}), Small territories (<25 tiles) = {numSmallTerritories}, Large territories (>75 tiles) = {numlargeTerritories}");
 
 		}
-		public static void DoLiberateSettlement(Settlement settlement, MajorEmpire majorEmpire)
-		{
-			MinorEmpire orAllocateMinorEmpireFor = Amplitude.Mercury.Sandbox.Sandbox.MinorFactionManager.PeacefulLiberateHumanSpawner.GetOrAllocateMinorEmpireFor(settlement);
-			if (orAllocateMinorEmpireFor.RankedMajorEmpireIndexes[0] != majorEmpire.Index)
-			{
-				int num = Array.IndexOf(orAllocateMinorEmpireFor.RankedMajorEmpireIndexes, majorEmpire.Index);
-				orAllocateMinorEmpireFor.RankedMajorEmpireIndexes[num] = orAllocateMinorEmpireFor.RankedMajorEmpireIndexes[0];
-				orAllocateMinorEmpireFor.RankedMajorEmpireIndexes[0] = majorEmpire.Index;
-			}
-			List<int> territoryIndices = settlement.Region.Entity.TerritoryIndices;
-			for (int num2 = majorEmpire.Squadrons.Count - 1; num2 >= 0; num2--)
-			{
-				Squadron squadron = majorEmpire.Squadrons[num2];
-				if (squadron.AircraftCarrierArmy.Entity == null && territoryIndices.Contains(squadron.TerritoryIndex))
-				{
-					DepartmentOfDefense.ReleaseSquadron(squadron);
-				}
-			}
 
-			DepartmentOfTheInterior.ChangeSettlementOwner(settlement, orAllocateMinorEmpireFor, keepCaptured: false);
-			BaseHumanSpawnerDefinition spawnerDefinitionForMinorEmpire = orAllocateMinorEmpireFor.Spawner.GetSpawnerDefinitionForMinorEmpire(orAllocateMinorEmpireFor);
-			MinorToMajorRelation minorToMajorRelation = orAllocateMinorEmpireFor.RelationsToMajor[majorEmpire.Index];
-			if (minorToMajorRelation.PatronageStock.Value < 50)
-			{
-				minorToMajorRelation.PatronageStock.Value = 50;
-				MinorFactionManager.RefreshPatronageState(minorToMajorRelation, orAllocateMinorEmpireFor.PatronageDefinition);
-			}
-			FixedPoint defaultGameSpeedMultiplier = Amplitude.Mercury.Sandbox.Sandbox.GameSpeedController.CurrentGameSpeedDefinition.DefaultGameSpeedMultiplier;
-			orAllocateMinorEmpireFor.RemainingLifeTime += (int)FixedPoint.Ceiling(spawnerDefinitionForMinorEmpire.AddedLifeTimeInTurnsForNewPatronnage * defaultGameSpeedMultiplier);
-			Amplitude.Mercury.Sandbox.Sandbox.VisibilityController.DirtyEmpireVision(orAllocateMinorEmpireFor);
-		}
 
 	}
 }
