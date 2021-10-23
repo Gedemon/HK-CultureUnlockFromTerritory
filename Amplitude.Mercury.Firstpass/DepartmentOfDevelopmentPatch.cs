@@ -141,21 +141,6 @@ namespace Gedemon.TrueCultureLocation
 
 				majorEmpire.DepartmentOfCulture.GainInfluence(influenceRefund);
 
-				/*
-				 * apply to new created empire
-				StaticString name = majorEmpire.FactionDefinition.Name;
-				bool num = name == nextFactionName;
-				majorEmpire.ChangeFaction(nextFactionName);
-				nextFactionName = StaticString.Empty;
-				isNextFactionConfirmed = false;
-				ApplyNextEra();
-				if (!num)
-				{
-					SimulationEvent_FactionChanged.Raise(this, Empire.Index);
-				}
-				SimulationEvent_EraChanged.Raise(this, Empire.Index, CurrentEraIndex, name);
-				//*/
-
 			}
 		}
 
