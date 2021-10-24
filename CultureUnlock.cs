@@ -55,7 +55,7 @@ namespace Gedemon.TrueCultureLocation
 					{ 15, new Hexagon.OffsetCoords(78, 40)}, // South-East Asia
 				};
 		
-		static List<string>[] TerritoriesWithMinorFactions;
+		static List<string>[] territoriesWithMinorFactions;
 
 		static readonly IDictionary<string, List<int>> listMinorFactionTerritories = new Dictionary<string, List<int>>  // CivName, list of territory indexes
 				{
@@ -182,7 +182,7 @@ namespace Gedemon.TrueCultureLocation
 
 		static readonly List<string> firstEraBackup = new List<string> { "Civilization_Era1_Assyria", };
 
-		static readonly List<string> noCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_HittiteEmpire", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire" };
+		static readonly List<string> noCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire" };
 
 		static readonly IDictionary<int, string> continentNames = new Dictionary<int, string>
 				{
@@ -462,29 +462,29 @@ namespace Gedemon.TrueCultureLocation
 		{
 			Diagnostics.LogWarning($"[Gedemon] Calling static CultureUnlock()");
 
-			TerritoriesWithMinorFactions = new List<string>[maxNumTerritories];
+			territoriesWithMinorFactions = new List<string>[maxNumTerritories];
 
 			for (int i = 0; i < maxNumTerritories; i++)
             {
-				TerritoriesWithMinorFactions[i] = new List<string>();
+				territoriesWithMinorFactions[i] = new List<string>();
 			}
 
 			foreach(KeyValuePair<string, List<int>> minorTerritories in listMinorFactionTerritories)
             {
 				foreach(int index in minorTerritories.Value)
                 {
-					TerritoriesWithMinorFactions[index].Add(minorTerritories.Key);
+					territoriesWithMinorFactions[index].Add(minorTerritories.Key);
 				}
             }
 		}
 		public static bool HasAnyMinorFactionPosition(int territoryIndex)
         {
-			return TerritoriesWithMinorFactions[territoryIndex].Count > 0;
+			return territoriesWithMinorFactions[territoryIndex].Count > 0;
 		}
 
 		public static bool IsMinorFactionPosition(int territoryIndex, string minorFactionName)
 		{
-			return TerritoriesWithMinorFactions[territoryIndex].Contains(minorFactionName);
+			return territoriesWithMinorFactions[territoryIndex].Contains(minorFactionName);
 		}
 
 		public static bool HasTerritory(string civilizationName)
@@ -546,6 +546,7 @@ namespace Gedemon.TrueCultureLocation
 
 		public static string GetTerritoryName(int territoryIndex)
 		{
+			// backup when territoryNames doesn't exist -> Utils.GameUtils.GetTerritoryName(territoryIndex)
 			return territoryNames[territoryIndex];
 		}
 		 

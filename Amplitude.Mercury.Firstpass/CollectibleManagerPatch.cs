@@ -27,15 +27,28 @@ namespace Gedemon.TrueCultureLocation
 			// units			= PresentationUnitDefinition
 			// cultures			= FactionDefinition
 			// eras				= EraDefinition
-			/* 
-			IDatabase<FactionDefinition> database1 = Databases.GetDatabase<FactionDefinition>();
-			foreach (FactionDefinition data in database1)
+			// 
+			// BuildingVisualAffinityDefinition
+			//* 
+			IDatabase<BuildingVisualAffinityDefinition> database1 = Databases.GetDatabase<BuildingVisualAffinityDefinition>();
+			foreach (BuildingVisualAffinityDefinition data in database1)
 			{
-				Diagnostics.LogWarning($"[Gedemon] FactionDefinition name = {data.name}");//, Name = {data.Name}");
+				Diagnostics.LogWarning($"[Gedemon] BuildingVisualAffinityDefinition name = {data.name}");//, Name = {data.Name}");
 
 				foreach (var prop in data.GetType().GetProperties())
 				{
-					Diagnostics.Log($"[Gedemon] {prop.Name} = {prop.GetValue(data, null)}");
+					//Diagnostics.Log($"[Gedemon] {prop.Name} = {prop.GetValue(data, null)}");
+				}
+			}
+
+			IDatabase<UnitVisualAffinityDefinition> database2 = Databases.GetDatabase<UnitVisualAffinityDefinition>();
+			foreach (UnitVisualAffinityDefinition data in database2)
+			{
+				Diagnostics.LogWarning($"[Gedemon] UnitVisualAffinityDefinition name = {data.name}");//, Name = {data.Name}");
+
+				foreach (var prop in data.GetType().GetProperties())
+				{
+					//Diagnostics.Log($"[Gedemon] {prop.Name} = {prop.GetValue(data, null)}");
 				}
 			}
 			//*/

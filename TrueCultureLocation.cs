@@ -22,6 +22,7 @@ using Amplitude.Mercury.Session;
 using Amplitude.Mercury;
 using System.Reflection;
 using Amplitude.Mercury.Data.Simulation;
+using Amplitude.Mercury.Interop;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -280,7 +281,7 @@ namespace Gedemon.TrueCultureLocation
 			ControlType = UIControlType.DropList,
 			Key = "GameOption_TCL_SettlingEmpireSlotsOption",
 			DefaultValue = "10",
-			Title = "[TCL] number of slot IDs that start in Neolithic",
+			Title = "[TCL] Number of slot IDs that start in Neolithic",
 			Description = "Set how many Slots (from the setup screen) are allowed to spawn in the Neolithic Era (this option ignore humans player slots). Empire controlled by the AI players from higher slots will be able to spawn only as a new Empire on the location of a Culture that has not been taken after changing Era, or take control of some territories of an old Empire during a split.",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			States = NumSettlingEmpireSlots
@@ -344,6 +345,43 @@ namespace Gedemon.TrueCultureLocation
 					Title = "Old World",
 					Description = "Use only the Alternate starting positions (Old World List), ignoring the map's default positions. Some starting positions will be adjacent from each other, even with a low number of players",
 					Value = "OldWorld"
+				}
+			}
+		};
+
+		public static readonly GameOptionInfo CompensationLevel = new GameOptionInfo
+		{
+			ControlType = UIControlType.DropList,
+			Key = "GameOption_TCL_CompensationLevel",
+			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
+			DefaultValue = "10",
+			Title = "[TCL] Level of Compensation",
+			Description = "Define the level of compensation an Empire will get per Settlement lost during an Evolution, based on total number of Settlements for Influence, and on yield per turn for Money, Science, Production",
+			States =
+			{
+				new GameOptionStateInfo
+				{
+					Title = "None",
+					Description = "No compensation.",
+					Value = "0"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "Low",
+					Description = "x5",
+					Value = "5"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "Average",
+					Description = "x10",
+					Value = "10"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "High",
+					Description = "x20",
+					Value = "20"
 				}
 			}
 		};
@@ -464,6 +502,8 @@ namespace Gedemon.TrueCultureLocation
 		public int TotalEmpireSlots => int.Parse(GameOptionHelper.GetGameOption(ExtraEmpireSlots));
 		public int SettlingEmpireSlots => int.Parse(GameOptionHelper.GetGameOption(SettlingEmpireSlotsOption));
 
+		public int CompensationFactor => int.Parse(GameOptionHelper.GetGameOption(CompensationLevel));
+
 		// Awake is called once when both the game and the plug-in are loaded
 		void Awake()
 		{
@@ -504,6 +544,11 @@ namespace Gedemon.TrueCultureLocation
 		public static int GetSettlingEmpireSlots()
 		{
 			return Instance.SettlingEmpireSlots;
+		}
+
+		public static int GetCompensationFactor()
+		{
+			return Instance.CompensationFactor;
 		}
 
 		public static bool UseExtraEmpireSlots()
@@ -660,6 +705,56 @@ namespace Gedemon.TrueCultureLocation
 		[HarmonyPrefix]
 		public static bool ThreadStart(Amplitude.Mercury.Sandbox.Sandbox __instance, object parameter)
 		{
+
+		}
+	}
+	//*/
+
+
+	//*
+	[HarmonyPatch(typeof(Amplitude.Mercury.UI.Helpers.GameUtils))]
+	public class Sandbox_Patch
+	{
+		[HarmonyPatch("GetTerritoryName")]
+		[HarmonyPrefix]
+		public static bool GetTerritoryName(Amplitude.Mercury.UI.Helpers.GameUtils __instance, ref string __result, int territoryIndex, EmpireColor useColor = EmpireColor.None)
+		{
+
+			if (CultureUnlock.UseTrueCultureLocation())
+			{
+				ref TerritoryInfo reference = ref Snapshots.GameSnapshot.PresentationData.TerritoryInfo.Data[territoryIndex];
+				bool flag = useColor != EmpireColor.None;
+				if (reference.AdministrativeDistrictGUID != 0)
+				{
+					ref SettlementInfo reference2 = ref Snapshots.GameSnapshot.PresentationData.SettlementInfo.Data[reference.SettlementIndex];
+					if (reference2.TileIndex == reference.AdministrativeDistrictTileIndex)
+					{
+						string text = CultureUnlock.GetTerritoryName(territoryIndex);// reference2.EntityName.ToString();
+						if (flag)
+						{
+							Color empireColor = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
+							__result = Amplitude.Mercury.Utils.TextUtils.ColorizeText(text, empireColor);
+							return false;
+						}
+
+						__result = text;
+						return false;
+					}
+				}
+
+				string text2 = CultureUnlock.GetTerritoryName(territoryIndex);// reference.LocalizedName ?? string.Empty;
+				if (flag && reference.Claimed)
+				{
+					Color empireColor2 = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
+					__result = __instance.TextUtils.ColorizeText(text2, empireColor2);
+					return false;
+				}
+
+				__result = text2;
+				return false;
+
+			}
+			return true;
 
 		}
 	}
