@@ -77,6 +77,7 @@ namespace Gedemon.TrueCultureLocation
 					{
 						DiplomaticRelation relationFor = Sandbox.DiplomaticAncillary.GetRelationFor(majorEmpire.Index, oldEmpire.Index);
 						DiplomaticStateType state = relationFor.DiplomaticState.State;
+						Diagnostics.LogWarning($"[Gedemon] Set Vassal from current DiplomaticState = {state}");
 						/*
 						if (state == DiplomaticStateType.VassalToLiege)
 						{
@@ -88,6 +89,7 @@ namespace Gedemon.TrueCultureLocation
 						relationFor.ApplyState(DiplomaticStateType.VassalToLiege, majorEmpire.Index);
 						relationFor.UpdateAbilities(raiseSimulationEvents: true);
 						SimulationEvent_DiplomaticStateChanged.Raise(majorEmpire, majorEmpire.Index, relationFor.DiplomaticState.State, state, oldEmpire.Index, -1);
+						Diagnostics.LogWarning($"[Gedemon] New  DiplomaticState = {Sandbox.DiplomaticAncillary.GetRelationFor(majorEmpire.Index, oldEmpire.Index).DiplomaticState.State}");
 						Sandbox.SimulationEntityRepository.SetSynchronizationDirty(majorEmpire);
 						Sandbox.SimulationEntityRepository.SetSynchronizationDirty(oldEmpire);
 					}

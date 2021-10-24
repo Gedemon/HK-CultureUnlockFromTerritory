@@ -102,6 +102,7 @@ namespace Gedemon.TrueCultureLocation
 						moneyRefund += settlement.MoneyNet.Value * compensationFactor;
 						scienceRefund += settlement.ScienceNet.Value * compensationFactor;
 
+						Diagnostics.LogWarning($"[Gedemon] iterating SettlementImprovements...");
 						foreach (SettlementImprovement improvement in settlement.SettlementImprovements.Data)
 						{
 							foreach (SettlementImprovementDefinition definition in improvement.BuiltImprovements)
@@ -112,6 +113,7 @@ namespace Gedemon.TrueCultureLocation
 
 						}
 
+						Diagnostics.LogWarning($"[Gedemon]IsCapital ?");
 						bool wasCapital = settlement.IsCapital;
 						if (wasCapital)
 						{
@@ -121,6 +123,7 @@ namespace Gedemon.TrueCultureLocation
 						}
 
 
+						Diagnostics.LogWarning($"[Gedemon] useMajorEmpire = {useMajorEmpire}");
 						if (useMajorEmpire)
 						{
 							DepartmentOfDefense.GiveSettlementTo(settlement, oldEmpire);
@@ -134,10 +137,12 @@ namespace Gedemon.TrueCultureLocation
 						{
 							if (rebelFaction == null)
 							{
+								Diagnostics.LogWarning($"[Gedemon] DoLiberateSettlement...");
 								rebelFaction = CultureChange.DoLiberateSettlement(settlement, majorEmpire);
 							}
 							else
 							{
+								Diagnostics.LogWarning($"[Gedemon] GiveSettlementTo existing rebels...");
 								DepartmentOfDefense.GiveSettlementTo(settlement, rebelFaction);
 							}
 						}
@@ -178,7 +183,7 @@ namespace Gedemon.TrueCultureLocation
 						if (settlement.SettlementStatus != SettlementStatuses.City)
 						{
 							Diagnostics.LogWarning($"[Gedemon] try to create City for Capital...");
-							majorEmpire.DepartmentOfTheInterior.CreateCityAt(majorEmpire.GUID, potentialCapital.WorldPosition);
+							majorEmpire.DepartmentOfTheInterior.ApplyEvolutionToSettlement(settlement, DepartmentOfTheInterior.EvolutionCityDefinition);
 						}
 						Diagnostics.LogWarning($"[Gedemon] Calling SetCapital...");
 						majorEmpire.DepartmentOfTheInterior.SetCapital(settlement, set: true);

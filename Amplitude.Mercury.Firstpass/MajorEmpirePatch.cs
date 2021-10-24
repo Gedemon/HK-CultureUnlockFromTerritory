@@ -342,7 +342,7 @@ namespace Gedemon.TrueCultureLocation
 					if (spawnerDefinitionForMinorEmpire.CanAskForCamp)
 					{
 						// Gedemon <<<<<
-						if (TrueCultureLocation.UseStartingOutpostForMinorFaction())
+						if (TrueCultureLocation.UseStartingOutpostForMinorFaction() && __instance.IsTerritoryValidForSettle(territory))
 						{
 							WorldPosition startPosition = minorSpawnPoint.WorldPosition;
 							minorEmpire.DepartmentOfTheInterior.CreateCampAt(SimulationEntityGUID.Zero, startPosition, FixedPoint.Zero, false);
