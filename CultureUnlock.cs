@@ -135,7 +135,7 @@ namespace Gedemon.TrueCultureLocation
 					{ "Civilization_Era2_AksumiteEmpire",           new List<int>() { 132, 209, 143, 233 } }, // Abyssinia, Ethiopia/Somalia, Sudan, Yemen
 					{ "Civilization_Era3_Vikings",                  new List<int>() { 107, 109, 111, 112, 191, 152, 17, 11 } }, // Norway, Sweden 
 					{ "Civilization_Era3_UmayyadCaliphate",         new List<int>() { 106, 123, 142, 143, 227, 144, 243, 146, 207, 128, 127, 190, 188, 95 } }, // Syria, Weast Anatolia, Iraq, Saudi Arabia, Iran, Afghanistan, Pakistan, Egypt, Libya, Carthage, Morroco, South Spain
-					{ "Civilization_Era3_MongolEmpire",             new List<int>() { 225, 239, 240, 229, 161, 208, 187, 151, 206, 228, 230, 205, 149 } }, // Mongolia
+					{ "Civilization_Era3_MongolEmpire",             new List<int>() { 225, 239, 240, 229, 161, 208, 187, 151, 206, 228, 230, 205, 149, 193 } }, // Mongolia
 					{ "Civilization_Era3_MedievalEngland",          new List<int>() { 21, 20 } }, // South England 
 					{ "Civilization_Era3_KhmerEmpire",              new List<int>() { 38, 167, 168 } }, // Cambodia, Vietnam, Siam 
 					{ "Civilization_Era3_HolyRomanEmpire",          new List<int>() { 105, 99, 23, 117, 104 } }, // Germany
@@ -149,7 +149,7 @@ namespace Gedemon.TrueCultureLocation
 					{ "Civilization_Era4_PolishKingdom",            new List<int>() { 117, 119, 120, 121 } }, // Poland
 					{ "Civilization_Era4_OttomanEmpire",            new List<int>() { 118, 123, 101, 102, 103, 142, 106, 128 } }, // Anatolia, Greece, Balkans, Bulgaria/Romania, 
 					{ "Civilization_Era4_MughalEmpire",             new List<int>() { 147, 207, 145, 231, 146, 236, 237 } }, // India, Pakistan, Bengladesh, Afghanistan
-					{ "Civilization_Era4_MingChina",                new List<int>() { 164, 162, 163, 221, 229 } }, // China
+					{ "Civilization_Era4_MingChina",                new List<int>() { 164, 162, 163, 221, 229, 241 } }, // China
 					{ "Civilization_Era4_JoseonKorea",              new List<int>() { 159 } }, // Korea
 					{ "Civilization_Era4_IroquoisConfederacy",      new List<int>() { 60, 63 } }, // NE of North America
 					{ "Civilization_Era4_Holland",                  new List<int>() { 23, 57, 50, 136, 141, 170, 175, 178, 176, 177  } }, // Holland, Antilles, Guyana, South Africa, Sri Lanka, Indonesia
@@ -170,7 +170,7 @@ namespace Gedemon.TrueCultureLocation
 					{ "Civilization_Era6_Japan",                    new List<int>() { 29, 30, 165, 27 } }, // Japan
 					{ "Civilization_Era6_India",                    new List<int>() { 147, 145, 207, 231, 236, 237 } }, // India, Pakistan, Bengladesh 
 					{ "Civilization_Era6_Egypt",                    new List<int>() { 128, 233 } }, // Egypt
-					{ "Civilization_Era6_China",                    new List<int>() { 162, 163, 164, 221, 229, 208, 187, 150, 179, 173, 244 } }, // China
+					{ "Civilization_Era6_China",                    new List<int>() { 162, 163, 164, 221, 229, 208, 187, 150, 179, 173, 244, 241 } }, // China
 					{ "Civilization_Era6_Brazil",                   new List<int>() { 54, 49, 53, 46 } }, // Brazil
 					{ "Civilization_Era6_Australia",                new List<int>() { 35, 31, 32, 33, 34, 36, 37, 38, 39 } }  // Australia
 				};

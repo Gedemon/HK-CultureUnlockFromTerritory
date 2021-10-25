@@ -105,10 +105,21 @@ namespace Gedemon.TrueCultureLocation
 						Diagnostics.LogWarning($"[Gedemon] iterating SettlementImprovements...");
 						foreach (SettlementImprovement improvement in settlement.SettlementImprovements.Data)
 						{
-							foreach (SettlementImprovementDefinition definition in improvement.BuiltImprovements)
+							Diagnostics.LogWarning($"[Gedemon] Family = {improvement.Family}");
+							if (improvement.Family != null)
 							{
-								Diagnostics.LogWarning($"[Gedemon] Improvement {definition.Name}, GetCost = {definition.ProductionCostDefinition.GetCost(majorEmpire).RawValue}, ProductionCostDefinition.Constant = {definition.ProductionCostDefinition.Constant}");
-								productionRefund += definition.ProductionCostDefinition.GetCost(majorEmpire);
+								foreach (SettlementImprovementDefinition definition in improvement.BuiltImprovements)
+								{
+									Diagnostics.LogWarning($"[Gedemon] Improvement {definition.Name}");
+									FixedPoint cost = definition.ProductionCostDefinition.GetCost(majorEmpire);
+									Diagnostics.LogWarning($"[Gedemon] Cost = {cost}");
+									productionRefund += cost;
+								}
+
+							}
+							else
+							{
+								Diagnostics.LogError($"[Gedemon] Family in NULL, ignoring");
 							}
 
 						}

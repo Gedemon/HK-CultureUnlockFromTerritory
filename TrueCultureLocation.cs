@@ -713,7 +713,7 @@ namespace Gedemon.TrueCultureLocation
 
 	//*
 	[HarmonyPatch(typeof(Amplitude.Mercury.UI.Helpers.GameUtils))]
-	public class Sandbox_Patch
+	public class GameUtils_Patch
 	{
 		[HarmonyPatch("GetTerritoryName")]
 		[HarmonyPrefix]
@@ -760,5 +760,25 @@ namespace Gedemon.TrueCultureLocation
 	}
 	//*/
 
+
+	/*
+	[HarmonyPatch(typeof(EliminationController))]
+	public class EliminationController_Patch
+	{
+		[HarmonyPatch("Eliminate")]
+		[HarmonyPrefix]
+		public static bool Eliminate(EliminationController __instance, MajorEmpire majorEmpire)
+		{
+
+			if (CultureUnlock.UseTrueCultureLocation())
+			{
+				//majorEmpire.OnFreeing();
+				//majorEmpire.InitializeOnStart(SandboxStartSettings);
+				//return false;
+            }
+			return true;
+		}
+	}
+	//*/
 
 }

@@ -55,14 +55,36 @@ namespace Gedemon.TrueCultureLocation
 			Diagnostics.LogWarning($"[Gedemon] TryInitializeFreeMajorEmpireToReplace for {majorEmpire.FactionDefinition.Name}...");
 			oldEmpire = null;
 			int numMajor = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires.Length;
+
+			// check for unused Empire in the pool first
+			bool mustResurect = true;
 			for (int i = 0; i < numMajor; i++)
 			{
 				MajorEmpire potentialEmpire = Sandbox.MajorEmpires[i];
 
-				Diagnostics.LogWarning($"[Gedemon] potentialEmpire = {potentialEmpire.FactionDefinition.Name}, Armies.Count = {potentialEmpire.Armies.Count}, Settlements.Count = {potentialEmpire.Settlements.Count}");
-				if (potentialEmpire.Armies.Count == 0 && potentialEmpire.Settlements.Count == 0)
+				if (potentialEmpire.Armies.Count == 0 && potentialEmpire.Settlements.Count == 0 && potentialEmpire.IsAlive)
                 {
+					mustResurect = false;
+				}
+			}
+
+			for (int i = 0; i < numMajor; i++)
+			{
+				MajorEmpire potentialEmpire = Sandbox.MajorEmpires[i];
+
+				Diagnostics.LogWarning($"[Gedemon] potentialEmpire = {potentialEmpire.FactionDefinition.Name}, Armies = {potentialEmpire.Armies.Count}, Settlements = {potentialEmpire.Settlements.Count}, mustResurect = {mustResurect}, isAlive = {potentialEmpire.IsAlive}, fame = {potentialEmpire.FameScore.Value}");
+
+				// we don't want to resurect dead Empire with more fame than us !
+				if (!potentialEmpire.IsAlive && potentialEmpire.FameScore.Value >= majorEmpire.FameScore.Value)
+				{
+					Diagnostics.LogWarning($"[Gedemon] aborting, potential resurrected vassal fame > current Empire fame ({majorEmpire.FameScore.Value})");
+					continue;
+                }
+
+				if (potentialEmpire.Armies.Count == 0 && potentialEmpire.Settlements.Count == 0 && (potentialEmpire.IsAlive || mustResurect ))
+				{
 					oldEmpire = potentialEmpire;
+					oldEmpire.IsAlive = true;
 					oldEmpire.DepartmentOfDevelopment.nextFactionName = StaticString.Empty;
 					oldEmpire.DepartmentOfDevelopment.isNextFactionConfirmed = false;
 					oldEmpire.DepartmentOfDevelopment.CurrentEraIndex = majorEmpire.DepartmentOfDevelopment.CurrentEraIndex;
@@ -72,7 +94,16 @@ namespace Gedemon.TrueCultureLocation
 					oldEmpire.DepartmentOfDevelopment.ApplyStartingEra();
 					oldEmpire.DepartmentOfDevelopment.ApplyNextEra();
 					oldEmpire.SetEmpireSymbol(majorEmpire.EmpireSymbolDefinition.Name);
-
+					// reset diplomatic relations
+					for (int otherIndex = 0; otherIndex < numMajor; otherIndex++)
+					{
+						{
+							DiplomaticRelation relationtoReset = Sandbox.DiplomaticAncillary.GetRelationFor(oldEmpire.Index, otherIndex);
+							ResetDiplomaticAmbassy(relationtoReset.LeftAmbassy);
+							ResetDiplomaticAmbassy(relationtoReset.RightAmbassy);
+							relationtoReset.ApplyState(DiplomaticStateType.Unknown, otherIndex);
+						}
+					}
 					// Set Vassal (to do : depending of stability)
 					{
 						DiplomaticRelation relationFor = Sandbox.DiplomaticAncillary.GetRelationFor(majorEmpire.Index, oldEmpire.Index);
@@ -97,6 +128,13 @@ namespace Gedemon.TrueCultureLocation
 				}
 			}
 			return oldEmpire != null;
+		}
+		
+		private static void ResetDiplomaticAmbassy(DiplomaticAmbassy diplomaticAmbassy)
+		{
+			diplomaticAmbassy.OnGoingDemands.Clear();
+			diplomaticAmbassy.AvailableGrievances.Clear();
+			diplomaticAmbassy.EmpireMoral.Empty();
 		}
 
 		public static bool GetTerritoryChangesOnEvolve(DepartmentOfDevelopment instance, StaticString nextFactionName, out District potentialCapital, ref IDictionary<Settlement, List<int>> territoryToDetachAndCreate, ref IDictionary<Settlement, List<int>> territoryToDetachAndFree, ref List<Settlement> settlementToLiberate, ref List<Settlement> settlementToFree)
