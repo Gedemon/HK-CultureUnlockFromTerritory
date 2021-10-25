@@ -180,6 +180,8 @@ namespace Gedemon.TrueCultureLocation
 					//{ "Civilization_Era1_Assyria", new List<int>() { 6, 7 } },
 				};
 
+		static readonly List<string> nomadCultures = new List<string> { "Civilization_Era2_Huns", "Civilization_Era3_MongolEmpire"};
+
 		static readonly List<string> firstEraBackup = new List<string> { "Civilization_Era1_Assyria", };
 
 		static readonly List<string> noCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire" };
@@ -522,6 +524,11 @@ namespace Gedemon.TrueCultureLocation
 		public static bool IsFirstEraBackupCivilization(string civilizationName)
 		{
 			return firstEraBackup.Contains(civilizationName);
+		}
+
+		public static bool IsNomadCulture(string civilizationName)
+		{
+			return nomadCultures.Contains(civilizationName);
 		}
 
 		public static bool HasNoCapitalTerritory(string civilizationName) // can be picked by multiple players

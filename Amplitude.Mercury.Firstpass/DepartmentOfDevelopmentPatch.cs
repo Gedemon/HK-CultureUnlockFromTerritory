@@ -312,8 +312,8 @@ namespace Gedemon.TrueCultureLocation
 
 				//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} (ID={majorEmpire.Index}, EraStars ={majorEmpire.EraStarsCount.Value}/{majorEmpire.DepartmentOfDevelopment.CurrentEraStarRequirement}, knw={majorEmpire.KnowledgeStock.Value}, pop={majorEmpire.SumOfPopulationAndUnits.Value}) from {majorEmpire.FactionDefinition.Name} check to unlock {factionDefinition.Name}");
 
-				string civilizationName = factionDefinition.Name.ToString();
-				if (CultureUnlock.HasTerritory(civilizationName))
+				string factionName = factionDefinition.Name.ToString();
+				if (CultureUnlock.HasTerritory(factionName))
 				{
 					int count = majorEmpire.Settlements.Count;
 
@@ -325,9 +325,9 @@ namespace Gedemon.TrueCultureLocation
 						for (int k = 0; k < count2; k++)
 						{
 							Amplitude.Mercury.Simulation.Territory territory = settlement.Region.Entity.Territories[k];
-							bool anyTerritory = majorEmpire.DepartmentOfDevelopment.CurrentEraIndex == 0 || CultureUnlock.HasNoCapitalTerritory(civilizationName);
-							bool validSettlement = (TrueCultureLocation.GetEraIndexCityRequiredForUnlock() > majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1 || settlement.SettlementStatus == SettlementStatuses.City);
-							if (CultureUnlock.HasTerritory(civilizationName, territory.Index, anyTerritory))
+							bool anyTerritory = majorEmpire.DepartmentOfDevelopment.CurrentEraIndex == 0 || CultureUnlock.HasNoCapitalTerritory(factionName);
+							bool validSettlement = (TrueCultureLocation.GetEraIndexCityRequiredForUnlock() > majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1 || settlement.SettlementStatus == SettlementStatuses.City || CultureUnlock.IsNomadCulture(majorEmpire.FactionDefinition.name));
+							if (CultureUnlock.HasTerritory(factionName, territory.Index, anyTerritory))
 							{
 								if (validSettlement)
 								{
@@ -362,7 +362,7 @@ namespace Gedemon.TrueCultureLocation
 							for (int k = 0; k < count2; k++)
 							{
 								Territory territory = settlement.Region.Entity.Territories[k];
-								if (CultureUnlock.HasTerritory(civilizationName, territory.Index))
+								if (CultureUnlock.HasTerritory(factionName, territory.Index))
 									hasTerritoryFromNewCulture = true;
 								else
 									territoriesRemovedFromSettlement += 1;
@@ -384,7 +384,7 @@ namespace Gedemon.TrueCultureLocation
 					}
 
 				}
-				if (CultureUnlock.IsUnlockedByPlayerSlot(civilizationName, majorEmpire.Index))
+				if (CultureUnlock.IsUnlockedByPlayerSlot(factionName, majorEmpire.Index))
 				{
 					lockedByStartingSlot = false;
 					//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Starting Slot unlock for {factionDefinition.Name} from majorEmpire.Index = {majorEmpire.Index}");
@@ -394,7 +394,7 @@ namespace Gedemon.TrueCultureLocation
 				{
 					// unlock "backup" Culture after some time
 					bool backupUnlocked = false;
-					if (majorEmpire.KnowledgeStock.Value >= CultureUnlock.knowledgeForBackupCiv && CultureUnlock.IsFirstEraBackupCivilization(civilizationName))
+					if (majorEmpire.KnowledgeStock.Value >= CultureUnlock.knowledgeForBackupCiv && CultureUnlock.IsFirstEraBackupCivilization(factionName))
 					{
 						backupUnlocked = true;
 					}

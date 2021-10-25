@@ -53,7 +53,12 @@ namespace Gedemon.TrueCultureLocation
 		public static bool TryInitializeFreeMajorEmpireToReplace(MajorEmpire majorEmpire, out MajorEmpire oldEmpire)
 		{
 			Diagnostics.LogWarning($"[Gedemon] TryInitializeFreeMajorEmpireToReplace for {majorEmpire.FactionDefinition.Name}...");
+
 			oldEmpire = null;
+			MajorEmpire potentialLiege = majorEmpire.Liege.Entity != null ? majorEmpire.Liege.Entity : majorEmpire;
+
+			Diagnostics.LogWarning($"[Gedemon] potential Liege of the old Empire : {potentialLiege.FactionDefinition.Name}");
+
 			int numMajor = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires.Length;
 
 			// check for unused Empire in the pool first
@@ -106,7 +111,7 @@ namespace Gedemon.TrueCultureLocation
 					}
 					// Set Vassal (to do : depending of stability)
 					{
-						DiplomaticRelation relationFor = Sandbox.DiplomaticAncillary.GetRelationFor(majorEmpire.Index, oldEmpire.Index);
+						DiplomaticRelation relationFor = Sandbox.DiplomaticAncillary.GetRelationFor(potentialLiege.Index, oldEmpire.Index);
 						DiplomaticStateType state = relationFor.DiplomaticState.State;
 						Diagnostics.LogWarning($"[Gedemon] Set Vassal from current DiplomaticState = {state}");
 						/*
@@ -117,11 +122,11 @@ namespace Gedemon.TrueCultureLocation
 							state = relationFor.DiplomaticState.State;
 						}
 						//*/
-						relationFor.ApplyState(DiplomaticStateType.VassalToLiege, majorEmpire.Index);
+						relationFor.ApplyState(DiplomaticStateType.VassalToLiege, potentialLiege.Index);
 						relationFor.UpdateAbilities(raiseSimulationEvents: true);
-						SimulationEvent_DiplomaticStateChanged.Raise(majorEmpire, majorEmpire.Index, relationFor.DiplomaticState.State, state, oldEmpire.Index, -1);
-						Diagnostics.LogWarning($"[Gedemon] New  DiplomaticState = {Sandbox.DiplomaticAncillary.GetRelationFor(majorEmpire.Index, oldEmpire.Index).DiplomaticState.State}");
-						Sandbox.SimulationEntityRepository.SetSynchronizationDirty(majorEmpire);
+						SimulationEvent_DiplomaticStateChanged.Raise(potentialLiege, potentialLiege.Index, relationFor.DiplomaticState.State, state, oldEmpire.Index, -1);
+						Diagnostics.LogWarning($"[Gedemon] New  DiplomaticState = {Sandbox.DiplomaticAncillary.GetRelationFor(potentialLiege.Index, oldEmpire.Index).DiplomaticState.State}");
+						Sandbox.SimulationEntityRepository.SetSynchronizationDirty(potentialLiege);
 						Sandbox.SimulationEntityRepository.SetSynchronizationDirty(oldEmpire);
 					}
 					break;

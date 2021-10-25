@@ -28,7 +28,10 @@ namespace Gedemon.TrueCultureLocation
 			bool flag = (status & FactionStatus.LockedByEmpireMiscFlags) != 0;
 
 			if (CultureUnlock.UseTrueCultureLocation())
-            {
+			{
+				int localEmpireIndex = Amplitude.Mercury.Sandbox.SandboxManager.Sandbox.LocalEmpireIndex;
+				MajorEmpire majorEmpire = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires[localEmpireIndex];
+
 				int lines = 0;
 				if (CultureUnlock.HasTerritory(factionName) && flag)
 				{
@@ -54,7 +57,7 @@ namespace Gedemon.TrueCultureLocation
 
 					}
 
-					if (TrueCultureLocation.GetEraIndexCityRequiredForUnlock() < __instance.FactionDefinition.EraIndex + 1)
+					if (TrueCultureLocation.GetEraIndexCityRequiredForUnlock() < __instance.FactionDefinition.EraIndex + 1 && !CultureUnlock.IsNomadCulture(majorEmpire.FactionDefinition.name))
 						__instance.lockedLabel.Text += Environment.NewLine + "(City or Attached to a City)";
 					else
 						__instance.lockedLabel.Text += Environment.NewLine + "(an Outpost is enough)";
@@ -68,8 +71,6 @@ namespace Gedemon.TrueCultureLocation
 					List<Settlement> settlementToLiberate = new List<Settlement>();                                             // Full Settlements (including a City or being a single-territory City) that are lost
 					List<Settlement> settlementToFree = new List<Settlement>();                                                 // Single Settlement (not a city) that are lost
 
-					int localEmpireIndex = Amplitude.Mercury.Sandbox.SandboxManager.Sandbox.LocalEmpireIndex;
-					MajorEmpire majorEmpire = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires[localEmpireIndex];
 
 					District potentialCapital;// = capital;
 
