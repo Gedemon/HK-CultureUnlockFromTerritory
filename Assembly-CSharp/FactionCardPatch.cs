@@ -72,9 +72,10 @@ namespace Gedemon.TrueCultureLocation
 					List<Settlement> settlementToFree = new List<Settlement>();                                                 // Single Settlement (not a city) that are lost
 
 
-					District potentialCapital;// = capital;
+					District potentialCapital;
+					int numcitiesLost;
 
-					bool capitalChanged = CultureChange.GetTerritoryChangesOnEvolve(majorEmpire.DepartmentOfDevelopment, __instance.NextFactionInfo.FactionDefinitionName, out potentialCapital, ref territoryToDetachAndCreate, ref territoryToDetachAndFree, ref settlementToLiberate, ref settlementToFree);
+					bool capitalChanged = CultureChange.GetTerritoryChangesOnEvolve(majorEmpire.DepartmentOfDevelopment, __instance.NextFactionInfo.FactionDefinitionName, out numcitiesLost, out potentialCapital, ref territoryToDetachAndCreate, ref territoryToDetachAndFree, ref settlementToLiberate, ref settlementToFree);
 
 					string city = settlementToLiberate.Count > 1 ? "Cities" : "City";
 
@@ -142,7 +143,7 @@ namespace Gedemon.TrueCultureLocation
 					if (__instance.lockedLabel.Text != "")
                     {
 						__instance.lockedOverlay.VisibleSelf = true; // to show the text
-						__instance.lockedOverlayImage.Color = new Color(0f, 0f, 0f, 0.15f);
+						__instance.lockedOverlayImage.Color = new Color(0f, 0f, 0f, 0.20f);
 						__instance.lockedByPatch.VisibleSelf = false;
 					}
 
@@ -154,7 +155,7 @@ namespace Gedemon.TrueCultureLocation
 				__instance.lockedLabel.SetVerticalAlignment(Amplitude.UI.VerticalAlignment.Top);
 				if (lines > 8)
 				{
-					int resize = lines < 16 ? lines : 16;
+					int resize = lines < 14 ? lines : 14;
 					__instance.lockedLabel.FontSize = (uint)(baseFontSize + 8 - resize);
 				}
 			}

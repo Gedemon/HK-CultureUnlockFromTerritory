@@ -23,6 +23,7 @@ using Amplitude.Mercury;
 using System.Reflection;
 using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Interop;
+using Amplitude.Framework.Networking;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -193,6 +194,26 @@ namespace Gedemon.TrueCultureLocation
 				Description = "16 Empires",
 				Value = "16"
 			},
+			/*
+			new GameOptionStateInfo
+			{
+				Title = "18",
+				Description = "18 Empires",
+				Value = "18"
+			},
+			new GameOptionStateInfo
+			{
+				Title = "21",
+				Description = "21 Empires",
+				Value = "21"
+			},
+			new GameOptionStateInfo
+			{
+				Title = "32",
+				Description = "32 Empires",
+				Value = "32"
+			},
+			//*/
 		};
 
 		private static readonly List<GameOptionStateInfo> NumSettlingEmpireSlots = new List<GameOptionStateInfo>

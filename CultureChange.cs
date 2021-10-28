@@ -142,18 +142,24 @@ namespace Gedemon.TrueCultureLocation
 			diplomaticAmbassy.EmpireMoral.Empty();
 		}
 
-		public static bool GetTerritoryChangesOnEvolve(DepartmentOfDevelopment instance, StaticString nextFactionName, out District potentialCapital, ref IDictionary<Settlement, List<int>> territoryToDetachAndCreate, ref IDictionary<Settlement, List<int>> territoryToDetachAndFree, ref List<Settlement> settlementToLiberate, ref List<Settlement> settlementToFree)
+		public static bool GetTerritoryChangesOnEvolve(DepartmentOfDevelopment instance, StaticString nextFactionName, out int numCitiesLost, out District potentialCapital, ref IDictionary<Settlement, List<int>> territoryToDetachAndCreate, ref IDictionary<Settlement, List<int>> territoryToDetachAndFree, ref List<Settlement> settlementToLiberate, ref List<Settlement> settlementToFree)
 		{
 
+			Diagnostics.LogWarning($"[Gedemon] in GetTerritoryChangesOnEvolve.");
+
 			potentialCapital = null;
+			numCitiesLost = 0;
 
 			MajorEmpire majorEmpire = instance.majorEmpire;
 			//StaticString nextFactionName = instance.nextFactionName;
 
+			Diagnostics.LogWarning($"[Gedemon] before IsEmpireHumanSlot");
 			bool isHuman = TrueCultureLocation.IsEmpireHumanSlot(majorEmpire.Index);
-			bool capitalChanged = false;
+			Diagnostics.LogWarning($"[Gedemon] before KeepOnlyCultureTerritory");
 			bool keepOnlyCultureTerritory = TrueCultureLocation.KeepOnlyCultureTerritory();
 			bool keepTerritoryAttached = TrueCultureLocation.KeepTerritoryAttached();
+			bool capitalChanged = false; // the Capital hasn't been changed yet
+			bool needNewCapital = false; // We need a new Capital (and we've not found it yet)
 
 			if ((!isHuman) && TrueCultureLocation.NoTerritoryLossForAI())
 			{
@@ -162,63 +168,98 @@ namespace Gedemon.TrueCultureLocation
 
 			if (majorEmpire.DepartmentOfDevelopment.CurrentEraIndex != 0 && majorEmpire.FactionDefinition.Name != nextFactionName && keepOnlyCultureTerritory)
 			{
+				Diagnostics.LogWarning($"[Gedemon] before Check for new Capital (exist = {(majorEmpire.Capital.Entity != null)})");
+				bool hasCapital = (majorEmpire.Capital.Entity != null);
 
-				// relocate capital first, if needed
-				Settlement Capital = majorEmpire.Capital;
-				District capitalMainDistrict = Capital.GetMainDistrict();
-				bool needNewCapital = !CultureUnlock.HasTerritory(nextFactionName.ToString(), capitalMainDistrict.Territory.Entity.Index);
-
-				if (needNewCapital && keepTerritoryAttached)
+				if (hasCapital)
 				{
-					int count2 = Capital.Region.Entity.Territories.Count;
-					for (int k = 0; k < count2; k++)
+					Settlement Capital = majorEmpire.Capital;
+
+					District capitalMainDistrict = Capital.GetMainDistrict();
+					Diagnostics.LogWarning($"[Gedemon] before Check Capital Territory ({Capital.SettlementStatus} {Capital.EntityName} is current Capital)");
+					needNewCapital = !CultureUnlock.HasTerritory(nextFactionName.ToString(), capitalMainDistrict.Territory.Entity.Index);
+
+					if (needNewCapital && keepTerritoryAttached)
 					{
-						Territory territory = Capital.Region.Entity.Territories[k];
-						if (CultureUnlock.HasTerritory(nextFactionName.ToString(), territory.Index))
+						int count2 = Capital.Region.Entity.Territories.Count;
+						for (int k = 0; k < count2; k++)
 						{
-							needNewCapital = false;
-							break;
+							Territory territory = Capital.Region.Entity.Territories[k];
+							if (CultureUnlock.HasTerritory(nextFactionName.ToString(), territory.Index))
+							{
+								needNewCapital = false;
+								break;
+							}
 						}
 					}
+
+				}
+				else
+				{
+					needNewCapital = true;
 				}
 
 				if (needNewCapital)
 				{
 					// need to find new Capital !
-					Diagnostics.LogWarning($"[Gedemon] {Capital.SettlementStatus} {Capital.EntityName} : Is Capital, need to find new Capital.");
+					Diagnostics.LogWarning($"[Gedemon] Searching new Capital in existing Cities first.");
 
 					// check existing settlements first
-					int count4 = majorEmpire.Settlements.Count;
-					for (int m = 0; m < count4; m++)
+
+					foreach (int territoryIndex in CultureUnlock.GetListTerritories(nextFactionName.ToString()))
 					{
-						Settlement settlement = majorEmpire.Settlements[m];
-						if (settlement.SettlementStatus == SettlementStatuses.City)
+						int count4 = majorEmpire.Settlements.Count;
+						for (int m = 0; m < count4; m++)
 						{
-							potentialCapital = settlement.GetMainDistrict();
-							if (CultureUnlock.HasTerritory(nextFactionName.ToString(), potentialCapital.Territory.Entity.Index))
+							Settlement settlement = majorEmpire.Settlements[m];
+							if (settlement.SettlementStatus == SettlementStatuses.City)
 							{
-								Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : register City for new Capital in territory {potentialCapital.Territory.Entity.Index}.");
-								needNewCapital = false;
-								capitalChanged = true;
+								District potentialDistrict = settlement.GetMainDistrict();
+								if (territoryIndex == potentialDistrict.Territory.Entity.Index)
+								{
+									Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : register City for new Capital in territory {potentialDistrict.Territory.Entity.Index}.");
+									needNewCapital = false;
+									capitalChanged = true;
+									potentialCapital = potentialDistrict;
+									break;
+								}
 							}
 						}
+						if (!needNewCapital)
+                        {
+							break;
+                        }
+
 					}
+
 
 					if (needNewCapital)
 					{
-						int count5 = majorEmpire.Settlements.Count;
-						for (int n = 0; n < count5; n++)
+						Diagnostics.LogWarning($"[Gedemon] New Capital not found, now searching in Settlement without cities for a potential Capital position.");
+
+						foreach (int territoryIndex in CultureUnlock.GetListTerritories(nextFactionName.ToString()))
 						{
-							Settlement settlement = majorEmpire.Settlements[n];
-							if (settlement.SettlementStatus != SettlementStatuses.City)
+
+							int count5 = majorEmpire.Settlements.Count;
+							for (int n = 0; n < count5; n++)
 							{
-								potentialCapital = settlement.GetMainDistrict();
-								if (CultureUnlock.HasTerritory(nextFactionName.ToString(), potentialCapital.Territory.Entity.Index))
+								Settlement settlement = majorEmpire.Settlements[n];
+								if (settlement.SettlementStatus != SettlementStatuses.City)
 								{
-									Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : register Settlement to Create new Capital in territory {potentialCapital.Territory.Entity.Index}.");
-									needNewCapital = false;
-									capitalChanged = true;
+									District potentialDistrict = settlement.GetMainDistrict();
+									if (territoryIndex == potentialDistrict.Territory.Entity.Index)
+									{
+										Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : register Settlement to Create new Capital in territory {potentialDistrict.Territory.Entity.Index}.");
+										needNewCapital = false;
+										capitalChanged = true;
+										potentialCapital = potentialDistrict;
+										break;
+									}
 								}
+							}
+							if (!needNewCapital)
+							{
+								break;
 							}
 						}
 					}
@@ -319,6 +360,7 @@ namespace Gedemon.TrueCultureLocation
 							}
 							if (giveSettlement)
 							{
+								numCitiesLost++;
 								FailureFlags flag = DepartmentOfTheInterior.CanLiberateSettlement(majorEmpire, settlement);
 								if (flag == FailureFlags.None || flag == FailureFlags.SettlementIsCapital)
 								{
@@ -327,11 +369,8 @@ namespace Gedemon.TrueCultureLocation
 								}
 								else
 								{
-									Diagnostics.LogWarning($"[Gedemon] City {settlement.EntityName} : Can't Liberate ({flag}), Add to settlementToFree for (need capital = {needNewCapital})");
-									if (!needNewCapital)
-									{
-										settlementToFree.Add(settlement);
-									}
+									Diagnostics.LogWarning($"[Gedemon] City {settlement.EntityName} : Can't Liberate ({flag}), Add to settlementToFree (after creating new Capital)");
+									settlementToFree.Add(settlement);
 								}
 							}
 						}
@@ -357,7 +396,7 @@ namespace Gedemon.TrueCultureLocation
 				}
 			}
 
-			return capitalChanged;
+			return needNewCapital || capitalChanged;
 		}
 	}
 }
