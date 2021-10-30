@@ -378,7 +378,7 @@ namespace Gedemon.TrueCultureLocation
 			if (CultureUnlock.UseTrueCultureLocation())
 			{
 
-				Diagnostics.Log($"[Gedemon] in MinorFactionManager, IsTerritoryValidForSpawnFaction for {CultureUnlock.GetTerritoryName(territory.Index)}, MinorFactionManager Era = ({__instance.CurrentMinorFactionEraDefinition.EraIndex}) ");
+				//Diagnostics.Log($"[Gedemon] in MinorFactionManager, IsTerritoryValidForSpawnFaction for {CultureUnlock.GetTerritoryName(territory.Index)}, MinorFactionManager Era = ({__instance.CurrentMinorFactionEraDefinition.EraIndex}) ");
 
 				if (__instance.CurrentMinorFactionEraDefinition.EraIndex == 0)
                 {

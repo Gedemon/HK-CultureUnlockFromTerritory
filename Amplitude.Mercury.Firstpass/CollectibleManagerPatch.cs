@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Amplitude.Mercury.Options;
 using Amplitude.Mercury.Data.GameOptions;
 using HumankindModTool;
+using Amplitude.Mercury.Sandbox;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -22,6 +23,7 @@ namespace Gedemon.TrueCultureLocation
 		{
 			Diagnostics.LogWarning($"[Gedemon] in CollectibleManager, InitializeOnLoad");
 			CultureUnlock.LogTerritoryStats();
+			CultureUnlock.logEmpiresTerritories();
 
 			// stability level	= PublicOrderEffectDefinition, EmpireStabilityDefinition
 			// units			= PresentationUnitDefinition
@@ -29,7 +31,8 @@ namespace Gedemon.TrueCultureLocation
 			// eras				= EraDefinition
 			// 
 			// BuildingVisualAffinityDefinition
-			//* 
+			// UnitVisualAffinityDefinition
+			/* 
 			IDatabase<BuildingVisualAffinityDefinition> database1 = Databases.GetDatabase<BuildingVisualAffinityDefinition>();
 			foreach (BuildingVisualAffinityDefinition data in database1)
 			{
@@ -58,6 +61,20 @@ namespace Gedemon.TrueCultureLocation
 			{
                 IGameOptionsService gameOptions = Services.GetService<IGameOptionsService>();
                 Diagnostics.LogWarning($"[Gedemon] gameOptions {option.name} = { gameOptions.GetOption(option.Name).CurrentValue}");
+			}
+
+
+			// temporary fix on load for saves made before this is done on start
+			int numSettlingEmpires = TrueCultureLocation.GetSettlingEmpireSlots();
+			if (CultureUnlock.UseTrueCultureLocation() && numSettlingEmpires < Sandbox.NumberOfMajorEmpires)
+			{
+				Diagnostics.LogWarning($"[Gedemon] in CollectibleManager, InitializeOnLoad for Timeline, reseting globalEraThresholds for {numSettlingEmpires} Settling Empires / {Sandbox.NumberOfMajorEmpires} Major Empires");
+
+				Sandbox.Timeline.globalEraThresholds[Sandbox.Timeline.StartingEraIndex] = Sandbox.Timeline.eraDefinitions[Sandbox.Timeline.StartingEraIndex].BaseGlobalEraThreshold * numSettlingEmpires;
+				for (int l = Sandbox.Timeline.StartingEraIndex + 1; l <= Sandbox.Timeline.EndingEraIndex; l++)
+				{
+					Sandbox.Timeline.globalEraThresholds[l] = Sandbox.Timeline.globalEraThresholds[l - 1] + Sandbox.Timeline.eraDefinitions[l].BaseGlobalEraThreshold * numSettlingEmpires;
+				}
 			}
 		}
 	}

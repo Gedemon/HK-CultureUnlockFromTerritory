@@ -9,6 +9,7 @@ using Amplitude.Mercury.Sandbox;
 using FailureFlags = Amplitude.Mercury.Simulation.FailureFlags;
 using Amplitude.Framework;
 using HumankindModTool;
+using Amplitude.Mercury.Data.Simulation.Costs;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -250,20 +251,88 @@ namespace Gedemon.TrueCultureLocation
 					Diagnostics.LogWarning($"[Gedemon] Compensation : influenceRefund = {influenceRefund}, moneyRefund = {moneyRefund}, scienceRefund = {scienceRefund}, productionRefund = {productionRefund} => Capital = {__instance.majorEmpire.Capital.Entity.EntityName}");
 
 					Diagnostics.Log($"[Gedemon] Current influence stock {majorEmpire.InfluenceStock.Value}");
-					Diagnostics.Log($"[Gedemon] Current research stock {majorEmpire.DepartmentOfScience.TechnologyQueue.CurrentResourceStock}");
-					Diagnostics.Log($"[Gedemon] Current money {majorEmpire.MoneyStock.Value}");
 					majorEmpire.DepartmentOfCulture.GainInfluence(influenceRefund);
-					majorEmpire.DepartmentOfScience.GainResearch(scienceRefund, true, true);
-					majorEmpire.DepartmentOfTheTreasury.GainMoney(moneyRefund);
 					Diagnostics.Log($"[Gedemon] New influence stock {majorEmpire.InfluenceStock.Value}");
-					Diagnostics.Log($"[Gedemon] New research stock {majorEmpire.DepartmentOfScience.TechnologyQueue.CurrentResourceStock}");
+					Diagnostics.Log($"[Gedemon] Current money {majorEmpire.MoneyStock.Value}");
+					majorEmpire.DepartmentOfTheTreasury.GainMoney(moneyRefund);
 					Diagnostics.Log($"[Gedemon] New money {majorEmpire.MoneyStock.Value}");
+
+					Diagnostics.Log($"[Gedemon] Current research stock {majorEmpire.DepartmentOfScience.TechnologyQueue.CurrentResourceStock}");
+					FixedPoint techCostInQueue = FixedPoint.Zero;
+					{
+						TechnologyQueue techQueue = majorEmpire.DepartmentOfScience.TechnologyQueue;
+						int numTechs = techQueue.TechnologyIndices.Count;
+						for (int t=0; t < numTechs; t++)
+                        {
+
+							int num2 = techQueue.TechnologyIndices[t];
+							ref Technology reference = ref majorEmpire.DepartmentOfScience.Technologies.Data[num2];
+							if (!(reference.InvestedResource >= reference.Cost) && reference.TechnologyState != TechnologyStates.Completed)
+							{
+
+								techCostInQueue += reference.Cost - reference.InvestedResource;
+								Diagnostics.Log($"[Gedemon] in TechQueue for {reference.TechnologyDefinition.name}, Cost = {reference.Cost}, Invested = {reference.InvestedResource}, Left = {reference.Cost - reference.InvestedResource}, total cost in Queue = {techCostInQueue}");
+							}
+						}
+					}
+					majorEmpire.DepartmentOfScience.GainResearch(scienceRefund, true, false);
+					FixedPoint scienceLeft = scienceRefund - techCostInQueue;
+					Diagnostics.Log($"[Gedemon] New research stock {majorEmpire.DepartmentOfScience.TechnologyQueue.CurrentResourceStock}, should be {scienceLeft}");
+					if(majorEmpire.DepartmentOfScience.TechnologyQueue.CurrentResourceStock < scienceLeft)
+					{
+						majorEmpire.DepartmentOfScience.TechnologyQueue.CurrentResourceStock = scienceLeft;
+					}
 
 					Settlement currentCapital = __instance.majorEmpire.Capital;
 					Diagnostics.Log($"[Gedemon] Current ConstructionQueue.Entity.CurrentResourceStock {currentCapital.EntityName} =  {currentCapital.ConstructionQueue.Entity.CurrentResourceStock}");
 					currentCapital.ConstructionQueue.Entity.CurrentResourceStock += productionRefund;
-					majorEmpire.DepartmentOfIndustry.InvestProductionFor(currentCapital.ConstructionQueue);
-					Diagnostics.Log($"[Gedemon] New ConstructionQueue.Entity.CurrentResourceStock =  {currentCapital.ConstructionQueue.Entity.CurrentResourceStock}");
+					Diagnostics.Log($"[Gedemon] after refund: CurrentResourceStock {currentCapital.EntityName} =  {currentCapital.ConstructionQueue.Entity.CurrentResourceStock}");
+					FixedPoint productionInQueue = FixedPoint.Zero;
+                    {
+						ConstructionQueue constructionQueue = currentCapital.ConstructionQueue.Entity;
+						int numConstruction = constructionQueue.Constructions.Count;
+						Diagnostics.Log($"[Gedemon] numConstruction = {numConstruction}");
+						for (int c = 0; c < numConstruction; c++)
+						{
+							Construction construction = constructionQueue.Constructions[c];
+							Diagnostics.Log($"[Gedemon] in production queue for {construction.ConstructibleDefinition.Name}, Failures = {construction.FailureFlags}, HasBeenBoughtOut = {construction.HasBeenBoughtOut}, prod. left = {(construction.Cost - construction.InvestedResource)} (cost = {construction.Cost}, invested = {construction.InvestedResource})");
+
+							switch (construction.ConstructibleDefinition.ProductionCostDefinition.Type)
+							{
+								case ProductionCostType.TurnBased:
+                                    {
+										productionInQueue += (construction.Cost - construction.InvestedResource);
+										Diagnostics.Log($"[Gedemon] ProductionCostType.TurnBased : new calculated prod. required in queue = {productionInQueue}");
+										break;
+									}
+								case ProductionCostType.Infinite:
+									break;
+								case ProductionCostType.Production:
+									{
+										productionInQueue += (construction.Cost - construction.InvestedResource);
+										Diagnostics.Log($"[Gedemon] ProductionCostType.Production : new calculated prod. required in queue = {productionInQueue}");
+										break;
+									}
+								case ProductionCostType.Transfert:
+									{
+										//productionInQueue += (construction.Cost - construction.InvestedResource);
+										Diagnostics.Log($"[Gedemon] ProductionCostType.Transfert...");
+										break;
+									}
+								default:
+									Diagnostics.LogError("Invalid production cost type.");
+									break;
+							}
+						}
+					}
+					majorEmpire.DepartmentOfIndustry.InvestProductionFor(currentCapital.ConstructionQueue); // this method change CurrentResourceStock to the minimum value between the current city production and CurrentResourceStock, feature or bug ?
+					FixedPoint prodLeft = productionRefund - productionInQueue;
+					Diagnostics.Log($"[Gedemon] after InvestProductionFor(ConstructionQueue) : CurrentResourceStock =  {currentCapital.ConstructionQueue.Entity.CurrentResourceStock} (should be {prodLeft})");
+                    if (currentCapital.ConstructionQueue.Entity.CurrentResourceStock < prodLeft)
+					{
+						currentCapital.ConstructionQueue.Entity.CurrentResourceStock = prodLeft;
+						Amplitude.Mercury.Sandbox.Sandbox.SimulationEntityRepository.SetSynchronizationDirty(currentCapital.ConstructionQueue.Entity);
+					}					
 				}
 
 			}

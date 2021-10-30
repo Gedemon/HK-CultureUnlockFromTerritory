@@ -24,6 +24,7 @@ using System.Reflection;
 using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Interop;
 using Amplitude.Framework.Networking;
+using Amplitude.Mercury.Data.Simulation.Costs;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -206,6 +207,18 @@ namespace Gedemon.TrueCultureLocation
 				Title = "21",
 				Description = "21 Empires",
 				Value = "21"
+			},
+			new GameOptionStateInfo
+			{
+				Title = "22",
+				Description = "22 Empires",
+				Value = "22"
+			},
+			new GameOptionStateInfo
+			{
+				Title = "28",
+				Description = "28 Empires",
+				Value = "28"
 			},
 			new GameOptionStateInfo
 			{
@@ -733,6 +746,145 @@ namespace Gedemon.TrueCultureLocation
 
 
 	//*
+	[HarmonyPatch(typeof(DepartmentOfIndustry))]
+	public class DepartmentOfIndustry_Patch
+	{
+		[HarmonyPatch("InvestProductionFor")]
+		[HarmonyPrefix]
+		public static bool InvestProductionFor(DepartmentOfIndustry __instance, ConstructionQueue constructionQueue) 
+		{
+
+			if (CultureUnlock.UseTrueCultureLocation())
+			{
+
+				FixedPoint left = DepartmentOfIndustry.ComputeProductionIncome(constructionQueue.Settlement);
+				Settlement entity = constructionQueue.Settlement.Entity;
+				FixedPoint fixedPoint = left + constructionQueue.CurrentResourceStock;
+				constructionQueue.CurrentResourceStock = 0;
+				bool flag = false;
+				if (constructionQueue.Constructions.Count > 0)
+				{
+					flag = (constructionQueue.Constructions[0].ConstructibleDefinition.ProductionCostDefinition.Type == ProductionCostType.TurnBased);
+				}
+
+				bool flag2 = true;
+				int num = 0;
+				while ((fixedPoint > 0 || (flag2 && flag)) && num < constructionQueue.Constructions.Count)
+				{
+					int num2 = num++;
+					Construction construction = constructionQueue.Constructions[num2];
+					construction.Cost = __instance.GetConstructibleProductionCostForSettlement(entity, construction.ConstructibleDefinition);
+					construction.Cost = __instance.ApplyPositionCostModifierIfNecessary(construction.Cost, construction.ConstructibleDefinition, construction.WorldPosition.ToTileIndex());
+					constructionQueue.Constructions[num2] = construction;
+					bool num3 = construction.FailureFlags != ConstructionFailureFlags.None;
+					bool hasBeenBoughtOut = construction.HasBeenBoughtOut;
+					bool flag3 = construction.InvestedResource >= construction.Cost;
+					if (num3 | hasBeenBoughtOut | flag3)
+					{
+						continue;
+					}
+
+					switch (construction.ConstructibleDefinition.ProductionCostDefinition.Type)
+					{
+						case ProductionCostType.TurnBased:
+							if (!flag2)
+							{
+								continue;
+							}
+
+							fixedPoint = 0;
+							++construction.InvestedResource;
+							break;
+						case ProductionCostType.Infinite:
+							fixedPoint = 0;
+							break;
+						case ProductionCostType.Production:
+							{
+								FixedPoint fixedPoint2 = construction.Cost - construction.InvestedResource;
+								if (fixedPoint > fixedPoint2)
+								{
+									fixedPoint -= fixedPoint2;
+									construction.InvestedResource = construction.Cost;
+									__instance.NotifyEndedConstruction(constructionQueue, num2, ref construction);
+                                    Amplitude.Framework.Simulation.SimulationController.RefreshAll();
+								}
+								else
+								{
+									construction.InvestedResource += fixedPoint;
+									fixedPoint = 0;
+								}
+
+								break;
+							}
+						case ProductionCostType.Transfert:
+							{
+								FixedPoint productionIncome = fixedPoint * entity.EmpireWideConstructionProductionBoost.Value;
+								fixedPoint = __instance.TransfertProduction(construction, productionIncome);
+								break;
+							}
+						default:
+							Diagnostics.LogError("Invalid production cost type.");
+							break;
+					}
+
+					flag2 = false;
+					constructionQueue.Constructions[num2] = construction;
+				}
+
+				__instance.CleanConstructionQueue(constructionQueue);
+				if (entity.SettlementStatus == SettlementStatuses.City)
+				{
+					constructionQueue.CurrentResourceStock = FixedPoint.Max(left, fixedPoint); // was FixedPoint.Min
+				}
+
+				return false; // we've replaced the full method
+            }
+			return true;
+		}
+	}
+	//*/
+
+
+	//*
+	[HarmonyPatch(typeof(Timeline))]
+	public class Timeline_Patch
+	{
+		[HarmonyPatch("InitializeOnStart")]
+		[HarmonyPostfix]
+		public static void InitializeOnStart(Timeline __instance, SandboxStartSettings sandboxStartSettings)
+		{
+			// reinitialize globalEraThresholds
+			int numSettlingEmpires = TrueCultureLocation.GetSettlingEmpireSlots();
+			if (CultureUnlock.UseTrueCultureLocation() && numSettlingEmpires < sandboxStartSettings.NumberOfMajorEmpires)
+			{
+				Diagnostics.LogWarning($"[Gedemon] in Timeline, InitializeOnStart, reset globalEraThresholds for {numSettlingEmpires} Settling Empires / {sandboxStartSettings.NumberOfMajorEmpires} Major Empires");
+
+				__instance.globalEraThresholds[__instance.StartingEraIndex] = __instance.eraDefinitions[__instance.StartingEraIndex].BaseGlobalEraThreshold * numSettlingEmpires;
+				for (int l = __instance.StartingEraIndex + 1; l <= __instance.EndingEraIndex; l++)
+				{
+					__instance.globalEraThresholds[l] = __instance.globalEraThresholds[l - 1] + __instance.eraDefinitions[l].BaseGlobalEraThreshold * numSettlingEmpires;
+				}
+			}
+		}
+	}
+	//*/
+
+
+	//*
+	[HarmonyPatch(typeof(DiplomaticBanner))]
+	public class DiplomaticBanner_Patch
+	{
+		[HarmonyPatch("RefreshItemsPerLine")]
+		[HarmonyPrefix]
+		public static bool RefreshItemsPerLine(DiplomaticBanner __instance)
+		{
+			__instance.maxNumberOfItemsPerLine = 4; // default = 4, more (ideally 9) would require to move the city top bar or check the UI size maybe ? (75% for 9 items)
+			return true;
+		}
+	}
+	//*/
+
+	//*
 	[HarmonyPatch(typeof(Amplitude.Mercury.UI.Helpers.GameUtils))]
 	public class GameUtils_Patch
 	{
@@ -743,6 +895,7 @@ namespace Gedemon.TrueCultureLocation
 
 			if (CultureUnlock.UseTrueCultureLocation())
 			{
+				//Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName");
 				ref TerritoryInfo reference = ref Snapshots.GameSnapshot.PresentationData.TerritoryInfo.Data[territoryIndex];
 				bool flag = useColor != EmpireColor.None;
 				if (reference.AdministrativeDistrictGUID != 0)
@@ -753,9 +906,9 @@ namespace Gedemon.TrueCultureLocation
 						string text = CultureUnlock.GetTerritoryName(territoryIndex);// reference2.EntityName.ToString();
 						if (flag)
 						{
-							Color empireColor = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
-							__result = Amplitude.Mercury.Utils.TextUtils.ColorizeText(text, empireColor);
-							return false;
+							//Color empireColor = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
+							//__result = Amplitude.Mercury.Utils.TextUtils.ColorizeText(text, empireColor);
+							//return false;
 						}
 
 						__result = text;
@@ -766,9 +919,9 @@ namespace Gedemon.TrueCultureLocation
 				string text2 = CultureUnlock.GetTerritoryName(territoryIndex);// reference.LocalizedName ?? string.Empty;
 				if (flag && reference.Claimed)
 				{
-					Color empireColor2 = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
-					__result = __instance.TextUtils.ColorizeText(text2, empireColor2);
-					return false;
+					//Color empireColor2 = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
+					//__result = __instance.TextUtils.ColorizeText(text2, empireColor2);
+					//return false;
 				}
 
 				__result = text2;

@@ -88,16 +88,52 @@ namespace Gedemon.TrueCultureLocation
 
 				if (potentialEmpire.Armies.Count == 0 && potentialEmpire.Settlements.Count == 0 && (potentialEmpire.IsAlive || mustResurect ))
 				{
+
 					oldEmpire = potentialEmpire;
+					Diagnostics.LogWarning($"[Gedemon] DepartmentOfDevelopment.CurrentEraIndex: {oldEmpire.DepartmentOfDevelopment.CurrentEraIndex} => {majorEmpire.DepartmentOfDevelopment.CurrentEraIndex}");
 					oldEmpire.IsAlive = true;
 					oldEmpire.DepartmentOfDevelopment.nextFactionName = StaticString.Empty;
 					oldEmpire.DepartmentOfDevelopment.isNextFactionConfirmed = false;
+					Diagnostics.LogWarning($"[Gedemon] before changes, EraLevel: {oldEmpire.EraLevel.Value}");
 					oldEmpire.DepartmentOfDevelopment.CurrentEraIndex = majorEmpire.DepartmentOfDevelopment.CurrentEraIndex;
-					oldEmpire.DepartmentOfScience.CurrentTechnologicalEraIndex = majorEmpire.DepartmentOfScience.CurrentTechnologicalEraIndex;
-					oldEmpire.ChangeFaction(majorEmpire.FactionDefinition.Name); // before applying other changes !
-					oldEmpire.DepartmentOfScience.CompleteAllPreviousErasTechnologiesOnStart();
+					//oldEmpire.DepartmentOfScience.CurrentTechnologicalEraIndex = majorEmpire.DepartmentOfScience.CurrentTechnologicalEraIndex;
+					oldEmpire.ChangeFaction(majorEmpire.FactionDefinition.Name); // before ApplyStartingEra !
 					oldEmpire.DepartmentOfDevelopment.ApplyStartingEra();
-					oldEmpire.DepartmentOfDevelopment.ApplyNextEra();
+					oldEmpire.DepartmentOfDevelopment.PickFirstEraStars();
+					//oldEmpire.DepartmentOfDevelopment.ApplyNextEra();
+
+					Diagnostics.LogWarning($"[Gedemon] DepartmentOfScience.CurrentTechnologicalEraIndex = {oldEmpire.DepartmentOfScience.CurrentTechnologicalEraIndex}");
+					oldEmpire.DepartmentOfScience.UpdateCurrentTechnologyEraIfNeeded();
+					Diagnostics.LogWarning($"[Gedemon] After UpdateCurrentTechnologyEraIfNeeded, CurrentTechnologicalEraIndex = {oldEmpire.DepartmentOfScience.CurrentTechnologicalEraIndex}");
+					oldEmpire.DepartmentOfScience.CompleteAllPreviousErasTechnologiesOnStart();
+					// Adding Techs
+                    {
+						int length = oldEmpire.DepartmentOfScience.Technologies.Length;
+						for (int t = 0; t < length; t++)
+						{
+							ref Technology reference = ref oldEmpire.DepartmentOfScience.Technologies.Data[t];
+							ref Technology reference2 = ref majorEmpire.DepartmentOfScience.Technologies.Data[t];
+
+							//Diagnostics.LogWarning($"[Gedemon] Check {reference.TechnologyDefinition.Name} (replacing Empire = {reference.TechnologyState}, Major Empire {reference2.TechnologyDefinition.Name} = {reference2.TechnologyState})" );
+
+							if (reference2.TechnologyState == TechnologyStates.Completed && reference.TechnologyState != TechnologyStates.Completed)
+							{
+								reference.InvestedResource = reference.Cost;
+								reference.TechnologyState = TechnologyStates.Completed;
+								oldEmpire.DepartmentOfScience.TechnologicalEras.Data[reference.EraIndex].ResearchedTechnologyCount++;
+								oldEmpire.DepartmentOfScience.ApplyTechnologyEffects(reference.TechnologyDefinition, raiseSimulationEvents: false);
+								Amplitude.Mercury.Sandbox.Sandbox.SimulationEntityRepository.SetSynchronizationDirty(oldEmpire);
+
+								Diagnostics.LogWarning($"[Gedemon] Completing know Tech : {reference.TechnologyDefinition.Name} ({reference.TechnologyState})");
+							}
+						}
+
+						oldEmpire.DepartmentOfScience.Technologies.Frame = Amplitude.Mercury.Sandbox.Sandbox.Frame;
+						oldEmpire.DepartmentOfScience.TechnologicalEras.Frame = Amplitude.Mercury.Sandbox.Sandbox.Frame;
+						oldEmpire.DepartmentOfScience.UpdateTechnologiesState();
+					}
+
+					Diagnostics.LogWarning($"[Gedemon] after changes, EraLevel: {oldEmpire.EraLevel.Value}");
 					oldEmpire.SetEmpireSymbol(majorEmpire.EmpireSymbolDefinition.Name);
 					// reset diplomatic relations
 					for (int otherIndex = 0; otherIndex < numMajor; otherIndex++)

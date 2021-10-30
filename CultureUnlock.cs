@@ -33,6 +33,22 @@ namespace Gedemon.TrueCultureLocation
 					{ 13, new Hexagon.OffsetCoords(7, 58)}, // Spain
 					{ 14, new Hexagon.OffsetCoords(28, 15)}, // South Africa
 					{ 15, new Hexagon.OffsetCoords(78, 40)}, // South-East Asia
+					{ 16, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 17, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 18, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 19, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 20, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 21, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 22, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 23, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 24, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 25, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 26, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 27, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 28, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 29, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 30, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 31, new Hexagon.OffsetCoords(78, 40)}, // 
 				};
 
 		static readonly IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsNewWorld = new Dictionary<int, Hexagon.OffsetCoords> // EmpireIndex (player slots)
@@ -53,62 +69,78 @@ namespace Gedemon.TrueCultureLocation
 					{ 13, new Hexagon.OffsetCoords(154,38)}, // Columbia
 					{ 14, new Hexagon.OffsetCoords(28, 15)}, // South Africa
 					{ 15, new Hexagon.OffsetCoords(78, 40)}, // South-East Asia
+					{ 16, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 17, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 18, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 19, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 20, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 21, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 22, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 23, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 24, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 25, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 26, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 27, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 28, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 29, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 30, new Hexagon.OffsetCoords(28, 15)}, // 
+					{ 31, new Hexagon.OffsetCoords(78, 40)}, // 
 				};
-		
+
 		static List<string>[] territoriesWithMinorFactions;
 
 		static readonly IDictionary<string, List<int>> listMinorFactionTerritories = new Dictionary<string, List<int>>  // CivName, list of territory indexes
 				{
-					{ "IndependentPeople_Era1_Peaceful_Akkadians",		new List<int>() { 142, 123 } }, // Mesopotamia, Assyria
-					{ "IndependentPeople_Era1_Peaceful_Elamites",		new List<int>() { 243 } }, // Persia
-					{ "IndependentPeople_Era1_Peaceful_Noks",			new List<int>() { 220 } }, // Beninum
-					{ "IndependentPeople_Era1_Peaceful_NorteChicoPeople",	new List<int>() { 47 } }, // Peruvia
-					{ "IndependentPeople_Era1_Violent_Hurrians",		new List<int>() { 123 } }, // Assyria
-					{ "IndependentPeople_Era1_Violent_Hyksos",			new List<int>() { 128 } }, // Aegyptus
-					{ "IndependentPeople_Era1_Violent_Kassites",		new List<int>() { 142 } }, // Mesopotami
-					{ "IndependentPeople_Era1_Violent_Lullubis",		new List<int>() { 142 } }, // Mesopotami
-					{ "IndependentPeople_Era1_Violent_Medes",			new List<int>() { 144, 243 } }, // Media, Persia
-					{ "IndependentPeople_Era1_Violent_Minoans",			new List<int>() { 101 } }, // Graecia
-					{ "IndependentPeople_Era1_Violent_Mittanians",		new List<int>() { 123 } }, // Assyria
-					{ "IndependentPeople_Era2_Peaceful_Etruscans",		new List<int>() { 99, 100 } }, // Italia Annonaria, Italia Suburbicaria
-					{ "IndependentPeople_Era2_Peaceful_Garamantes",		new List<int>() { 127 } }, // Libya
-					{ "IndependentPeople_Era2_Peaceful_Mochicas",		new List<int>() { 47 } }, // Peruvia
-					{ "IndependentPeople_Era2_Peaceful_Nazcans",		new List<int>() { 47, 52 } }, // Peruvia, Atacama
-					{ "IndependentPeople_Era2_Peaceful_Parthians",		new List<int>() { 230 } }, // Parthia
-					{ "IndependentPeople_Era2_Peaceful_Scythians",		new List<int>() { 205, 149, 206, 228, 124, 226 } }, // Chorasmia, Orenburgum, Kazachia, Omium, Ciscaucasia, Voronegia
-					{ "IndependentPeople_Era2_Peaceful_Zapotecs",		new List<int>() { 219, 41 } }, // Yucatania, Mexicum
-					{ "IndependentPeople_Era2_Violent_Arverni",			new List<int>() { 22 } }, // Occitania
-					{ "IndependentPeople_Era2_Violent_Burgundians",		new List<int>() { 117, 105, 99, 22 } }, // Polonia, Germania, Italia Annonaria, Occitania
-					{ "IndependentPeople_Era2_Violent_Cantabris",		new List<int>() { 96, 97 } }, // Castella, Aragonia
-					{ "IndependentPeople_Era2_Violent_Cherusci",		new List<int>() { 105 } }, // Germania
-					{ "IndependentPeople_Era2_Violent_Dacians",			new List<int>() { 103 } }, // Dacia
-					{ "IndependentPeople_Era2_Violent_Molossians",		new List<int>() { 101, 102 } }, // Graecia, Illyria
-					{ "IndependentPeople_Era2_Violent_Numidians",		new List<int>() { 190 } }, // Numidia
-					{ "IndependentPeople_Era2_Violent_Picts",			new List<int>() { 20 } }, // Caledonia
-					{ "IndependentPeople_Era2_Violent_Sabines",			new List<int>() { 100, 99 } }, // Italia Suburbicaria, Italia Annonaria
-					{ "IndependentPeople_Era2_Violent_Vandals",			new List<int>() { 117, 120, 190, 98, 105, 22, 95 } }, // Polonia, Baltica, Numidia?, Sardinia?, Germania, Occitania, Andalusia
-					{ "IndependentPeople_Era3_Peaceful_Armenians",		new List<int>() { 121, 118, 123 } }, // Transcaucasia, Cappadocia, Assyria
-					{ "IndependentPeople_Era3_Peaceful_Icelanders",		new List<int>() { 17, 11 } }, // Islandia, Groenlandia
-					{ "IndependentPeople_Era3_Peaceful_Khazars",		new List<int>() { 124, 226, 121, 119, 205 } }, // Ciscaucasia, Voronegia, Transcaucasia, Ucraina, Chorasmia
-					{ "IndependentPeople_Era3_Peaceful_Malinke",		new List<int>() { 129, 211 } }, // Malia, Guinea
-					{ "IndependentPeople_Era3_Peaceful_Toltecs",		new List<int>() { 219, 41 } }, // Yucatania, Mexicum
-					{ "IndependentPeople_Era3_Violent_Avars",			new List<int>() { 124, 104, 102, 103 } }, // Ciscaucasia, Danubia, Illyria, Dacia
-					{ "IndependentPeople_Era3_Violent_Berbers",			new List<int>() { 188, 190, 126, 127, 125 } }, // Marocum, Numidia, Sahara, Libya, Mauretania
-					{ "IndependentPeople_Era3_Violent_Bretons",			new List<int>() { 24 } }, // Neustria
-					{ "IndependentPeople_Era3_Violent_Magyars",			new List<int>() { 119, 103, 104 } }, // Ucraina, Dacia, Danubia
-					{ "IndependentPeople_Era3_Violent_Normans",			new List<int>() { 24, 21 } }, // Neustria, Anglia
-					{ "IndependentPeople_Era3_Violent_Ostrogoths",		new List<int>() { 109, 99, 119, 104 } }, // Suecia, Italia Annonaria, Ucraina, Danubia
-					{ "IndependentPeople_Era3_Violent_Scots",			new List<int>() { 20 } }, // Caledonia
-					{ "IndependentPeople_Era3_Violent_Somalis",			new List<int>() { 209 } }, // Somalia
-					{ "IndependentPeople_Era3_Violent_Thai",			new List<int>() { 168, 169 } }, // Thailandia, Malaesia
-					{ "IndependentPeople_Era3_Violent_Wisigoths",		new List<int>() { 103, 109, 22, 95, 97, 96 } }, // Dacia, Suecia, Occitania, Andalusia, Aragonia, Castella
-					{ "IndependentPeople_Era4_Peaceful_Inca",			new List<int>() { 47, 52, 246 } }, // Peruvia, Atacama, Chilia
-					{ "IndependentPeople_Era4_Peaceful_Malays",			new List<int>() { 169, 170, 178 } }, // Malaesia, Sumatra, Borneum
-					{ "IndependentPeople_Era4_Peaceful_Tamils",			new List<int>() { 236, 141 } }, // Dravidia, Sri Lanca
-					{ "IndependentPeople_Era4_Peaceful_Tarascans",		new List<int>() { 41 } }, // Mexicum
-					{ "IndependentPeople_Era4_Violent_Kongo",			new List<int>() { 214, 137 } }, // Angolia, Congo
-					{ "IndependentPeople_Era4_Violent_Mississipians",	new List<int>() { 59, 63, 61, 56 } }, // Mississippia, Lacus Magni, Carolinae, Florida
-					{ "IndependentPeople_Era4_Violent_Tlaxcaltecs",		new List<int>() { 41 } }, // Mexicum
+					{ "IndependentPeople_Era1_Peaceful_Akkadians",      new List<int>() { 142, 123 } }, // Mesopotamia, Assyria
+					{ "IndependentPeople_Era1_Peaceful_Elamites",       new List<int>() { 243 } }, // Persia
+					{ "IndependentPeople_Era1_Peaceful_Noks",           new List<int>() { 220 } }, // Beninum
+					{ "IndependentPeople_Era1_Peaceful_NorteChicoPeople",   new List<int>() { 47 } }, // Peruvia
+					{ "IndependentPeople_Era1_Violent_Hurrians",        new List<int>() { 123 } }, // Assyria
+					{ "IndependentPeople_Era1_Violent_Hyksos",          new List<int>() { 128 } }, // Aegyptus
+					{ "IndependentPeople_Era1_Violent_Kassites",        new List<int>() { 142 } }, // Mesopotami
+					{ "IndependentPeople_Era1_Violent_Lullubis",        new List<int>() { 142 } }, // Mesopotami
+					{ "IndependentPeople_Era1_Violent_Medes",           new List<int>() { 144, 243 } }, // Media, Persia
+					{ "IndependentPeople_Era1_Violent_Minoans",         new List<int>() { 101 } }, // Graecia
+					{ "IndependentPeople_Era1_Violent_Mittanians",      new List<int>() { 123 } }, // Assyria
+					{ "IndependentPeople_Era2_Peaceful_Etruscans",      new List<int>() { 99, 100 } }, // Italia Annonaria, Italia Suburbicaria
+					{ "IndependentPeople_Era2_Peaceful_Garamantes",     new List<int>() { 127 } }, // Libya
+					{ "IndependentPeople_Era2_Peaceful_Mochicas",       new List<int>() { 47 } }, // Peruvia
+					{ "IndependentPeople_Era2_Peaceful_Nazcans",        new List<int>() { 47, 52 } }, // Peruvia, Atacama
+					{ "IndependentPeople_Era2_Peaceful_Parthians",      new List<int>() { 230 } }, // Parthia
+					{ "IndependentPeople_Era2_Peaceful_Scythians",      new List<int>() { 205, 149, 206, 228, 124, 226 } }, // Chorasmia, Orenburgum, Kazachia, Omium, Ciscaucasia, Voronegia
+					{ "IndependentPeople_Era2_Peaceful_Zapotecs",       new List<int>() { 219, 41 } }, // Yucatania, Mexicum
+					{ "IndependentPeople_Era2_Violent_Arverni",         new List<int>() { 22 } }, // Occitania
+					{ "IndependentPeople_Era2_Violent_Burgundians",     new List<int>() { 117, 105, 99, 22 } }, // Polonia, Germania, Italia Annonaria, Occitania
+					{ "IndependentPeople_Era2_Violent_Cantabris",       new List<int>() { 96, 97 } }, // Castella, Aragonia
+					{ "IndependentPeople_Era2_Violent_Cherusci",        new List<int>() { 105 } }, // Germania
+					{ "IndependentPeople_Era2_Violent_Dacians",         new List<int>() { 103 } }, // Dacia
+					{ "IndependentPeople_Era2_Violent_Molossians",      new List<int>() { 101, 102 } }, // Graecia, Illyria
+					{ "IndependentPeople_Era2_Violent_Numidians",       new List<int>() { 190 } }, // Numidia
+					{ "IndependentPeople_Era2_Violent_Picts",           new List<int>() { 20 } }, // Caledonia
+					{ "IndependentPeople_Era2_Violent_Sabines",         new List<int>() { 100, 99 } }, // Italia Suburbicaria, Italia Annonaria
+					{ "IndependentPeople_Era2_Violent_Vandals",         new List<int>() { 117, 120, 190, 98, 105, 22, 95 } }, // Polonia, Baltica, Numidia?, Sardinia?, Germania, Occitania, Andalusia
+					{ "IndependentPeople_Era3_Peaceful_Armenians",      new List<int>() { 121, 118, 123 } }, // Transcaucasia, Cappadocia, Assyria
+					{ "IndependentPeople_Era3_Peaceful_Icelanders",     new List<int>() { 17, 11 } }, // Islandia, Groenlandia
+					{ "IndependentPeople_Era3_Peaceful_Khazars",        new List<int>() { 124, 226, 121, 119, 205 } }, // Ciscaucasia, Voronegia, Transcaucasia, Ucraina, Chorasmia
+					{ "IndependentPeople_Era3_Peaceful_Malinke",        new List<int>() { 129, 211 } }, // Malia, Guinea
+					{ "IndependentPeople_Era3_Peaceful_Toltecs",        new List<int>() { 219, 41 } }, // Yucatania, Mexicum
+					{ "IndependentPeople_Era3_Violent_Avars",           new List<int>() { 124, 104, 102, 103 } }, // Ciscaucasia, Danubia, Illyria, Dacia
+					{ "IndependentPeople_Era3_Violent_Berbers",         new List<int>() { 188, 190, 126, 127, 125 } }, // Marocum, Numidia, Sahara, Libya, Mauretania
+					{ "IndependentPeople_Era3_Violent_Bretons",         new List<int>() { 24 } }, // Neustria
+					{ "IndependentPeople_Era3_Violent_Magyars",         new List<int>() { 119, 103, 104 } }, // Ucraina, Dacia, Danubia
+					{ "IndependentPeople_Era3_Violent_Normans",         new List<int>() { 24, 21 } }, // Neustria, Anglia
+					{ "IndependentPeople_Era3_Violent_Ostrogoths",      new List<int>() { 109, 99, 119, 104 } }, // Suecia, Italia Annonaria, Ucraina, Danubia
+					{ "IndependentPeople_Era3_Violent_Scots",           new List<int>() { 20 } }, // Caledonia
+					{ "IndependentPeople_Era3_Violent_Somalis",         new List<int>() { 209 } }, // Somalia
+					{ "IndependentPeople_Era3_Violent_Thai",            new List<int>() { 168, 169 } }, // Thailandia, Malaesia
+					{ "IndependentPeople_Era3_Violent_Wisigoths",       new List<int>() { 103, 109, 22, 95, 97, 96 } }, // Dacia, Suecia, Occitania, Andalusia, Aragonia, Castella
+					{ "IndependentPeople_Era4_Peaceful_Inca",           new List<int>() { 47, 52, 246 } }, // Peruvia, Atacama, Chilia
+					{ "IndependentPeople_Era4_Peaceful_Malays",         new List<int>() { 169, 170, 178 } }, // Malaesia, Sumatra, Borneum
+					{ "IndependentPeople_Era4_Peaceful_Tamils",         new List<int>() { 236, 141 } }, // Dravidia, Sri Lanca
+					{ "IndependentPeople_Era4_Peaceful_Tarascans",      new List<int>() { 41 } }, // Mexicum
+					{ "IndependentPeople_Era4_Violent_Kongo",           new List<int>() { 214, 137 } }, // Angolia, Congo
+					{ "IndependentPeople_Era4_Violent_Mississipians",   new List<int>() { 59, 63, 61, 56 } }, // Mississippia, Lacus Magni, Carolinae, Florida
+					{ "IndependentPeople_Era4_Violent_Tlaxcaltecs",     new List<int>() { 41 } }, // Mexicum
 				};
 
 		static readonly IDictionary<string, List<int>> listMajorEmpireTerritories = new Dictionary<string, List<int>>  // CivName, list of territory indexes
@@ -147,7 +179,7 @@ namespace Gedemon.TrueCultureLocation
 					{ "Civilization_Era4_TokugawaShogunate",        new List<int>() { 29, 30, 165, 27 } }, // Japan
 					{ "Civilization_Era4_Spain",                    new List<int>() { 96, 97, 95, 55, 50, 48, 45, 41, 91, 92, 218 } }, // Spain
 					{ "Civilization_Era4_PolishKingdom",            new List<int>() { 117, 119, 120, 121 } }, // Poland
-					{ "Civilization_Era4_OttomanEmpire",            new List<int>() { 118, 123, 101, 102, 103, 142, 106, 128 } }, // Anatolia, Greece, Balkans, Bulgaria/Romania, 
+					{ "Civilization_Era4_OttomanEmpire",            new List<int>() { 118, 123, 101, 102, 103, 142, 106, 128, 238, 250 } }, // Anatolia, Greece, Balkans, Bulgaria/Romania, 
 					{ "Civilization_Era4_MughalEmpire",             new List<int>() { 147, 207, 145, 231, 146, 236, 237 } }, // India, Pakistan, Bengladesh, Afghanistan
 					{ "Civilization_Era4_MingChina",                new List<int>() { 164, 162, 163, 221, 229, 241 } }, // China
 					{ "Civilization_Era4_JoseonKorea",              new List<int>() { 159 } }, // Korea
@@ -165,7 +197,7 @@ namespace Gedemon.TrueCultureLocation
 					{ "Civilization_Era5_AfsharidPersia",           new List<int>() { 243, 144, 146, 230, 205, 142, 227, 235 } }, // Iran
 					{ "Civilization_Era6_USSR",                     new List<int>() { 122, 116, 121, 119, 226, 149, 189, 148, 115, 205, 206, 228, 223, 224, 194, 151, 193, 153, 192, 225, 154, 229, 161, 157, 195, 158, 196, 155, 27, 28, 197, 0, 1, 110, 239, 114, 108, 124 } }, // Moscow
 					{ "Civilization_Era6_USA",                      new List<int>() { 60, 61, 56, 63, 59, 58, 64, 65, 219, 204, 66, 62, 7, 198, 3, 4 } }, // Washington, USA
-					{ "Civilization_Era6_Turkey",                   new List<int>() { 118, 123 } }, // Anatolia
+					{ "Civilization_Era6_Turkey",                   new List<int>() { 118, 123, 250 } }, // Anatolia
 					{ "Civilization_Era6_Sweden",                   new List<int>() { 109, 110 } }, // Stockholm
 					{ "Civilization_Era6_Japan",                    new List<int>() { 29, 30, 165, 27 } }, // Japan
 					{ "Civilization_Era6_India",                    new List<int>() { 147, 145, 207, 231, 236, 237 } }, // India, Pakistan, Bengladesh 
@@ -176,11 +208,11 @@ namespace Gedemon.TrueCultureLocation
 				};
 
 		static readonly IDictionary<string, List<int>> listSlots = new Dictionary<string, List<int>>  // civName, list of player slots (majorEmpire.Index) starting at 0
-                {
-					//{ "Civilization_Era1_Assyria", new List<int>() { 6, 7 } },
-				};
+		{
+			//{ "Civilization_Era1_Assyria", new List<int>() { 6, 7 } },
+		};
 
-		static readonly List<string> nomadCultures = new List<string> { "Civilization_Era2_Huns", "Civilization_Era3_MongolEmpire"};
+		static readonly List<string> nomadCultures = new List<string> { "Civilization_Era2_Huns", "Civilization_Era3_MongolEmpire" };
 
 		static readonly List<string> firstEraBackup = new List<string> { "Civilization_Era1_Assyria", };
 
@@ -306,7 +338,7 @@ namespace Gedemon.TrueCultureLocation
 					{ 106, "Syria"},
 					{ 107, "Norvegia"},
 					{ 108, "Crasnoiarium"},
-					{ 109, "Suecia"}, 
+					{ 109, "Suecia"},
 					{ 110, "Permia"},
 					{ 111, "Finnia"},
 					{ 112, "Kola"},
@@ -459,7 +491,7 @@ namespace Gedemon.TrueCultureLocation
 		public static readonly int maxNumTerritories = 256;
 		public static readonly List<int> CompatibleMapHash = new List<int> { 33903987 /*1.1.0*/, -1220785390 /*1.1.1*/, };
 
-        public static int CurrentMapHash { get; set; } = 0;
+		public static int CurrentMapHash { get; set; } = 0;
 		static CultureUnlock()
 		{
 			Diagnostics.LogWarning($"[Gedemon] Calling static CultureUnlock()");
@@ -467,20 +499,20 @@ namespace Gedemon.TrueCultureLocation
 			territoriesWithMinorFactions = new List<string>[maxNumTerritories];
 
 			for (int i = 0; i < maxNumTerritories; i++)
-            {
+			{
 				territoriesWithMinorFactions[i] = new List<string>();
 			}
 
-			foreach(KeyValuePair<string, List<int>> minorTerritories in listMinorFactionTerritories)
-            {
-				foreach(int index in minorTerritories.Value)
-                {
+			foreach (KeyValuePair<string, List<int>> minorTerritories in listMinorFactionTerritories)
+			{
+				foreach (int index in minorTerritories.Value)
+				{
 					territoriesWithMinorFactions[index].Add(minorTerritories.Key);
 				}
-            }
+			}
 		}
 		public static bool HasAnyMinorFactionPosition(int territoryIndex)
-        {
+		{
 			return territoriesWithMinorFactions[territoryIndex].Count > 0;
 		}
 
@@ -502,11 +534,11 @@ namespace Gedemon.TrueCultureLocation
 		public static bool HasTerritory(string civilizationName, int territoryIndex, bool any)
 		{
 			if (any)
-            {
+			{
 				return listMajorEmpireTerritories[civilizationName].Contains(territoryIndex);
 			}
 			else
-            {
+			{
 				return listMajorEmpireTerritories[civilizationName][0] == territoryIndex;
 			}
 		}
@@ -537,7 +569,7 @@ namespace Gedemon.TrueCultureLocation
 		}
 
 		public static List<int> GetListTerritories(string civilizationName)
-        {
+		{
 			return listMajorEmpireTerritories[civilizationName];
 		}
 
@@ -556,7 +588,7 @@ namespace Gedemon.TrueCultureLocation
 			// backup when territoryNames doesn't exist -> Utils.GameUtils.GetTerritoryName(territoryIndex)
 			return territoryNames[territoryIndex];
 		}
-		 
+
 		public static bool ContinentHasName(int continentIndex)
 		{
 			return continentNames.ContainsKey(continentIndex);
@@ -630,7 +662,7 @@ namespace Gedemon.TrueCultureLocation
 						Diagnostics.LogWarning($"[Gedemon] #{landTiles} tiles for index  #{territory.Index} - {info.LocalizedName} (Small)");
 						numSmallTerritories++;
 					}
-                    else
+					else
 					{
 						if (landTiles > 75)
 						{
@@ -652,6 +684,16 @@ namespace Gedemon.TrueCultureLocation
 
 		}
 
-
+		public static void logEmpiresTerritories()
+		{
+			foreach (KeyValuePair<string, List<int>> kvp in listMajorEmpireTerritories)
+            {
+				Diagnostics.Log($"[Gedemon] Culture : {kvp.Key}");
+				foreach(int territoryIndex in kvp.Value)
+                {
+					Diagnostics.Log($"[Gedemon] - {GetTerritoryName(territoryIndex)}");
+				}
+			}
+		}
 	}
 }
