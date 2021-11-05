@@ -35,7 +35,7 @@ namespace Gedemon.TrueCultureLocation
 					copy[majorEmpire.Index] = extraPosition;
 					World.Tables.SpawnLocations = copy;
 				}
-				else if (CultureUnlock.HasExtraStartingPosition(majorEmpire.Index, oldWorldOnly) && (oldWorldOnly || TrueCultureLocation.UseOnlyExtraStart()))
+				else if (CultureUnlock.HasExtraStartingPosition(majorEmpire.Index, oldWorldOnly) && (TrueCultureLocation.UseExtraEmpireSlots() || oldWorldOnly || TrueCultureLocation.UseOnlyExtraStart()))
 				{
 
 					Hexagon.OffsetCoords extraPosition = CultureUnlock.GetExtraStartingPosition(majorEmpire.Index, oldWorldOnly);
@@ -46,7 +46,7 @@ namespace Gedemon.TrueCultureLocation
 				}
 			}
 
-			// Now that we have set the mandatory starting position, we can return false for the Army spawning location
+			// Now that we have set the mandatory starting position, we can return false for the Army spawning location for the reserved pool of AI Empires
 			if (!TrueCultureLocation.IsSettlingEmpire(majorEmpire.Index))
 			{
 				Diagnostics.LogWarning($"[Gedemon] return False for InitialArmyPosition");
@@ -55,6 +55,7 @@ namespace Gedemon.TrueCultureLocation
 				return false;
             }
 
+			Diagnostics.LogWarning($"[Gedemon] Calling original method...");
 			return true;
 		}
 		//*/

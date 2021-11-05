@@ -17,77 +17,78 @@ namespace Gedemon.TrueCultureLocation
 	{
 		static readonly IDictionary<int, Hexagon.OffsetCoords> ExtraPositions = new Dictionary<int, Hexagon.OffsetCoords> // EmpireIndex (player slots)
 				{
-					{ 0, new Hexagon.OffsetCoords(32, 40)}, // Nubia 
+					{ 0, new Hexagon.OffsetCoords(32, 41)}, // Nubia 
 					{ 1, new Hexagon.OffsetCoords(40, 51)}, // Mesopotamia 
-					{ 2, new Hexagon.OffsetCoords(60, 51)}, // India 
+					{ 2, new Hexagon.OffsetCoords(56, 55)}, // India 
 					{ 3, new Hexagon.OffsetCoords(17, 52)}, // Carthage
-					{ 4, new Hexagon.OffsetCoords(86, 56)}, // China
+					{ 4, new Hexagon.OffsetCoords(79, 60)}, // China
 					{ 5, new Hexagon.OffsetCoords(28, 58)}, // Greece
 					{ 6, new Hexagon.OffsetCoords(31, 47)}, // Egypt
 					{ 7, new Hexagon.OffsetCoords(42, 57)}, // Assyria
 					{ 8, new Hexagon.OffsetCoords(38, 58)}, // Cappadocia
 					{ 9, new Hexagon.OffsetCoords(21, 59)}, // Rome
 					{ 10, new Hexagon.OffsetCoords(48, 72)}, // Urals
-					{ 11, new Hexagon.OffsetCoords(23, 80)}, // Sweden
+					{ 11, new Hexagon.OffsetCoords(23, 82)}, // Sweden
 					{ 12, new Hexagon.OffsetCoords(76, 73)}, // Mongolia
 					{ 13, new Hexagon.OffsetCoords(7, 58)}, // Spain
 					{ 14, new Hexagon.OffsetCoords(28, 15)}, // South Africa
 					{ 15, new Hexagon.OffsetCoords(78, 40)}, // South-East Asia
-					{ 16, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 17, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 18, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 19, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 20, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 21, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 22, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 23, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 24, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 25, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 26, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 27, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 28, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 29, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 30, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 31, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 16, new Hexagon.OffsetCoords(28, 16)}, // 
+					{ 17, new Hexagon.OffsetCoords(78, 41)}, // 
+					{ 18, new Hexagon.OffsetCoords(28, 17)}, // 
+					{ 19, new Hexagon.OffsetCoords(78, 42)}, // 
+					{ 20, new Hexagon.OffsetCoords(28, 18)}, // 
+					{ 21, new Hexagon.OffsetCoords(78, 43)}, // 
+					{ 22, new Hexagon.OffsetCoords(28, 19)}, // 
+					{ 23, new Hexagon.OffsetCoords(78, 44)}, // 
+					{ 24, new Hexagon.OffsetCoords(28, 20)}, // 
+					{ 25, new Hexagon.OffsetCoords(78, 45)}, // 
+					{ 26, new Hexagon.OffsetCoords(28, 21)}, // 
+					{ 27, new Hexagon.OffsetCoords(78, 46)}, // 
+					{ 28, new Hexagon.OffsetCoords(28, 22)}, // 
+					{ 29, new Hexagon.OffsetCoords(78, 47)}, // 
+					{ 30, new Hexagon.OffsetCoords(28, 23)}, // 
+					{ 31, new Hexagon.OffsetCoords(78, 48)}, // 
 				};
 
 		static readonly IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsNewWorld = new Dictionary<int, Hexagon.OffsetCoords> // EmpireIndex (player slots)
 				{
-					{ 0, new Hexagon.OffsetCoords(32, 40)}, // Nubia 
+					{ 0, new Hexagon.OffsetCoords(32, 41)}, // Nubia 
 					{ 1, new Hexagon.OffsetCoords(40, 51)}, // Mesopotamia 
-					{ 2, new Hexagon.OffsetCoords(60, 51)}, // India 
+					{ 2, new Hexagon.OffsetCoords(56, 55)}, // India 
 					{ 3, new Hexagon.OffsetCoords(17, 52)}, // Carthage
-					{ 4, new Hexagon.OffsetCoords(86, 56)}, // China
+					{ 4, new Hexagon.OffsetCoords(79, 60)}, // China
 					{ 5, new Hexagon.OffsetCoords(28, 58)}, // Greece
 					{ 6, new Hexagon.OffsetCoords(31, 47)}, // Egypt
 					{ 7, new Hexagon.OffsetCoords(42, 57)}, // Assyria
 					{ 8, new Hexagon.OffsetCoords(38, 58)}, // Cappadocia
 					{ 9, new Hexagon.OffsetCoords(146, 48)}, // Central America
-					{ 10, new Hexagon.OffsetCoords(139, 51)}, // Mexico
+					{ 10, new Hexagon.OffsetCoords(140, 57)}, // Texas
 					{ 11, new Hexagon.OffsetCoords(23, 80)}, // Sweden
 					{ 12, new Hexagon.OffsetCoords(76, 73)}, // Mongolia
 					{ 13, new Hexagon.OffsetCoords(154,38)}, // Columbia
 					{ 14, new Hexagon.OffsetCoords(28, 15)}, // South Africa
 					{ 15, new Hexagon.OffsetCoords(78, 40)}, // South-East Asia
-					{ 16, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 17, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 18, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 19, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 20, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 21, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 22, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 23, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 24, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 25, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 26, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 27, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 28, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 29, new Hexagon.OffsetCoords(78, 40)}, // 
-					{ 30, new Hexagon.OffsetCoords(28, 15)}, // 
-					{ 31, new Hexagon.OffsetCoords(78, 40)}, // 
+					{ 16, new Hexagon.OffsetCoords(28, 16)}, // 
+					{ 17, new Hexagon.OffsetCoords(78, 41)}, // 
+					{ 18, new Hexagon.OffsetCoords(28, 17)}, // 
+					{ 19, new Hexagon.OffsetCoords(78, 42)}, // 
+					{ 20, new Hexagon.OffsetCoords(28, 18)}, // 
+					{ 21, new Hexagon.OffsetCoords(78, 43)}, // 
+					{ 22, new Hexagon.OffsetCoords(28, 19)}, // 
+					{ 23, new Hexagon.OffsetCoords(78, 44)}, // 
+					{ 24, new Hexagon.OffsetCoords(28, 20)}, // 
+					{ 25, new Hexagon.OffsetCoords(78, 45)}, // 
+					{ 26, new Hexagon.OffsetCoords(28, 21)}, // 
+					{ 27, new Hexagon.OffsetCoords(78, 46)}, // 
+					{ 28, new Hexagon.OffsetCoords(28, 22)}, // 
+					{ 29, new Hexagon.OffsetCoords(78, 47)}, // 
+					{ 30, new Hexagon.OffsetCoords(28, 23)}, // 
+					{ 31, new Hexagon.OffsetCoords(78, 48)}, // 
 				};
 
 		static List<string>[] territoriesWithMinorFactions;
+		static List<string>[] territoriesWithMajorEmpires;
 
 		static readonly IDictionary<string, List<int>> listMinorFactionTerritories = new Dictionary<string, List<int>>  // CivName, list of territory indexes
 				{
@@ -494,13 +495,15 @@ namespace Gedemon.TrueCultureLocation
 		public static int CurrentMapHash { get; set; } = 0;
 		static CultureUnlock()
 		{
-			Diagnostics.LogWarning($"[Gedemon] Calling static CultureUnlock()");
+			Diagnostics.LogWarning($"[Gedemon] in CultureUnlock(), building territoriesWithMinorFactions[] and territoriesWithMajorEmpires[]");
 
 			territoriesWithMinorFactions = new List<string>[maxNumTerritories];
+			territoriesWithMajorEmpires = new List<string>[maxNumTerritories];
 
 			for (int i = 0; i < maxNumTerritories; i++)
 			{
 				territoriesWithMinorFactions[i] = new List<string>();
+				territoriesWithMajorEmpires[i] = new List<string>();
 			}
 
 			foreach (KeyValuePair<string, List<int>> minorTerritories in listMinorFactionTerritories)
@@ -510,6 +513,22 @@ namespace Gedemon.TrueCultureLocation
 					territoriesWithMinorFactions[index].Add(minorTerritories.Key);
 				}
 			}
+
+			foreach (KeyValuePair<string, List<int>> majorTerritories in listMajorEmpireTerritories)
+			{
+				if (HasNoCapitalTerritory(majorTerritories.Key))
+				{
+					foreach (int index in majorTerritories.Value)
+					{
+						territoriesWithMajorEmpires[index].Add(majorTerritories.Key);
+					}
+				}
+				else
+                {
+					territoriesWithMajorEmpires[majorTerritories.Value[0]].Add(majorTerritories.Key);
+				}
+			}
+
 		}
 		public static bool HasAnyMinorFactionPosition(int territoryIndex)
 		{
@@ -521,32 +540,86 @@ namespace Gedemon.TrueCultureLocation
 			return territoriesWithMinorFactions[territoryIndex].Contains(minorFactionName);
 		}
 
-		public static bool HasTerritory(string civilizationName)
+		public static List<string> GetListMinorFactionsForTerritory(int territoryIndex)
 		{
-			return listMajorEmpireTerritories.ContainsKey(civilizationName);
+			return territoriesWithMinorFactions[territoryIndex];
 		}
 
-		public static bool HasTerritory(string civilizationName, int territoryIndex)
+		public static bool HasAnyMajorEmpirePosition(int territoryIndex)
 		{
-			return listMajorEmpireTerritories[civilizationName].Contains(territoryIndex);
+			return territoriesWithMajorEmpires[territoryIndex].Count > 0;
 		}
 
-		public static bool HasTerritory(string civilizationName, int territoryIndex, bool any)
+		public static bool IsMajorEmpirePosition(int territoryIndex, string majorEmpireName)
+		{
+			return territoriesWithMajorEmpires[territoryIndex].Contains(majorEmpireName);
+		}
+		public static bool IsMajorEmpirePosition(int territoryIndex, StaticString majorEmpireName)
+		{
+			return territoriesWithMajorEmpires[territoryIndex].Contains(majorEmpireName.ToString());
+		}
+
+		public static List<string> GetListMajorEmpiresForTerritory(int territoryIndex)
+        {
+			return territoriesWithMajorEmpires[territoryIndex];
+		}
+
+		public static bool HasMajorTerritories(string factionName)
+		{
+			return listMajorEmpireTerritories.ContainsKey(factionName);
+		}
+
+		public static bool HasMajorTerritories(StaticString FactionName)
+		{
+			return HasMajorTerritories(FactionName.ToString());
+		}
+
+		public static bool HasMinorTerritories(string factionName)
+		{
+			return listMinorFactionTerritories.ContainsKey(factionName);
+		}
+
+		public static bool HasMinorTerritories(StaticString FactionName)
+		{
+			return HasMinorTerritories(FactionName.ToString());
+		}
+
+		public static bool HasTerritory(string factionName, int territoryIndex)
+		{
+			if (HasMajorTerritories(factionName))
+				return listMajorEmpireTerritories[factionName].Contains(territoryIndex);
+			else if (HasMinorTerritories(factionName))
+				return listMinorFactionTerritories[factionName].Contains(territoryIndex);
+			else
+				return false;
+		}
+
+		public static bool HasTerritory(StaticString FactionName, int territoryIndex)
+		{
+			return HasTerritory(FactionName.ToString(), territoryIndex);
+		}
+
+		public static bool HasTerritory(string factionName, int territoryIndex, bool any)
 		{
 			if (any)
 			{
-				return listMajorEmpireTerritories[civilizationName].Contains(territoryIndex);
+				return HasTerritory(factionName, territoryIndex);
 			}
 			else
 			{
-				return listMajorEmpireTerritories[civilizationName][0] == territoryIndex;
+				if (HasMajorTerritories(factionName))
+					return listMajorEmpireTerritories[factionName][0] == territoryIndex;
+				else if (HasMinorTerritories(factionName))
+					return listMinorFactionTerritories[factionName][0] == territoryIndex;
 			}
+			return false;
 		}
 
-		public static bool HasFirstTerritory(string civilizationName, int territoryIndex)
+		public static bool HasTerritory(StaticString FactionName, int territoryIndex, bool any)
 		{
-			return listMajorEmpireTerritories[civilizationName][0] == territoryIndex;
+			return HasTerritory(FactionName.ToString(), territoryIndex, any);
 		}
+
 
 		public static bool IsUnlockedByPlayerSlot(string civilizationName, int empireIndex)
 		{
@@ -568,9 +641,13 @@ namespace Gedemon.TrueCultureLocation
 			return noCapitalTerritory.Contains(civilizationName);
 		}
 
-		public static List<int> GetListTerritories(string civilizationName)
+		public static List<int> GetListTerritories(string factionName)
 		{
-			return listMajorEmpireTerritories[civilizationName];
+			return listMajorEmpireTerritories[factionName];
+		}
+		public static List<int> GetListTerritories(StaticString FactionName)
+		{
+			return listMajorEmpireTerritories[FactionName.ToString()];
 		}
 
 		public static int GetCapitalTerritoryIndex(string civilizationName)

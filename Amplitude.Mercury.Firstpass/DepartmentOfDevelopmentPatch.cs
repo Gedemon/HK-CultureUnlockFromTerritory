@@ -10,6 +10,8 @@ using FailureFlags = Amplitude.Mercury.Simulation.FailureFlags;
 using Amplitude.Framework;
 using HumankindModTool;
 using Amplitude.Mercury.Data.Simulation.Costs;
+using Amplitude.Mercury;
+using System.Linq;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -31,153 +33,66 @@ namespace Gedemon.TrueCultureLocation
 
 				if (majorEmpire.DepartmentOfDevelopment.CurrentEraIndex != 0 && majorEmpire.FactionDefinition.Name != nextFactionName)
 				{
-					IDictionary<Settlement, List<int>> territoryToDetachAndCreate = new Dictionary<Settlement, List<int>>();    // Territories attached to a City that we want to detach and keep separated because the city is going to be lost
-					IDictionary<Settlement, List<int>> territoryToDetachAndFree = new Dictionary<Settlement, List<int>>();      // Territories attached to a City that we want to detach because they are going to be lost, but not the city
-					List<Settlement> settlementToLiberate = new List<Settlement>();                                             // Full Settlements (including a City or being a single-territory City) that are lost
-					List<Settlement> settlementToFree = new List<Settlement>();                                                 // Single Settlement (not a city) that are lost
 
+					bool canUseMajorEmpire = false;
+
+					Settlement capital = majorEmpire.Capital;
+
+					IDictionary<StaticString, Empire> listEmpires = new Dictionary<StaticString, Empire>();
+
+					MinorEmpire rebelFaction = null;
 					MajorEmpire oldEmpire = null;
-					Settlement capital = __instance.majorEmpire.Capital;
-					District potentialCapital;// = capital;
-					int numCitiesLost;
 
-					bool useMajorEmpire = false;
-					bool needNewCapital = CultureChange.GetTerritoryChangesOnEvolve(__instance, nextFactionName, out numCitiesLost, out potentialCapital, ref territoryToDetachAndCreate, ref territoryToDetachAndFree, ref settlementToLiberate, ref settlementToFree);
+					SettlementRefund refund = new SettlementRefund(majorEmpire);
 
-					Diagnostics.LogWarning($"[Gedemon] numCitiesLost = {numCitiesLost}, territoryToDetachAndCreate = {territoryToDetachAndCreate.Count}, territoryToDetachAndFree = {territoryToDetachAndFree.Count}, settlementToLiberate = {settlementToLiberate.Count}, settlementToFree = {settlementToFree.Count}, compensationFactor = {TrueCultureLocation.GetCompensationFactor()}.");
-					if (numCitiesLost > 0)
-					{
-						useMajorEmpire = CultureChange.TryInitializeFreeMajorEmpireToReplace(majorEmpire, out oldEmpire);
+					TerritoryChange territoryChange = new TerritoryChange(majorEmpire, nextFactionName);
+
+                    #region 1/ stop battles for lost cities
+
+					if(territoryChange.NumCitiesLost > 0)
+                    {
+
+						Diagnostics.Log($"[Gedemon] Check to stop battles for lost cities");
+						foreach (Settlement settlement in territoryChange.settlementLost)
+						{
+							if ((settlement.CityFlags & CityFlags.Besieged) != 0)
+							{
+								Diagnostics.LogWarning($"[Gedemon] - {settlement.EntityName} is under siege, cancelling battle...");
+								Sandbox.BattleRepository.TryGetBattleAt(settlement.WorldPosition, out Battle battle);
+								battle.StateMachine.ChangeState(BattleState.Cancelled);
+							}
+						}
 					}
 
-					int compensationFactor = TrueCultureLocation.GetCompensationFactor();
-					int baseInfluenceRefund = compensationFactor * 10;
-					int influenceRefund = 0;
-					FixedPoint productionRefund = 0;
-					FixedPoint moneyRefund = 0;
-					FixedPoint scienceRefund = 0;
-					MinorEmpire rebelFaction = null;
+					#endregion
 
-					Diagnostics.LogWarning($"[Gedemon] before territoryToDetachAndCreate...");
-					foreach (KeyValuePair<Settlement, List<int>> kvp in territoryToDetachAndCreate)
+					#region 2/ detache and create for all territories that are not cities
+
+					Diagnostics.Log($"[Gedemon] Detaching from cities and creating new settlement");
+					foreach (KeyValuePair<Settlement, List<int>> kvp in territoryChange.citiesInitialTerritories)
 					{
 						foreach (int territoryIndex in kvp.Value)
 						{
 							Diagnostics.LogWarning($"[Gedemon] territoryToDetachAndCreate => #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)}).");
-							influenceRefund += 30 + (baseInfluenceRefund * majorEmpire.Settlements.Count);
 							DepartmentOfTheInterior.DetachTerritoryFromCity(kvp.Key, territoryIndex, createNewSettlement: true);
 						}
 					}
 
-					Diagnostics.LogWarning($"[Gedemon] before territoryToDetachAndFree...");
-					foreach (KeyValuePair<Settlement, List<int>> kvp in territoryToDetachAndFree)
-					{
-						foreach (int territoryIndex in kvp.Value)
-						{
-							Settlement settlement = DepartmentOfTheInterior.DetachTerritoryFromCity(kvp.Key, territoryIndex, createNewSettlement: true);
+					#endregion
 
-							Diagnostics.LogWarning($"[Gedemon] territoryToDetachAndFree => #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)}), ProductionNet = {settlement.ProductionNet.Value}, MoneyNet = {settlement.MoneyNet.Value}, ScienceNet = {settlement.ScienceNet.Value}.");
-							influenceRefund += 30 + (baseInfluenceRefund * majorEmpire.Settlements.Count);
-							productionRefund += settlement.ProductionNet.Value * compensationFactor;
-							moneyRefund += settlement.MoneyNet.Value * compensationFactor;
-							moneyRefund += GetResourcesCompensation(settlement, majorEmpire);
-							scienceRefund += settlement.ScienceNet.Value * compensationFactor;
-							if (useMajorEmpire)
-							{
-								Diagnostics.LogWarning($"[Gedemon] Calling GiveSettlementTo(settlement, oldEmpire)...");
-								DepartmentOfDefense.GiveSettlementTo(settlement, oldEmpire);
-							}
-							else
-							{
-								if (rebelFaction == null)
-								{
-									Diagnostics.LogWarning($"[Gedemon] Calling DoLiberateSettlement(settlement, majorEmpire)...");
-									rebelFaction = CultureChange.DoLiberateSettlement(settlement, majorEmpire);
-								}
-								else
-								{
-									Diagnostics.LogWarning($"[Gedemon] Calling GiveSettlementTo(settlement, rebelFaction)...");
-									DepartmentOfDefense.GiveSettlementTo(settlement, rebelFaction);
-								}
-							}
-						}
-					}
+					#region 3/ find and set new capital if needed
 
-					Diagnostics.LogWarning($"[Gedemon] before settlementToLiberate...");
-					foreach (Settlement settlement in settlementToLiberate)
-					{
-						Diagnostics.LogWarning($"[Gedemon] settlementToLiberate => #{settlement.Region.Entity.Territories[0].Index} ({CultureUnlock.GetTerritoryName(settlement.Region.Entity.Territories[0].Index)}), ProductionNet = {settlement.ProductionNet.Value}, MoneyNet = {settlement.MoneyNet.Value}, ScienceNet = {settlement.ScienceNet.Value}.");
-						influenceRefund += 30 + (baseInfluenceRefund * majorEmpire.Settlements.Count);
-						productionRefund += settlement.ProductionNet.Value * compensationFactor;
-						moneyRefund += settlement.MoneyNet.Value * compensationFactor;
-						moneyRefund += GetResourcesCompensation(settlement, majorEmpire);
-						scienceRefund += settlement.ScienceNet.Value * compensationFactor;
-
-						Diagnostics.LogWarning($"[Gedemon] iterating SettlementImprovements...");
-						foreach (SettlementImprovement improvement in settlement.SettlementImprovements.Data)
-						{
-							Diagnostics.LogWarning($"[Gedemon] Family = {improvement.Family}");
-							if (improvement.BuiltImprovements != null)
-							{
-								foreach (SettlementImprovementDefinition definition in improvement.BuiltImprovements)
-								{
-									Diagnostics.LogWarning($"[Gedemon] Improvement {definition.Name}");
-									FixedPoint cost = definition.ProductionCostDefinition.GetCost(majorEmpire);
-									Diagnostics.LogWarning($"[Gedemon] Cost = {cost}");
-									productionRefund += cost;
-								}
-
-							}
-							else
-							{
-								Diagnostics.LogError($"[Gedemon] improvement.BuiltImprovements is NULL, ignoring");
-							}
-						}
-
-						Diagnostics.LogWarning($"[Gedemon]IsCapital ?");
-						bool wasCapital = settlement.IsCapital;
-						if (wasCapital)
-						{
-							Diagnostics.LogWarning($"[Gedemon] Was Capital, unset...");
-							majorEmpire.DepartmentOfTheInterior.SetCapital(settlement, false);
-
-						}
-
-						Diagnostics.LogWarning($"[Gedemon] useMajorEmpire = {useMajorEmpire}");
-						if (useMajorEmpire)
-						{
-							DepartmentOfDefense.GiveSettlementTo(settlement, oldEmpire);
-							if (wasCapital)
-							{
-								Diagnostics.LogWarning($"[Gedemon] Was Capital, set as Capital for new spawned Empire...");
-								majorEmpire.DepartmentOfTheInterior.SetCapital(settlement, true);
-							}
-						}
-						else
-						{
-							if (rebelFaction == null)
-							{
-								Diagnostics.LogWarning($"[Gedemon] Calling DoLiberateSettlement(settlement, majorEmpire)...");
-								rebelFaction = CultureChange.DoLiberateSettlement(settlement, majorEmpire);
-							}
-							else
-							{
-								Diagnostics.LogWarning($"[Gedemon] Calling GiveSettlementTo(settlement, rebelFaction)...");
-								DepartmentOfDefense.GiveSettlementTo(settlement, rebelFaction);
-							}
-						}
-					}
-
-					Diagnostics.LogWarning($"[Gedemon] before changing Capital (need change = {needNewCapital}, potential exist = {potentialCapital != null})"); // before iterating settlementToFree (can't liberate those if you don't have a capital)
-					if (needNewCapital)
+					Diagnostics.Log($"[Gedemon] before changing Capital (need change = {territoryChange.HasCapitalChanged}, potential exist = {territoryChange.PotentialCapital != null})");
+					if (territoryChange.HasCapitalChanged)
 					{
 
-						if (potentialCapital == null)
+						if (territoryChange.PotentialCapital == null)
 						{
 							Diagnostics.LogWarning($"[Gedemon] no potential Capital District was passed, try to find one in the territory list for the new faction...");
-							foreach (int territoryIndex in CultureUnlock.GetListTerritories(nextFactionName.ToString()))
+
+							int count = majorEmpire.Settlements.Count;
+							foreach (int territoryIndex in CultureUnlock.GetListTerritories(nextFactionName))
 							{
-								int count = majorEmpire.Settlements.Count;
 								for (int n = 0; n < count; n++)
 								{
 									Settlement settlement = majorEmpire.Settlements[n];
@@ -187,19 +102,19 @@ namespace Gedemon.TrueCultureLocation
 										if (territoryIndex == potentialDistrict.Territory.Entity.Index)
 										{
 											Diagnostics.LogWarning($"[Gedemon] found new Capital District in {CultureUnlock.GetTerritoryName(territoryIndex)}");
-											potentialCapital = potentialDistrict;
-											break;
+											territoryChange.PotentialCapital = potentialDistrict;
+											goto Found;
 										}
 									}
 								}
 							}
-
+						Found:;
 						}
 
-						if (potentialCapital != null)
+						if (territoryChange.PotentialCapital != null)
 						{
-							int territoryIndex = potentialCapital.Territory.Entity.Index;
-							Settlement settlement = potentialCapital.Settlement;
+							int territoryIndex = territoryChange.PotentialCapital.Territory.Entity.Index;
+							Settlement settlement = territoryChange.PotentialCapital.Settlement;
 							Diagnostics.LogWarning($"[Gedemon] try to set City as Capital in territory #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)}).");
 							if (settlement.SettlementStatus != SettlementStatuses.City)
 							{
@@ -217,124 +132,316 @@ namespace Gedemon.TrueCultureLocation
 							Diagnostics.LogError($"[Gedemon] No new Capital was set...");
 						}
 					}
+					#endregion
 
-					Diagnostics.LogWarning($"[Gedemon] before settlementToFree...");
-					foreach (Settlement settlement in settlementToFree)
-					{
-						Diagnostics.LogWarning($"[Gedemon] settlementToFree => #{settlement.Region.Entity.Territories[0].Index} ({CultureUnlock.GetTerritoryName(settlement.Region.Entity.Territories[0].Index)}), ProductionNet = {settlement.ProductionNet.Value}, MoneyNet = {settlement.MoneyNet.Value}, ScienceNet = {settlement.ScienceNet.Value}.");
-						influenceRefund += 30 + (baseInfluenceRefund * majorEmpire.Settlements.Count);
-						productionRefund += settlement.ProductionNet.Value * compensationFactor;
-						moneyRefund += settlement.MoneyNet.Value * compensationFactor;
-						moneyRefund += GetResourcesCompensation(settlement, majorEmpire);
-						scienceRefund += settlement.ScienceNet.Value * compensationFactor;
-						if (useMajorEmpire)
+					#region 4/ create new majors and minors
+
+					Diagnostics.Log($"[Gedemon] Check to create new Major Empire for old Empire (Cities = {territoryChange.newMajorSettlements.Count})");
+
+					// Need a major only if there are cities in the old Empire territory.
+					if (territoryChange.newMajorSettlements.Count > 0)
+                    {
+						canUseMajorEmpire = CultureChange.TryInitializeFreeMajorEmpireToReplace(majorEmpire, out oldEmpire);
+						Diagnostics.LogWarning($"[Gedemon] Major Faction for Old Empire created = {canUseMajorEmpire}");
+						if(canUseMajorEmpire)
 						{
-							Diagnostics.LogWarning($"[Gedemon] Calling GiveSettlementTo(settlement, oldEmpire)...");
-							DepartmentOfDefense.GiveSettlementTo(settlement, oldEmpire);
+							listEmpires.Add(territoryChange.OldFactionName, oldEmpire);
+						}
+					}
+
+					int availableMinorFactions = Sandbox.MinorFactionManager.minorEmpirePool.Count;
+					Diagnostics.LogWarning($"[Gedemon] Trying to create new minor factions, Available Minors = {availableMinorFactions}, Cities for minor = {territoryChange.newMinorsSettlements.Count}, territories for rebels = {territoryChange.newRebelsTerritories.Count}");
+
+					// Set a rebel faction if needed (there are rebel territories, or we need an old empire but no major was available, or there are orphan territories in the old empire core list)
+					if (territoryChange.newRebelsTerritories.Count > 0 || (oldEmpire == null && territoryChange.newMajorTerritories.Count > 0))
+					{
+						rebelFaction = CultureChange.GetMinorFactionFor(majorEmpire.FactionDefinition);
+						Diagnostics.LogWarning($"[Gedemon] RebelFaction created = {rebelFaction != null}");
+						if (oldEmpire == null && rebelFaction != null)
+                        {
+							listEmpires.Add(territoryChange.OldFactionName, rebelFaction);
+						}
+					}
+
+					foreach (KeyValuePair<StaticString, List<Settlement>> kvp in territoryChange.newMinorsSettlements)
+					{
+						FactionDefinition factionDefinition = Utils.GameUtils.GetFactionDefinition(kvp.Key);
+						MinorEmpire minorFaction = CultureChange.GetMinorFactionFor(factionDefinition);
+
+						Diagnostics.LogWarning($"[Gedemon] new Minor Faction created = {minorFaction != null} for {kvp.Key}");
+
+						if (minorFaction == null)
+						{
+							Diagnostics.LogWarning($"[Gedemon] - No minor faction available, try to use rebel faction instead");
+							minorFaction = rebelFaction; // no need to try to create a new rebel faction if it's null, as the result of CultureChange.GetMinorFactionFor would be also null at this point
+						}
+						if (minorFaction != null)
+						{
+							listEmpires.Add(kvp.Key, minorFaction);
+						}
+						else if(canUseMajorEmpire)
+						{
+							Diagnostics.LogWarning($"[Gedemon] - No minor available, use Old Empire instead");
+							listEmpires.Add(kvp.Key, oldEmpire);
+						}
+						else
+                        {
+							Diagnostics.LogError($"[Gedemon] - FAILED to assign a required new faction");
+						}
+					}
+
+					#endregion
+
+					#region 5/ handle new major (or rebels)
+
+					Diagnostics.Log($"[Gedemon] Trying to assign old Empire (Cities = {territoryChange.newMajorSettlements.Count})");
+
+					if (territoryChange.newMajorSettlements.Count > 0 || territoryChange.newMajorTerritories.Count > 0)
+                    {
+						if(listEmpires.ContainsKey(territoryChange.OldFactionName))
+                        {
+							Empire newEmpire = listEmpires[territoryChange.OldFactionName]; // as MajorEmpire;
+							foreach (Settlement settlement in territoryChange.newMajorSettlements)
+                            {
+								Diagnostics.LogWarning($"[Gedemon] city ({settlement.EntityName}) for Old Empire (isMajor={canUseMajorEmpire}) => #{settlement.Region.Entity.Territories[0].Index} ({CultureUnlock.GetTerritoryName(settlement.Region.Entity.Territories[0].Index)}), ProductionNet = {settlement.ProductionNet.Value}, MoneyNet = {settlement.MoneyNet.Value}, ScienceNet = {settlement.ScienceNet.Value}.");
+
+								refund.CompensateFor(settlement);
+								DepartmentOfDefense.GiveSettlementTo(settlement, newEmpire);
+
+								if (canUseMajorEmpire)
+								{
+									if (settlement == capital)
+									{
+										Diagnostics.LogWarning($"[Gedemon] Was Capital, set as Capital for new spawned Empire...");
+										newEmpire.DepartmentOfTheInterior.SetCapital(settlement, true);
+									}
+								}
+							}
+
+							foreach (int territoryIndex in territoryChange.newMajorTerritories)
+							{
+								Territory territory = Sandbox.World.Territories[territoryIndex];
+								Settlement settlement = territory.AdministrativeDistrict.Entity.Settlement;
+								Diagnostics.LogWarning($"[Gedemon] settlement for Old Empire (isMajor={canUseMajorEmpire}) => #{settlement.Region.Entity.Territories[0].Index} ({CultureUnlock.GetTerritoryName(settlement.Region.Entity.Territories[0].Index)}), ProductionNet = {settlement.ProductionNet.Value}, MoneyNet = {settlement.MoneyNet.Value}, ScienceNet = {settlement.ScienceNet.Value}.");
+
+								refund.CompensateFor(settlement);
+								DepartmentOfDefense.GiveSettlementTo(settlement, newEmpire);
+							}
+
+							// attach to cities here
+							foreach(Settlement city in territoryChange.newMajorSettlements)
+                            {
+
+								if (territoryChange.citiesInitialTerritories.ContainsKey(city))
+								{
+									foreach (int territoryIndex in territoryChange.citiesInitialTerritories[city].AsEnumerable().Reverse())
+									{
+										if (territoryChange.newMajorTerritories.Contains(territoryIndex))
+										{
+
+											Territory territory = Sandbox.World.Territories[territoryIndex];
+											Settlement territorySettlement = territory.AdministrativeDistrict.Entity.Settlement;
+											FixedPoint cost = new FixedPoint();
+											FailureFlags flag = newEmpire.DepartmentOfTheInterior.CanTerritoryBeAttachedToCity(territorySettlement, city, ref cost);
+											Diagnostics.LogWarning($"[Gedemon] Try to re-attach {CultureUnlock.GetTerritoryName(territoryIndex)} to {city.EntityName} for new spawned Empire (flag = {flag})");
+											if (flag == FailureFlags.None || flag == FailureFlags.NotAMajorEmpire)
+                                            {
+												newEmpire.DepartmentOfTheInterior.MergeSettlementIntoCity(territorySettlement, city);
+											}
+											else
+                                            {
+												Diagnostics.LogError($"[Gedemon] FAILED to re-attach ({flag})");
+											}
+										}
+									}
+								}
+							}
 						}
 						else
 						{
-							if (rebelFaction == null)
+							Diagnostics.LogError($"[Gedemon] No Empire found for newMajorSettlements / newMajorTerritories");
+						}
+					}
+					#endregion
+
+					#region 6/ handle new minors
+
+					Diagnostics.Log($"[Gedemon] Trying to assign new minor factions (Cities = {territoryChange.newMinorsSettlements.Count})");
+
+					foreach (KeyValuePair<StaticString, List<Settlement>> kvp in territoryChange.newMinorsSettlements)
+					{
+						StaticString cityFaction = kvp.Key;
+						List<Settlement> cityList = kvp.Value;
+						if (listEmpires.TryGetValue(cityFaction, out Empire newEmpire))
+						{
+							// Give Cities
+							foreach (Settlement settlement in cityList)
 							{
-								Diagnostics.LogWarning($"[Gedemon] Calling DoLiberateSettlement(settlement, majorEmpire)...");
-								rebelFaction = CultureChange.DoLiberateSettlement(settlement, majorEmpire);
+								Diagnostics.LogWarning($"[Gedemon] City ( {settlement.EntityName}) for Minor {cityFaction} => #{settlement.Region.Entity.Territories[0].Index} ({CultureUnlock.GetTerritoryName(settlement.Region.Entity.Territories[0].Index)}), ProductionNet = {settlement.ProductionNet.Value}, MoneyNet = {settlement.MoneyNet.Value}, ScienceNet = {settlement.ScienceNet.Value}.");
+
+								refund.CompensateFor(settlement);
+								DepartmentOfDefense.GiveSettlementTo(settlement, newEmpire);
+
+								Diagnostics.LogWarning($"[Gedemon] Try to spawn defending army at ({settlement.WorldPosition.Column}, {settlement.WorldPosition.Row}) in {CultureUnlock.GetTerritoryName(settlement.GetMainDistrict().Territory.Entity.Index)}");
+								Sandbox.MinorFactionManager.PeacefulHumanSpawner.SpawnArmy(newEmpire as MinorEmpire, settlement.WorldPosition, isDefender: true);
+
 							}
-							else
+
+							// Give territories
+							foreach (KeyValuePair<int, StaticString> territories in territoryChange.newMinorsTerritories)
+                            {
+								int territoryIndex = territories.Key;
+								StaticString territoryFaction = territories.Value;
+								if (territoryFaction == cityFaction)
+                                {
+									Territory territory = Sandbox.World.Territories[territoryIndex];
+									Settlement territorySettlement = territory.AdministrativeDistrict.Entity.Settlement;
+
+									Diagnostics.LogWarning($"[Gedemon] Settlement for Minor {cityFaction} => #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)}), ProductionNet = {territorySettlement.ProductionNet.Value}, MoneyNet = {territorySettlement.MoneyNet.Value}, ScienceNet = {territorySettlement.ScienceNet.Value}.");
+
+									refund.CompensateFor(territorySettlement);
+									DepartmentOfDefense.GiveSettlementTo(territorySettlement, newEmpire);
+								}
+                            }
+
+							// Re-attach territories to cities when possible
+							foreach (Settlement city in cityList)
 							{
-								Diagnostics.LogWarning($"[Gedemon] Calling GiveSettlementTo(settlement, rebelFaction)...");
-								DepartmentOfDefense.GiveSettlementTo(settlement, rebelFaction);
+								foreach (int territoryIndex in territoryChange.citiesInitialTerritories[city].AsEnumerable().Reverse())
+								{
+									if (territoryChange.newMinorsTerritories[territoryIndex] == cityFaction)
+									{
+										Territory territory = Sandbox.World.Territories[territoryIndex];
+										Settlement territorySettlement = territory.AdministrativeDistrict.Entity.Settlement;
+										FixedPoint cost = new FixedPoint();
+										FailureFlags flag = newEmpire.DepartmentOfTheInterior.CanTerritoryBeAttachedToCity(territorySettlement, city, ref cost);
+										Diagnostics.LogWarning($"[Gedemon] Try to re-attach {CultureUnlock.GetTerritoryName(territoryIndex)} to {city.EntityName} for minor faction (flag = {flag})");
+										if (flag == FailureFlags.None || flag == FailureFlags.NotAMajorEmpire)
+										{
+											newEmpire.DepartmentOfTheInterior.MergeSettlementIntoCity(territorySettlement, city);
+										}
+										else
+										{
+											Diagnostics.LogError($"[Gedemon] FAILED to re-attach ({flag})");
+										}
+									}
+								}
 							}
+
+
+						}
+						else
+                        {
+							Diagnostics.LogError($"[Gedemon] No new faction assigned to {kvp.Key}");
 						}
 
 					}
 
-					Diagnostics.LogWarning($"[Gedemon] Compensation : influenceRefund = {influenceRefund}, moneyRefund = {moneyRefund}, scienceRefund = {scienceRefund}, productionRefund = {productionRefund} => Capital = {__instance.majorEmpire.Capital.Entity.EntityName}");
+					#endregion
 
-					Diagnostics.Log($"[Gedemon] Current influence stock {majorEmpire.InfluenceStock.Value}");
-					majorEmpire.DepartmentOfCulture.GainInfluence(influenceRefund);
-					Diagnostics.Log($"[Gedemon] New influence stock {majorEmpire.InfluenceStock.Value}");
-					Diagnostics.Log($"[Gedemon] Current money {majorEmpire.MoneyStock.Value}");
-					majorEmpire.DepartmentOfTheTreasury.GainMoney(moneyRefund);
-					Diagnostics.Log($"[Gedemon] New money {majorEmpire.MoneyStock.Value}");
+					#region 7/ give orphan territories to rebel faction
 
-					Diagnostics.Log($"[Gedemon] Current research stock {majorEmpire.DepartmentOfScience.TechnologyQueue.CurrentResourceStock}");
-					FixedPoint techCostInQueue = FixedPoint.Zero;
+					Diagnostics.Log($"[Gedemon] Check to give orphan territories to Nomad rebels (orphans = {territoryChange.newRebelsTerritories.Count}, minor rebel faction exist = {rebelFaction != null})");
+
+					if(territoryChange.newRebelsTerritories.Count > 0)
+                    {
+						Empire nomadRebels = null;
+						if (rebelFaction != null)
+						{
+							nomadRebels = rebelFaction;
+						}
+						else
+						{
+							nomadRebels = oldEmpire;
+						}
+
+						if (nomadRebels != null)
+						{
+							foreach(int territoryIndex in territoryChange.newRebelsTerritories)
+                            {
+								Territory territory = Sandbox.World.Territories[territoryIndex];
+								Settlement territorySettlement = territory.AdministrativeDistrict.Entity.Settlement;
+
+								Diagnostics.LogWarning($"[Gedemon] Settlement for Rebels => #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)}), ProductionNet = {territorySettlement.ProductionNet.Value}, MoneyNet = {territorySettlement.MoneyNet.Value}, ScienceNet = {territorySettlement.ScienceNet.Value}.");
+
+								refund.CompensateFor(territorySettlement);
+								DepartmentOfDefense.GiveSettlementTo(territorySettlement, nomadRebels);
+							}
+
+						}
+						else
+						{
+							Diagnostics.LogError($"[Gedemon] - FAILED to assign nomad rebels");
+						}
+					}
+
+					#endregion
+
+					#region 8/ finalize changes for the evolving Empire
+
+					Diagnostics.Log($"[Gedemon] Check to re-attach territories to the Evolved Empire (Cities = {majorEmpire.Cities.Count})");
+					int numCities = majorEmpire.Cities.Count;
+					for(int c = 0; c < numCities; c++)
 					{
-						TechnologyQueue techQueue = majorEmpire.DepartmentOfScience.TechnologyQueue;
-						int numTechs = techQueue.TechnologyIndices.Count;
-						for (int t=0; t < numTechs; t++)
+						Settlement city = majorEmpire.Cities[c];
+						if (territoryChange.citiesInitialTerritories.ContainsKey(city))
+						{
+							foreach (int territoryIndex in territoryChange.citiesInitialTerritories[city].AsEnumerable().Reverse())
+							{
+								if (territoryChange.territoriesKept.Contains(territoryIndex))
+								{
+									Territory territory = Sandbox.World.Territories[territoryIndex];
+									Settlement territorySettlement = territory.AdministrativeDistrict.Entity.Settlement;
+									FixedPoint cost = new FixedPoint();
+									FailureFlags flag = majorEmpire.DepartmentOfTheInterior.CanTerritoryBeAttachedToCity(territorySettlement, city, ref cost);
+									Diagnostics.LogWarning($"[Gedemon] Try to re-attach {CultureUnlock.GetTerritoryName(territoryIndex)} to {city.EntityName} for the Evolved Empire (flag = {flag})");
+									if (flag == FailureFlags.None)
+									{
+										majorEmpire.DepartmentOfTheInterior.MergeSettlementIntoCity(territorySettlement, city);
+									}
+									else
+									{
+										Diagnostics.LogError($"[Gedemon] FAILED to re-attach ({flag})");
+									}
+								}
+							}
+						}
+					}
+
+					// Give compensation from lost territories
+					refund.ApplyCompensation();
+
+					#endregion
+
+					//
+					if (rebelFaction != null)
+                    {
+						if(rebelFaction.Cities.Count == 0)
                         {
 
-							int num2 = techQueue.TechnologyIndices[t];
-							ref Technology reference = ref majorEmpire.DepartmentOfScience.Technologies.Data[num2];
-							if (!(reference.InvestedResource >= reference.Cost) && reference.TechnologyState != TechnologyStates.Completed)
-							{
+							BaseHumanSpawnerDefinition spawnerDefinitionForMinorEmpire = rebelFaction.Spawner.GetSpawnerDefinitionForMinorEmpire(rebelFaction);
+							FixedPoint defaultGameSpeedMultiplier = Sandbox.GameSpeedController.CurrentGameSpeedDefinition.DefaultGameSpeedMultiplier;
+							
+							Diagnostics.LogWarning($"[Gedemon] Set Rebels to decline from {rebelFaction.MinorFactionStatus}, HomeStatus = {rebelFaction.MinorEmpireHomeStatus}, RemainingLife = {rebelFaction.RemainingLifeTime}, SpawnPointIndex = {rebelFaction.SpawnPointIndex}, , TimeBeforeEvolveToCity = {spawnerDefinitionForMinorEmpire.TimeBeforeEvolveToCity}, ConstructionTurn = {rebelFaction.ConstructionTurn}, speed X = {defaultGameSpeedMultiplier}");
+							Sandbox.MinorFactionManager.PeacefulHumanSpawner.SetMinorEmpireHomeStatus(rebelFaction, MinorEmpireHomeStatuses.Camp);
+							rebelFaction.ConstructionTurn = 100; // test to prevent spawning a city (check is ConstructionTurn++ < TimeBeforeEvolveToCity)
+							rebelFaction.IsPeaceful = false;
+							rebelFaction.MinorFactionStatus = MinorFactionStatuses.InDecline;
+							Sandbox.SimulationEntityRepository.SetSynchronizationDirty(rebelFaction);
+							//rebelFaction.RemainingLifeTime = 10 * defaultGameSpeedMultiplier;
 
-								techCostInQueue += reference.Cost - reference.InvestedResource;
-								Diagnostics.Log($"[Gedemon] in TechQueue for {reference.TechnologyDefinition.name}, Cost = {reference.Cost}, Invested = {reference.InvestedResource}, Left = {reference.Cost - reference.InvestedResource}, total cost in Queue = {techCostInQueue}");
+							int numSettlement = rebelFaction.Settlements.Count;
+							for (int s = 0; s < numSettlement; s++)
+                            {
+								Settlement settlement = rebelFaction.Settlements[s];
+								WorldPosition position = settlement.GetMainDistrict().WorldPosition;
+
+								Diagnostics.LogWarning($"[Gedemon] Try to spawn rebel army at ({position.Column}, {position.Row}) in {CultureUnlock.GetTerritoryName(settlement.GetMainDistrict().Territory.Entity.Index)}");
+								Sandbox.MinorFactionManager.ViolentHumanSpawner.SpawnArmy(rebelFaction, position, isDefender : false);
 							}
 						}
 					}
-					majorEmpire.DepartmentOfScience.GainResearch(scienceRefund, true, false);
-					FixedPoint scienceLeft = scienceRefund - techCostInQueue;
-					Diagnostics.Log($"[Gedemon] New research stock {majorEmpire.DepartmentOfScience.TechnologyQueue.CurrentResourceStock}, should be {scienceLeft}");
-					if(majorEmpire.DepartmentOfScience.TechnologyQueue.CurrentResourceStock < scienceLeft)
-					{
-						majorEmpire.DepartmentOfScience.TechnologyQueue.CurrentResourceStock = scienceLeft;
-					}
-
-					Settlement currentCapital = __instance.majorEmpire.Capital;
-					Diagnostics.Log($"[Gedemon] Current ConstructionQueue.Entity.CurrentResourceStock {currentCapital.EntityName} =  {currentCapital.ConstructionQueue.Entity.CurrentResourceStock}");
-					currentCapital.ConstructionQueue.Entity.CurrentResourceStock += productionRefund;
-					Diagnostics.Log($"[Gedemon] after refund: CurrentResourceStock {currentCapital.EntityName} =  {currentCapital.ConstructionQueue.Entity.CurrentResourceStock}");
-					FixedPoint productionInQueue = FixedPoint.Zero;
-                    {
-						ConstructionQueue constructionQueue = currentCapital.ConstructionQueue.Entity;
-						int numConstruction = constructionQueue.Constructions.Count;
-						Diagnostics.Log($"[Gedemon] numConstruction = {numConstruction}");
-						for (int c = 0; c < numConstruction; c++)
-						{
-							Construction construction = constructionQueue.Constructions[c];
-							Diagnostics.Log($"[Gedemon] in production queue for {construction.ConstructibleDefinition.Name}, Failures = {construction.FailureFlags}, HasBeenBoughtOut = {construction.HasBeenBoughtOut}, prod. left = {(construction.Cost - construction.InvestedResource)} (cost = {construction.Cost}, invested = {construction.InvestedResource})");
-
-							switch (construction.ConstructibleDefinition.ProductionCostDefinition.Type)
-							{
-								case ProductionCostType.TurnBased:
-                                    {
-										productionInQueue += (construction.Cost - construction.InvestedResource);
-										Diagnostics.Log($"[Gedemon] ProductionCostType.TurnBased : new calculated prod. required in queue = {productionInQueue}");
-										break;
-									}
-								case ProductionCostType.Infinite:
-									break;
-								case ProductionCostType.Production:
-									{
-										productionInQueue += (construction.Cost - construction.InvestedResource);
-										Diagnostics.Log($"[Gedemon] ProductionCostType.Production : new calculated prod. required in queue = {productionInQueue}");
-										break;
-									}
-								case ProductionCostType.Transfert:
-									{
-										//productionInQueue += (construction.Cost - construction.InvestedResource);
-										Diagnostics.Log($"[Gedemon] ProductionCostType.Transfert...");
-										break;
-									}
-								default:
-									Diagnostics.LogError("Invalid production cost type.");
-									break;
-							}
-						}
-					}
-					majorEmpire.DepartmentOfIndustry.InvestProductionFor(currentCapital.ConstructionQueue); // this method change CurrentResourceStock to the minimum value between the current city production and CurrentResourceStock, feature or bug ?
-					FixedPoint prodLeft = productionRefund - productionInQueue;
-					Diagnostics.Log($"[Gedemon] after InvestProductionFor(ConstructionQueue) : CurrentResourceStock =  {currentCapital.ConstructionQueue.Entity.CurrentResourceStock} (should be {prodLeft})");
-                    if (currentCapital.ConstructionQueue.Entity.CurrentResourceStock < prodLeft)
-					{
-						currentCapital.ConstructionQueue.Entity.CurrentResourceStock = prodLeft;
-						Amplitude.Mercury.Sandbox.Sandbox.SimulationEntityRepository.SetSynchronizationDirty(currentCapital.ConstructionQueue.Entity);
-					}					
 				}
-
 			}
 		}
 
@@ -382,28 +489,7 @@ namespace Gedemon.TrueCultureLocation
 						}
 					}
 				}
-
-				//*
-				IDatabase<EmpireSymbolDefinition> database = Databases.GetDatabase<EmpireSymbolDefinition>();
-				foreach (EmpireSymbolDefinition symbol in database)
-				{
-					if (majorEmpire.FactionDefinition.Name.ToString().Length > 13 && symbol.Name.ToString().Length > 23)
-					{
-						string factionSuffix = majorEmpire.FactionDefinition.Name.ToString().Substring(13); // Civilization_Era2_RomanEmpire
-						string symbolSuffix = symbol.Name.ToString().Substring(23); // EmpireSymbolDefinition_Era2_RomanEmpire
-						if (factionSuffix == symbolSuffix)
-						{
-							Diagnostics.LogWarning($"[Gedemon] {symbol.Name} {symbolSuffix} == {majorEmpire.FactionDefinition.Name} {factionSuffix}");
-
-							majorEmpire.SetEmpireSymbol(symbol.Name);
-
-						}
-					}
-				}
-				//*/
-
-				// hack to refresh culture symbol in UI
-				Sandbox.EmpireNamesRepository.SandboxStarted_InitializeEmpireNames(SimulationPasses.PassContext.OrderProcessed, "EmpireNamesRepository_RefreshEmpireNames");
+				CultureChange.SetFactionSymbol(majorEmpire);
 			}
 		}
 
@@ -426,7 +512,7 @@ namespace Gedemon.TrueCultureLocation
 				//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} (ID={majorEmpire.Index}, EraStars ={majorEmpire.EraStarsCount.Value}/{majorEmpire.DepartmentOfDevelopment.CurrentEraStarRequirement}, knw={majorEmpire.KnowledgeStock.Value}, pop={majorEmpire.SumOfPopulationAndUnits.Value}) from {majorEmpire.FactionDefinition.Name} check to unlock {factionDefinition.Name}");
 
 				string factionName = factionDefinition.Name.ToString();
-				if (CultureUnlock.HasTerritory(factionName))
+				if (CultureUnlock.HasMajorTerritories(factionName))
 				{
 					int count = majorEmpire.Settlements.Count;
 
@@ -595,30 +681,5 @@ namespace Gedemon.TrueCultureLocation
 			__result = factionStatus;
 			return false;
 		}
-
-		private static FixedPoint GetResourcesCompensation(Settlement settlement, MajorEmpire majorEmpire)
-		{
-			FixedPoint compensation = 0;
-			int count2 = settlement.ResourceExtractors.Count;
-			for (int k = 0; k < count2; k++)
-			{
-				District district = settlement.ResourceExtractors[k];
-				int num = district.WorldPosition.ToTileIndex();
-				ref TileInfo reference = ref Amplitude.Mercury.Sandbox.Sandbox.World.TileInfo.Data[num];
-				if (reference.PointOfInterest < World.Tables.PointOfInterestDefinitions.Length)
-				{
-					Amplitude.Mercury.Data.World.ResourceDepositDefinition resourceDepositDefinition = World.Tables.PointOfInterestDefinitions[reference.PointOfInterest] as Amplitude.Mercury.Data.World.ResourceDepositDefinition;
-					if (resourceDepositDefinition != null)
-					{
-						FixedPoint cost = Sandbox.TradeController.ComputeLicenseCost(majorEmpire, majorEmpire, (int)resourceDepositDefinition.ResourceDefinition.ResourceType);
-						compensation += cost;
-						Diagnostics.LogWarning($"[Gedemon] Adding Money Compensation for resource {resourceDepositDefinition.ResourceDefinition.Name}, baseCost = {resourceDepositDefinition.ResourceDefinition.TradeBaseLicenceCost}, License Cost = {cost}");
-					}
-				}
-			}
-			return compensation;
-		}
-
 	}
-
 }

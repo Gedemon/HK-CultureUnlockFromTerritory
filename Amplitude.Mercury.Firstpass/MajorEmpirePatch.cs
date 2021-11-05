@@ -9,6 +9,7 @@ using Amplitude.Framework;
 using Amplitude.Mercury.Session;
 using System;
 using Amplitude.Mercury.Interop;
+using System.Collections.Generic;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -94,7 +95,7 @@ namespace Gedemon.TrueCultureLocation
 					reference3.SettlementGUID = settlement.GUID;
 					reference3.SettlementIndex = settlement.PoolAllocationIndex;
 					//Diagnostics.LogWarning($"[Gedemon] before PrimaryColor");
-					reference3.EmpireColor = Amplitude.Mercury.Sandbox.Sandbox.Empires[b].PrimaryColor;
+					reference3.EmpireColor = Amplitude.Mercury.Sandbox.Sandbox.EmpireNamesRepository.GetEmpirePrimaryColor(b);
 					reference3.EmpireIndex = b;
 					reference3.RegionGUID = entity2.GUID;
 					reference3.IsOwnedByCity = settlement.SettlementStatus == SettlementStatuses.City;
@@ -226,7 +227,7 @@ namespace Gedemon.TrueCultureLocation
 					DepartmentOfTheInterior.UpdateDistrictsAfterSettlementCreation(settlement);
 				}
 				//Diagnostics.LogWarning($"[Gedemon] before InitializeArmiesCollection");
-				DepartmentOfTheInterior.InitializeArmiesCollection(settlement);
+				DepartmentOfTheInterior.InitializeFriendlyHostileArmiesSettlement(settlement);
 				if (isImmediate)
 				{
 					SimulationEvent_CampFounded.Raise(__instance.DepartmentOfTheInterior, settlement);
@@ -254,7 +255,7 @@ namespace Gedemon.TrueCultureLocation
 				//*/
 
 				//Amplitude.Mercury.Sandbox.Sandbox.Empires[__instance.Index].DepartmentOfTheInterior.CreateCampAt(SimulationEntityGUID.Zero, worldPosition, FixedPoint.Zero, true);
-				//__instance.DepartmentOfTheInterior.CreateCampAt(SimulationEntityGUID.Zero, startPosition, FixedPoint.Zero, false);
+				//__instance.DepartmentOfTheInterior.CreateCampAt(SimulationEntityGUID.Zero, worldPosition, FixedPoint.Zero, false);
 			}
 
 		}
@@ -371,6 +372,32 @@ namespace Gedemon.TrueCultureLocation
 	[HarmonyPatch(typeof(MinorFactionManager))]
 	public class TCL_MinorFactionManager
 	{
+
+		//[HarmonyPatch("FillValidTileIndexesInTerritory")]
+		//[HarmonyPrefix]
+		public static bool FillValidTileIndexesInTerritory(MinorFactionManager __instance, List<int> validTileIndexes, int territoryIndex)
+		{
+			if (CultureUnlock.UseTrueCultureLocation())
+			{
+				Territory territory = Amplitude.Mercury.Sandbox.Sandbox.World.Territories[territoryIndex];
+				int num = territory.TileIndexes.Length;
+				for (int i = 0; i < num; i++)
+				{
+					int num2 = territory.TileIndexes[i];
+
+					//ref TileInfo reference = ref Amplitude.Mercury.Sandbox.Sandbox.World.TileInfo.Data[num2];
+					ref Amplitude.Mercury.Interop.AI.Data.Tile tile = ref Amplitude.Mercury.Interop.AI.Snapshots.World.Tiles[num2];
+
+					if (__instance.IsWorldPositionValidForSpawnFaction(num2) && tile.BorderDistance > 2) // cause out of range index in GetRandomValidTileIndexInTerritory ?
+					{
+						validTileIndexes.Add(num2);
+					}
+				}
+				return false;
+			}
+			return true;
+		}
+
 		[HarmonyPatch("IsTerritoryValidForSpawnFaction")]
 		[HarmonyPrefix]
 		public static bool IsTerritoryValidForSpawnFaction(MinorFactionManager __instance, ref bool __result, Territory territory)
@@ -437,39 +464,174 @@ namespace Gedemon.TrueCultureLocation
 					}
 				}
 
-				/*
-				if (CultureUnlock.HasAnyMinorFactionPosition(territory.Index))
-                {
-					return true;
-                }
-                else
-                {
-					foreach(int adjacentTerritoryIndex in territory.AdjacentTerritories)
-                    {
-						if (CultureUnlock.HasAnyMinorFactionPosition(adjacentTerritoryIndex))
-						{
-							Diagnostics.Log($"[Gedemon] HasAnyMinorFactionPosition in adjacent territory ({CultureUnlock.GetTerritoryName(territory.Index)}) = {CultureUnlock.HasAnyMinorFactionPosition(adjacentTerritoryIndex)}");
-							return true;
-                        }
-					}
-				}
-				//*/
 				__result = false;
 				return false;
             }
 			return true;
 		}
+
+		[HarmonyPatch("NewTurnBeginPass_UpdateMinorFactionsSpawning")]
+		[HarmonyPrefix]
+		public static void NewTurnBeginPass_UpdateMinorFactionsSpawning(MinorFactionManager __instance, SimulationPasses.PassContext context, string name)
+		{
+			Diagnostics.LogWarning($"[Gedemon] in NewTurnBeginPass_UpdateMinorFactionsSpawning, (PostFix) for {context}, GlobalEra index = {Sandbox.Timeline.GetGlobalEraIndex()}, Game Turn = {SandboxManager.Sandbox.Turn}, EmpireCanSpawnFromMinorFactions = {TrueCultureLocation.EmpireCanSpawnFromMinorFactions()}");
+
+			if (CultureUnlock.UseTrueCultureLocation() && TrueCultureLocation.EmpireCanSpawnFromMinorFactions())
+			{
+				int numberOfMinorEmpires = Amplitude.Mercury.Sandbox.Sandbox.NumberOfMinorEmpires;
+				for (int i = 0; i < numberOfMinorEmpires; i++)
+				{
+					MinorEmpire minorEmpire = Amplitude.Mercury.Sandbox.Sandbox.MinorEmpires[i];
+					if (!minorEmpire.IsAlive)
+					{
+						continue;
+					}
+					//*
+					int count = minorEmpire.RelationsToMajor.Count;
+					bool halfLifePassed = (SandboxManager.Sandbox.Turn - minorEmpire.SpawnTurn) > minorEmpire.RemainingLifeTime;
+					PatronageDefinition patronageDefinition = minorEmpire.PatronageDefinition;
+					Diagnostics.LogWarning($"[Gedemon] Check Minor Faction {minorEmpire.FactionDefinition.name} ID#{minorEmpire.Index}, Era={minorEmpire.EraIndex}, Status={minorEmpire.MinorFactionStatus}, HomeStatus={minorEmpire.MinorEmpireHomeStatus}, RemainingLife={minorEmpire.RemainingLifeTime}, Spawn={minorEmpire.SpawnTurn}, Life={SandboxManager.Sandbox.Turn - minorEmpire.SpawnTurn}, halfLifePassed={halfLifePassed}, FirstPatron ID#{minorEmpire.RankedMajorEmpireIndexes[Amplitude.Mercury.Sandbox.Sandbox.NumberOfMajorEmpires - 1]}  ");
+
+					//CityFlags.Besieged
+					int numCities = minorEmpire.Cities.Count;
+					bool canEvolve = true;
+					for(int c = 0; c < numCities; c++)
+                    {
+						if ((minorEmpire.Cities[c].CityFlags & CityFlags.Besieged) != 0)
+                        {
+							Diagnostics.LogWarning($"[Gedemon] - {minorEmpire.Cities[c].EntityName} is under siege, can't Evolve now...");
+							canEvolve = false;
+							break;
+						}
+                    }
+					
+					if (!canEvolve)
+                    {
+						continue;
+                    }
+
+
+					FactionDefinition newfaction = null;
+					int numSettlment = minorEmpire.Settlements.Count;
+					for (int s = 0; s < numSettlment; s++)
+					{
+						Settlement settlement = minorEmpire.Settlements[s];
+						int count2 = settlement.Region.Entity.Territories.Count;
+						for (int k = 0; k < count2; k++)
+						{
+							Territory territory = settlement.Region.Entity.Territories[k];
+							int territoryIndex = territory.Index;
+							if (CultureUnlock.HasAnyMajorEmpirePosition(territoryIndex))
+							{
+								Diagnostics.LogWarning($"[Gedemon] Minor Faction own territory {CultureUnlock.GetTerritoryName(territoryIndex)}, a potential Major Empire location");
+								List<string> majorEmpireNames = CultureUnlock.GetListMajorEmpiresForTerritory(territoryIndex);
+								foreach (string empireName in majorEmpireNames)
+								{
+									StaticString factionName = new StaticString(empireName);
+									FactionDefinition factionDefinition = Utils.GameUtils.GetFactionDefinition(factionName);
+									if (factionDefinition != null)
+									{
+										Diagnostics.LogWarning($"[Gedemon] - {empireName}, Era Index = {factionDefinition.EraIndex}");
+										if (halfLifePassed && factionDefinition.EraIndex <= Sandbox.Timeline.GetGlobalEraIndex() - 1 && factionDefinition.EraIndex >= minorEmpire.EraIndex)
+										{
+											newfaction = factionDefinition;
+											break;
+										}
+									}
+									else
+									{
+										Diagnostics.LogError($"[Gedemon] - Can't find FactionDefinition for {empireName}");
+									}
+								}
+								if (newfaction != null)
+								{
+									break;
+								}
+							}
+						}
+						if (newfaction != null)
+						{
+							break;
+						}
+					}
+					if (newfaction != null)
+					{
+
+						MajorEmpire newEmpire = CultureChange.GetFreeMajorEmpire();
+						if (newEmpire != null)
+						{
+							Diagnostics.LogError($"[Gedemon] Spawning Major Empire {newfaction.name} to replace Minor Faction {minorEmpire.FactionDefinition.name}");
+
+							newEmpire.ChangeFaction(newfaction.Name);
+							newEmpire.DepartmentOfDevelopment.ApplyStartingEra();
+							newEmpire.DepartmentOfDevelopment.PickFirstEraStars();
+							newEmpire.DepartmentOfScience.UpdateCurrentTechnologyEraIfNeeded();
+							newEmpire.DepartmentOfScience.CompleteAllPreviousErasTechnologiesOnStart();
+
+							for (int j = 0; j < count; j++)
+							{
+								MinorToMajorRelation minorToMajorRelation = minorEmpire.RelationsToMajor[j];
+								MajorEmpire otherEmpire = minorToMajorRelation.MajorEmpire.Entity;
+								DiplomaticRelation majorToMajorRelation = Sandbox.DiplomaticAncillary.GetRelationFor(newEmpire.Index, otherEmpire.Index);
+								DiplomaticStateType state;
+								if (minorToMajorRelation.PatronageStock.Value > 0)
+								{
+									MinorPatronageGaugeLevel level = MinorFactionManager.GetPatronageLevelWithMajor(minorEmpire, otherEmpire);
+									Diagnostics.LogWarning($"[Gedemon] Patronage Stock = {minorToMajorRelation.PatronageStock.Value} for {otherEmpire.FactionDefinition.name} ID#{otherEmpire.Index}, Permissions = {level.Permission}");
+									
+									if (minorToMajorRelation.PatronageStock.Value == patronageDefinition.MaximumPatronGauge)
+									{
+										Diagnostics.LogWarning($"[Gedemon] - Set as Ally");
+										state = DiplomaticStateType.Alliance;
+										majorToMajorRelation.ApplyState(state, newEmpire.Index);
+										majorToMajorRelation.UpdateAbilities(raiseSimulationEvents: true);
+									}
+									else
+									{
+										state = DiplomaticStateType.Peace;
+									}
+
+									SimulationEvent_DiplomaticStateChanged.Raise(newEmpire, newEmpire.Index, majorToMajorRelation.DiplomaticState.State, state, otherEmpire.Index, -1);
+
+									if ((level.Permission & MinorPatronageGaugeLevel.MinorGaugePermission.NonAgression) != 0)
+									{
+										//DiplomaticRelationHelper.ExecuteAction(newEmpire.Index, otherEmpire.Index, DiplomaticAction.ProposeMilitaryAgreement);
+										Diagnostics.LogWarning($"[Gedemon] - Raise MilitaryAgreementLevel from {majorToMajorRelation.CurrentAgreements.MilitaryAgreementLevel}");
+										majorToMajorRelation.CurrentAgreements.MilitaryAgreementLevel = MilitaryAgreements.NonAggression;
+										Diagnostics.LogWarning($"[Gedemon] - New MilitaryAgreementLevel = {majorToMajorRelation.CurrentAgreements.MilitaryAgreementLevel}");
+
+									}
+
+									if ((level.Permission & MinorPatronageGaugeLevel.MinorGaugePermission.TradeRessources) != 0)
+									{
+										//DiplomaticRelationHelper.ExecuteAction(newEmpire.Index, otherEmpire.Index, DiplomaticAction.ProposeEconomicalAgreement);
+										Diagnostics.LogWarning($"[Gedemon] - Raise EconomicalAgreementLevel from {majorToMajorRelation.CurrentAgreements.EconomicalAgreementLevel}");
+										majorToMajorRelation.CurrentAgreements.EconomicalAgreementLevel = EconomicalAgreements.AllResourceTrade;
+										Diagnostics.LogWarning($"[Gedemon] - New EconomicalAgreementLevel = {majorToMajorRelation.CurrentAgreements.EconomicalAgreementLevel}");
+									}
+
+									Sandbox.SimulationEntityRepository.SetSynchronizationDirty(newEmpire);
+									Sandbox.SimulationEntityRepository.SetSynchronizationDirty(otherEmpire);
+
+								}
+							}
+
+							newEmpire.DepartmentOfForeignAffairs.AssimilateMinorEmpire(minorEmpire);
+							CultureChange.SetFactionSymbol(newEmpire);
+						}
+					}
+				}
+			}
+		}
 	}
 	//*/
 
 
-	//*
 	[HarmonyPatch(typeof(ArmyActionHelper))]
 	public class TCL_ArmyActionHelper
 	{
 		[HarmonyPatch("FillCreateCampFailures")]
 		[HarmonyPatch(new Type[] { typeof(Army), typeof(ArmyActionFailureFlags), typeof(FixedPoint), typeof(FixedPoint), typeof(FixedPoint), typeof(bool) }, new ArgumentType[] { ArgumentType.Normal, ArgumentType.Ref, ArgumentType.Ref, ArgumentType.Ref, ArgumentType.Ref, ArgumentType.Normal })]
-		//ArgumentType[]
 		[HarmonyPrefix]
 		public static bool FillCreateCampFailures(Army army, ref ArmyActionFailureFlags failureFlags, ref FixedPoint minimumMoneyCost, ref FixedPoint minimumInfluenceCost, ref FixedPoint instantUnitCost, bool computeMinimumCost)
 		{
@@ -484,9 +646,6 @@ namespace Gedemon.TrueCultureLocation
 			return true;
 		}
 
-	//internal static void FillCreateCampFailures(Army army, ref ArmyActionFailureFlags failureFlags, ref FixedPoint minimumMoneyCost, ref FixedPoint minimumInfluenceCost, ref FixedPoint instantUnitCost, bool computeMinimumCost)
 	}
-	//*/
-
 
 }

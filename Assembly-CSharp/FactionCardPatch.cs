@@ -33,7 +33,7 @@ namespace Gedemon.TrueCultureLocation
 				MajorEmpire majorEmpire = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires[localEmpireIndex];
 
 				int lines = 0;
-				if (CultureUnlock.HasTerritory(factionName) && flag)
+				if (CultureUnlock.HasMajorTerritories(factionName) && flag)
 				{
 
 					__instance.lockedPatch.VisibleSelf = (status & FactionStatus.LockedByOthers) == 0;
@@ -66,46 +66,16 @@ namespace Gedemon.TrueCultureLocation
                 {
 					__instance.lockedLabel.Text = "";
 
-					IDictionary<Settlement, List<int>> territoryToDetachAndCreate = new Dictionary<Settlement, List<int>>();    // Territories attached to a City that we want to detach and keep separated because the city is going to be lost
-					IDictionary<Settlement, List<int>> territoryToDetachAndFree = new Dictionary<Settlement, List<int>>();      // Territories attached to a City that we want to detach because they are going to be lost, but not the city
-					List<Settlement> settlementToLiberate = new List<Settlement>();                                             // Full Settlements (including a City or being a single-territory City) that are lost
-					List<Settlement> settlementToFree = new List<Settlement>();                                                 // Single Settlement (not a city) that are lost
 
+					TerritoryChange territoryChange = new TerritoryChange(majorEmpire, __instance.NextFactionInfo.FactionDefinitionName);
 
-					District potentialCapital;
-					int numcitiesLost;
+					string city = territoryChange.settlementLost.Count > 1 ? "Cities" : "City";
 
-					bool capitalChanged = CultureChange.GetTerritoryChangesOnEvolve(majorEmpire.DepartmentOfDevelopment, __instance.NextFactionInfo.FactionDefinitionName, out numcitiesLost, out potentialCapital, ref territoryToDetachAndCreate, ref territoryToDetachAndFree, ref settlementToLiberate, ref settlementToFree);
-
-					string city = settlementToLiberate.Count > 1 ? "Cities" : "City";
-
-					List<int> listTerritoryLost = new List<int>();
-					foreach (KeyValuePair<Settlement, List<int>> kvp in territoryToDetachAndFree)
-					{
-						foreach (int territoryIndex in kvp.Value)
-                        {
-							listTerritoryLost.Add(territoryIndex);
-						}
-					}
-					foreach (Settlement settlement in settlementToFree)
-					{
-						listTerritoryLost.Add(settlement.Region.Entity.Territories[0].Index);
-					}
-
-					List<int> listTerritoryDetached = new List<int>();
-					foreach (KeyValuePair<Settlement, List<int>> kvp in territoryToDetachAndCreate)
-					{
-						foreach (int territoryIndex in kvp.Value)
-						{
-							listTerritoryDetached.Add(territoryIndex);
-						}
-					}
-
-					if (settlementToLiberate.Count > 0)
+					if (territoryChange.settlementLost.Count > 0)
 					{
 						lines++;
 						string listCity = city + " lost : ";
-						foreach (Settlement settlement in settlementToLiberate)
+						foreach (Settlement settlement in territoryChange.settlementLost)
 						{
 							listCity += Environment.NewLine + settlement.EntityName;
 							lines++;
@@ -115,11 +85,11 @@ namespace Gedemon.TrueCultureLocation
 					}
 
 
-					if (listTerritoryLost.Count > 0)
+					if (territoryChange.territoriesLost.Count > 0)
 					{
 						lines++;
-						string territoryLost = listTerritoryLost.Count > 1 ? "Territories lost : " : "Territory lost : ";
-						foreach (int territoryIndex in listTerritoryLost)
+						string territoryLost = territoryChange.territoriesLost.Count > 1 ? "Territories lost : " : "Territory lost : ";
+						foreach (int territoryIndex in territoryChange.territoriesLost)
 						{
 							territoryLost += Environment.NewLine + CultureUnlock.GetTerritoryName(territoryIndex);
 							lines++;
@@ -128,11 +98,11 @@ namespace Gedemon.TrueCultureLocation
 						lines++;
 					}
 
-					if (listTerritoryDetached.Count > 0)
+					if (territoryChange.territoriesKeptFromLostCities.Count > 0)
 					{
 						lines++;
-						string territoryDetached = listTerritoryDetached.Count > 1 ? "Territories kept from lost "+ city +" : " : "Territory kept from lost " + city + " : ";
-						foreach (int territoryIndex in listTerritoryDetached)
+						string territoryDetached = territoryChange.territoriesKeptFromLostCities.Count > 1 ? "Territories kept from lost " + city + " : " : "Territory kept from lost " + city + " : ";
+						foreach (int territoryIndex in territoryChange.territoriesKeptFromLostCities)
 						{
 							territoryDetached += Environment.NewLine + CultureUnlock.GetTerritoryName(territoryIndex);
 							lines++;
@@ -141,15 +111,11 @@ namespace Gedemon.TrueCultureLocation
 					}
 
 					if (__instance.lockedLabel.Text != "")
-                    {
+					{
 						__instance.lockedOverlay.VisibleSelf = true; // to show the text
 						__instance.lockedOverlayImage.Color = new Color(0f, 0f, 0f, 0.20f);
 						__instance.lockedByPatch.VisibleSelf = false;
 					}
-
-					Diagnostics.LogWarning($"[Gedemon] Alignment.Vertical = {__instance.lockedLabel.Alignment.Vertical}, Alignment.VerticalOffset = {__instance.lockedLabel.Alignment.VerticalOffset}, Alignment.Horizontal = {__instance.lockedLabel.Alignment.Horizontal}, Alignment.HorizontalOffset = {__instance.lockedLabel.Alignment.HorizontalOffset}");
-
-					//*/
 				}
 
 				__instance.lockedLabel.SetVerticalAlignment(Amplitude.UI.VerticalAlignment.Top);

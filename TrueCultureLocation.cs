@@ -39,8 +39,8 @@ namespace Gedemon.TrueCultureLocation
 			Key = "GameOption_TCL_UseTrueCultureLocation",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			DefaultValue = "True",
-			Title = "True Culture Location",
-			Description = "Toggles unlocking Culture by owned Territories on compatible maps",
+			Title = "[TCL] True Culture Location",
+			Description = "Toggles unlocking Culture by owned Territories on compatible maps, all options tagged [TCL] are only active when this setting is set to 'ON'",
 			States =
 			{
 				new GameOptionStateInfo
@@ -195,7 +195,13 @@ namespace Gedemon.TrueCultureLocation
 				Description = "16 Empires",
 				Value = "16"
 			},
-			/*
+			//*
+			new GameOptionStateInfo
+			{
+				Title = "17",
+				Description = "17 Empires",
+				Value = "17"
+			},
 			new GameOptionStateInfo
 			{
 				Title = "18",
@@ -204,15 +210,27 @@ namespace Gedemon.TrueCultureLocation
 			},
 			new GameOptionStateInfo
 			{
-				Title = "21",
-				Description = "21 Empires",
-				Value = "21"
+				Title = "19",
+				Description = "19 Empires",
+				Value = "19"
+			},
+			new GameOptionStateInfo
+			{
+				Title = "20",
+				Description = "20 Empires",
+				Value = "20"
 			},
 			new GameOptionStateInfo
 			{
 				Title = "22",
 				Description = "22 Empires",
 				Value = "22"
+			},
+			new GameOptionStateInfo
+			{
+				Title = "25",
+				Description = "25 Empires",
+				Value = "25"
 			},
 			new GameOptionStateInfo
 			{
@@ -305,7 +323,7 @@ namespace Gedemon.TrueCultureLocation
 			Key = "GameOption_TCL_ExtraEmpireSlots",
 			DefaultValue = "0",
 			Title = "Maximum number of Competitors",
-			Description = "Add extra Empire Slots in game (AI only), allowing a maximum of 16 Empires (10 from setup + 6 extra AI slots). With TCL, Nomadic Tribes controlled by those AI players will be able to spawn as a new Empire on the location of a Culture that has not been controlled yet, or take control of some territories of an old Empire during a split. (this setting override the default Starting Positions when using the Giant Earth Map)",
+			Description = "Add extra Empire Slots in game (AI only), allowing a maximum of 16 Empires (10 from setup + 6 extra AI slots). This can be used either on the Giant Earth Map or any random map, but no other custom map. With [TCL], Nomadic Tribes controlled by those AI players will be able to spawn as a new Empire on the location of a Culture that has not been controlled yet, or take control of some territories of an old Empire during a split. (this setting override the default Starting Positions when using the Giant Earth Map). If you don't use [TCL], you should use (AOM) 'Allow Duplicate Cultures' Mod",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			States = NumEmpireSlots
 		};
@@ -328,7 +346,7 @@ namespace Gedemon.TrueCultureLocation
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			DefaultValue = "Off",
 			Title = "Start with an Outpost",
-			Description = "Toggle if Empires will start with an Outpost",
+			Description = "Toggle if Empires will start with an Outpost. This setting can be used on any map.",
 			States =
 			{
 				new GameOptionStateInfo
@@ -352,32 +370,71 @@ namespace Gedemon.TrueCultureLocation
 			}
 		};
 
+		public static readonly GameOptionInfo NewEmpireSpawningOption = new GameOptionInfo
+		{
+			ControlType = UIControlType.DropList,
+			Key = "GameOption_TCL_NewEmpireSpawningOption",
+			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
+			DefaultValue = "1",
+			Title = "[TCL] New Empires spawn",
+			Description = "Set how New Empires will Spawn mid-game from the pool of Empire Slots (ie when the Neolithic Start Slots are lower than the Maximum Number of Competitors)",
+			States =
+			{
+				new GameOptionStateInfo
+				{
+					Title = "Only on Split",
+					Description = "Only spawn when a previous Empire is split during Culture Change",
+					Value = "0"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "From Minor",
+					Description = "Can spawn on Empire split and from Minor Factions",
+					Value = "1"
+				},
+				/*
+				new GameOptionStateInfo
+				{
+					Title = "From AI players",
+					Description = "Can spawn on Empire split and from AI players (Minor Factions or Major Empires on transcending)",
+					Value = "2"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "From all players",
+					Description = "Can spawn on Empire split and from all players on transcending",
+					Value = "3"
+				}
+				//*/
+			}
+		};
+
 		public static readonly GameOptionInfo StartPositionList = new GameOptionInfo
 		{
 			ControlType = UIControlType.DropList,
 			Key = "GameOption_TCL_StartPositionList",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			DefaultValue = "Default",
-			Title = "Starting Position List",
-			Description = "Choose if you want to use the map's default Starting Positions, or another list",
+			Title = "[GEM] Starting Position List",
+			Description = "When you use the Giant Earth Map, choose if you want the map's default Starting Positions or one of the alternate list (only active when that map is used)",
 			States =
 			{
 				new GameOptionStateInfo
 				{
 					Title = "Map Default",
-					Description = "Use the Map's default Starting Positions, and the alternate positions only for extra player slots.",
+					Description = "Use the Map's default Starting Positions (this setting is overriden if the maximum number of competitor is raised above 10, the Alternate list is then used)",
 					Value = "Default"
 				},
 				new GameOptionStateInfo
 				{
 					Title = "Alternate",
-					Description = "Use only the Alternate Starting Positions (Old World and Americas), ignoring the map's default positions. Some starting positions will be adjacent from each other, even with a low number of players",
+					Description = "Use only the Alternate Starting Positions, ignoring the map's default positions. Some starting positions will be adjacent from each other, even with a low number of players. This setting allows the 10 Ancient Cultures to spawn with the [TCL] option (Slots 1 to 9 + 13 to 16 = Old World, 10 to 12 = Americas)",
 					Value = "ExtraStart"
 				},
 				new GameOptionStateInfo
 				{
 					Title = "Old World",
-					Description = "Use only the Alternate starting positions (Old World List), ignoring the map's default positions. Some starting positions will be adjacent from each other, even with a low number of players",
+					Description = "Use only the Alternate starting positions (16 slots max, Old World starts only), ignoring the map's default positions. Some starting positions will be adjacent from each other, even with a low number of players.",
 					Value = "OldWorld"
 				}
 			}
@@ -519,9 +576,84 @@ namespace Gedemon.TrueCultureLocation
 				}
 			}
 		};
-		
+
+		public static readonly GameOptionInfo RespawnDeadPlayersOption = new GameOptionInfo
+		{
+			ControlType = UIControlType.Toggle,
+			Key = "GameOption_TCL_RespawnDeadPlayersOption",
+			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
+			DefaultValue = "True",
+			Title = "[TCL] Respawning Dead Players",
+			Description = "Toggle to set if dead players are allowed to re-spawn when there are no Empire left in the free Empires pool (set when the Neolithic Start Slots are lower than the Maximum Number of Competitors)",
+			States =
+			{
+				new GameOptionStateInfo
+				{
+					Title = "On",
+					Description = "On",
+					Value = "True"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "Off",
+					Description = "Off",
+					Value = "False"
+				}
+			}
+		};
+
+		public static readonly GameOptionInfo EmpireIconsNumColumnOption = new GameOptionInfo
+		{
+			ControlType = UIControlType.DropList,
+			Key = "GameOption_TCL_EmpireIconsNumColumnOption",
+			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
+			DefaultValue = "4",
+			Title = "Max number of columns for Empire Icons",
+			Description = "Set the maximum width for the Empire Icons panel displayed at the top left of the screen. You will have to change the UI size accordingly (for example 75% for 9 icons)",
+			States =
+			{
+				new GameOptionStateInfo
+				{
+					Title = "4 (Any UI size)",
+					Description = "4 icons (Can be used with any UI size)",
+					Value = "4"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "5 (90% UI size)",
+					Description = "5 icons (maximum UI size: 90%)",
+					Value = "5"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "6 (85% UI size)",
+					Description = "6 icons (maximum UI size: 85%)",
+					Value = "6"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "7 (80% UI size)",
+					Description = "7 icons (maximum UI size: 80%)",
+					Value = "7"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "8 (75% UI size)",
+					Description = "8 icons (maximum UI size: 75%)",
+					Value = "8"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "9 (75% UI size)",
+					Description = "9 icons (maximum UI size: 75%)",
+					Value = "9"
+				},
+			}
+		};
+
 		public bool Enabled => GameOptionHelper.CheckGameOption(UseTrueCultureLocation, "True");
 		public bool OnlyCultureTerritory => !GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_None");
+		public bool RespawnDeadPlayer => GameOptionHelper.CheckGameOption(RespawnDeadPlayersOption, "True");
 		public bool KeepAttached => GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_KeepAttached");
 		public bool NoLossForAI => GameOptionHelper.CheckGameOption(TerritoryLossIgnoreAI, "True");
 		public bool LimitDecisionForAI => GameOptionHelper.CheckGameOption(TerritoryLossLimitDecisionForAI, "True");
@@ -531,12 +663,14 @@ namespace Gedemon.TrueCultureLocation
 		public bool StartingOutpostForHuman => GameOptionHelper.CheckGameOption(StartingOutpost, "On");
 		public bool StartingOutpostForMinorFaction => GameOptionHelper.CheckGameOption(StartingOutpostForMinorOption, "True");
 		public bool LargerSpawnAreaForMinorFaction => GameOptionHelper.CheckGameOption(LargerSpawnAreaForMinorOption, "True");
-
+		public bool empireCanSpawnFromMinorFactions => int.Parse(GameOptionHelper.GetGameOption(NewEmpireSpawningOption)) > 0;
+		public bool empireCanSpawnFromAI => int.Parse(GameOptionHelper.GetGameOption(NewEmpireSpawningOption)) > 1;
+		public bool empireCanSpawnFromHuman => int.Parse(GameOptionHelper.GetGameOption(NewEmpireSpawningOption)) > 2;
 		public int EraIndexCityRequiredForUnlock => int.Parse(GameOptionHelper.GetGameOption(FirstEraRequiringCityToUnlock));
 		public int TotalEmpireSlots => int.Parse(GameOptionHelper.GetGameOption(ExtraEmpireSlots));
 		public int SettlingEmpireSlots => int.Parse(GameOptionHelper.GetGameOption(SettlingEmpireSlotsOption));
-
 		public int CompensationFactor => int.Parse(GameOptionHelper.GetGameOption(CompensationLevel));
+		public int EmpireIconsNumColumn => int.Parse(GameOptionHelper.GetGameOption(EmpireIconsNumColumnOption));
 
 		// Awake is called once when both the game and the plug-in are loaded
 		void Awake()
@@ -552,7 +686,26 @@ namespace Gedemon.TrueCultureLocation
 		{
 			return Instance.Enabled;
 		}
-
+		public static int GetEmpireIconsNumColumn()
+		{
+			return Instance.EmpireIconsNumColumn;
+		}
+		public static bool CanRespawnDeadPlayer()
+		{
+			return Instance.RespawnDeadPlayer;
+		}
+		public static bool EmpireCanSpawnFromMinorFactions()
+		{
+			return Instance.empireCanSpawnFromMinorFactions;
+		}
+		public static bool EmpireCanSpawnFromAI()
+		{
+			return Instance.empireCanSpawnFromAI;
+		}
+		public static bool EmpireCanSpawnFromhuman()
+		{
+			return Instance.empireCanSpawnFromHuman;
+		}
 		public static bool KeepOnlyCultureTerritory()
 		{
 			return Instance.OnlyCultureTerritory;
@@ -878,7 +1031,7 @@ namespace Gedemon.TrueCultureLocation
 		[HarmonyPrefix]
 		public static bool RefreshItemsPerLine(DiplomaticBanner __instance)
 		{
-			__instance.maxNumberOfItemsPerLine = 4; // default = 4, more (ideally 9) would require to move the city top bar or check the UI size maybe ? (75% for 9 items)
+			__instance.maxNumberOfItemsPerLine = TrueCultureLocation.GetEmpireIconsNumColumn(); // default = 4 (75% for 9 items)
 			return true;
 		}
 	}
