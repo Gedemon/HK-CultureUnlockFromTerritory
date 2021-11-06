@@ -307,23 +307,29 @@ namespace Gedemon.TrueCultureLocation
 							// Re-attach territories to cities when possible
 							foreach (Settlement city in cityList)
 							{
-								foreach (int territoryIndex in territoryChange.citiesInitialTerritories[city].AsEnumerable().Reverse())
+								if (territoryChange.citiesInitialTerritories.ContainsKey(city))
 								{
-									if (territoryChange.newMinorsTerritories[territoryIndex] == cityFaction)
+									foreach (int territoryIndex in territoryChange.citiesInitialTerritories[city].AsEnumerable().Reverse())
 									{
-										Territory territory = Sandbox.World.Territories[territoryIndex];
-										Settlement territorySettlement = territory.AdministrativeDistrict.Entity.Settlement;
-										FixedPoint cost = new FixedPoint();
-										FailureFlags flag = newEmpire.DepartmentOfTheInterior.CanTerritoryBeAttachedToCity(territorySettlement, city, ref cost);
-										Diagnostics.LogWarning($"[Gedemon] Try to re-attach {CultureUnlock.GetTerritoryName(territoryIndex)} to {city.EntityName} for minor faction (flag = {flag})");
-										if (flag == FailureFlags.None || flag == FailureFlags.NotAMajorEmpire)
-										{
-											newEmpire.DepartmentOfTheInterior.MergeSettlementIntoCity(territorySettlement, city);
-										}
-										else
-										{
-											Diagnostics.LogError($"[Gedemon] FAILED to re-attach ({flag})");
-										}
+										if (territoryChange.newMinorsTerritories.TryGetValue(territoryIndex, out StaticString territoryFaction) )
+                                        {
+											if(territoryFaction == cityFaction)
+                                            {
+												Territory territory = Sandbox.World.Territories[territoryIndex];
+												Settlement territorySettlement = territory.AdministrativeDistrict.Entity.Settlement;
+												FixedPoint cost = new FixedPoint();
+												FailureFlags flag = newEmpire.DepartmentOfTheInterior.CanTerritoryBeAttachedToCity(territorySettlement, city, ref cost);
+												Diagnostics.LogWarning($"[Gedemon] Try to re-attach {CultureUnlock.GetTerritoryName(territoryIndex)} to {city.EntityName} for minor faction (flag = {flag})");
+												if (flag == FailureFlags.None || flag == FailureFlags.NotAMajorEmpire)
+												{
+													newEmpire.DepartmentOfTheInterior.MergeSettlementIntoCity(territorySettlement, city);
+												}
+												else
+												{
+													Diagnostics.LogError($"[Gedemon] FAILED to re-attach ({flag})");
+												}
+											}
+                                        }
 									}
 								}
 							}
@@ -377,7 +383,7 @@ namespace Gedemon.TrueCultureLocation
 
 					#endregion
 
-					#region 8/ finalize changes for the evolving Empire
+					#region 8/ finalize evolving Empire
 
 					Diagnostics.Log($"[Gedemon] Check to re-attach territories to the Evolved Empire (Cities = {majorEmpire.Cities.Count})");
 					int numCities = majorEmpire.Cities.Count;
@@ -413,34 +419,56 @@ namespace Gedemon.TrueCultureLocation
 
 					#endregion
 
-					//
+					#region 9/ finalize Minor Factions
+
+					FixedPoint defaultGameSpeedMultiplier = Sandbox.GameSpeedController.CurrentGameSpeedDefinition.DefaultGameSpeedMultiplier;
+
 					if (rebelFaction != null)
-                    {
-						if(rebelFaction.Cities.Count == 0)
-                        {
+					{
+						if (rebelFaction.Cities.Count == 0)
+						{
 
 							BaseHumanSpawnerDefinition spawnerDefinitionForMinorEmpire = rebelFaction.Spawner.GetSpawnerDefinitionForMinorEmpire(rebelFaction);
-							FixedPoint defaultGameSpeedMultiplier = Sandbox.GameSpeedController.CurrentGameSpeedDefinition.DefaultGameSpeedMultiplier;
-							
+
 							Diagnostics.LogWarning($"[Gedemon] Set Rebels to decline from {rebelFaction.MinorFactionStatus}, HomeStatus = {rebelFaction.MinorEmpireHomeStatus}, RemainingLife = {rebelFaction.RemainingLifeTime}, SpawnPointIndex = {rebelFaction.SpawnPointIndex}, , TimeBeforeEvolveToCity = {spawnerDefinitionForMinorEmpire.TimeBeforeEvolveToCity}, ConstructionTurn = {rebelFaction.ConstructionTurn}, speed X = {defaultGameSpeedMultiplier}");
 							Sandbox.MinorFactionManager.PeacefulHumanSpawner.SetMinorEmpireHomeStatus(rebelFaction, MinorEmpireHomeStatuses.Camp);
 							rebelFaction.ConstructionTurn = 100; // test to prevent spawning a city (check is ConstructionTurn++ < TimeBeforeEvolveToCity)
 							rebelFaction.IsPeaceful = false;
 							rebelFaction.MinorFactionStatus = MinorFactionStatuses.InDecline;
 							Sandbox.SimulationEntityRepository.SetSynchronizationDirty(rebelFaction);
-							//rebelFaction.RemainingLifeTime = 10 * defaultGameSpeedMultiplier;
+							rebelFaction.RemainingLifeTime = 10 * defaultGameSpeedMultiplier;
 
 							int numSettlement = rebelFaction.Settlements.Count;
 							for (int s = 0; s < numSettlement; s++)
-                            {
+							{
 								Settlement settlement = rebelFaction.Settlements[s];
 								WorldPosition position = settlement.GetMainDistrict().WorldPosition;
 
 								Diagnostics.LogWarning($"[Gedemon] Try to spawn rebel army at ({position.Column}, {position.Row}) in {CultureUnlock.GetTerritoryName(settlement.GetMainDistrict().Territory.Entity.Index)}");
-								Sandbox.MinorFactionManager.ViolentHumanSpawner.SpawnArmy(rebelFaction, position, isDefender : false);
+								Sandbox.MinorFactionManager.ViolentHumanSpawner.SpawnArmy(rebelFaction, position, isDefender: false);
 							}
 						}
 					}
+
+					//for(StaticString factionName listEmpires)
+
+					foreach (KeyValuePair<StaticString, Empire> kvp in listEmpires)
+                    {
+
+						Diagnostics.Log($"[Gedemon] Check if {kvp.Key} is rebel ({kvp.Value == rebelFaction}) or is oldEmpire ({kvp.Value == oldEmpire}) ");
+						if (kvp.Value != rebelFaction && kvp.Value != oldEmpire)
+                        {
+							MinorEmpire newMinorFaction = kvp.Value as MinorEmpire;
+							if (newMinorFaction != null)
+							{
+								Diagnostics.LogWarning($"[Gedemon] Update {newMinorFaction.FactionDefinition.Name} RemainingLifeTime =  {newMinorFaction.RemainingLifeTime}");
+								//rebelFaction.MinorFactionStatus = MinorFactionStatuses.InDecline;
+								newMinorFaction.RemainingLifeTime = 25 * defaultGameSpeedMultiplier;
+								Diagnostics.Log($"[Gedemon] - changed to RemainingLifeTime =  {newMinorFaction.RemainingLifeTime}");
+							}
+                        }
+                    }
+					#endregion
 				}
 			}
 		}
