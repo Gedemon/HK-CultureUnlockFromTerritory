@@ -145,6 +145,8 @@ namespace Gedemon.TrueCultureLocation
 						Diagnostics.LogWarning($"[Gedemon] Major Faction for Old Empire created = {canUseMajorEmpire}");
 						if(canUseMajorEmpire)
 						{
+
+							Diagnostics.LogWarning($"[Gedemon] - Old Empire ID#{oldEmpire.Index}, add in listEmpire in case we can't create a minor Rebel..."); 
 							listEmpires.Add(territoryChange.OldFactionName, oldEmpire);
 						}
 					}
@@ -157,37 +159,55 @@ namespace Gedemon.TrueCultureLocation
 					{
 						rebelFaction = CultureChange.GetMinorFactionFor(majorEmpire.FactionDefinition);
 						Diagnostics.LogWarning($"[Gedemon] RebelFaction created = {rebelFaction != null}");
-						if (oldEmpire == null && rebelFaction != null)
-                        {
-							listEmpires.Add(territoryChange.OldFactionName, rebelFaction);
+
+						if (rebelFaction != null)
+						{
+							Diagnostics.LogWarning($"[Gedemon] - Rebel Faction ID#{rebelFaction.Index}");
+							if (oldEmpire == null)
+							{
+								Diagnostics.LogWarning($"[Gedemon] - Rebels used as Major replacement for the Old Empire");
+								listEmpires.Add(territoryChange.OldFactionName, rebelFaction);
+							}
+							else
+							{
+								Diagnostics.LogWarning($"[Gedemon] - Rebels used as minor faction for Old Empire replacement");
+								listEmpires[territoryChange.OldFactionName] = rebelFaction;
+							}
 						}
 					}
 
 					foreach (KeyValuePair<StaticString, List<Settlement>> kvp in territoryChange.newMinorsSettlements)
 					{
 						FactionDefinition factionDefinition = Utils.GameUtils.GetFactionDefinition(kvp.Key);
-						MinorEmpire minorFaction = CultureChange.GetMinorFactionFor(factionDefinition);
 
-						Diagnostics.LogWarning($"[Gedemon] new Minor Faction created = {minorFaction != null} for {kvp.Key}");
-
-						if (minorFaction == null)
-						{
-							Diagnostics.LogWarning($"[Gedemon] - No minor faction available, try to use rebel faction instead");
-							minorFaction = rebelFaction; // no need to try to create a new rebel faction if it's null, as the result of CultureChange.GetMinorFactionFor would be also null at this point
-						}
-						if (minorFaction != null)
-						{
-							listEmpires.Add(kvp.Key, minorFaction);
-						}
-						else if(canUseMajorEmpire)
-						{
-							Diagnostics.LogWarning($"[Gedemon] - No minor available, use Old Empire instead");
-							listEmpires.Add(kvp.Key, oldEmpire);
-						}
-						else
+						if(!listEmpires.ContainsKey(kvp.Key))
                         {
-							Diagnostics.LogError($"[Gedemon] - FAILED to assign a required new faction");
+
+							MinorEmpire minorFaction = CultureChange.GetMinorFactionFor(factionDefinition);
+
+							Diagnostics.LogWarning($"[Gedemon] new Minor Faction created = {minorFaction != null} for {kvp.Key}");
+
+							if (minorFaction == null)
+							{
+								Diagnostics.LogWarning($"[Gedemon] - No minor faction available, try to use rebel faction instead");
+								minorFaction = rebelFaction; // no need to try to create a new rebel faction if it's null, as the result of CultureChange.GetMinorFactionFor would be also null at this point
+							}
+							if (minorFaction != null)
+							{
+								Diagnostics.Log($"[Gedemon] - new Faction ID#{minorFaction.Index}");
+								listEmpires.Add(kvp.Key, minorFaction);
+							}
+							else if (canUseMajorEmpire)
+							{
+								Diagnostics.LogWarning($"[Gedemon] - No minor available, use Old Empire instead");
+								listEmpires.Add(kvp.Key, oldEmpire);
+							}
+							else
+							{
+								Diagnostics.LogError($"[Gedemon] - FAILED to assign a required new faction");
+							}
 						}
+
 					}
 
 					#endregion
@@ -197,10 +217,12 @@ namespace Gedemon.TrueCultureLocation
 					Diagnostics.Log($"[Gedemon] Trying to assign old Empire (Cities = {territoryChange.newMajorSettlements.Count})");
 
 					if (territoryChange.newMajorSettlements.Count > 0 || territoryChange.newMajorTerritories.Count > 0)
-                    {
-						if(listEmpires.ContainsKey(territoryChange.OldFactionName))
+					{
+						Empire newEmpire = oldEmpire != null ? oldEmpire : listEmpires.ContainsKey(territoryChange.OldFactionName) ? listEmpires[territoryChange.OldFactionName] : null; // as MajorEmpire;
+
+						if (newEmpire != null)
                         {
-							Empire newEmpire = listEmpires[territoryChange.OldFactionName]; // as MajorEmpire;
+							Diagnostics.LogWarning($"[Gedemon] - replacing Empire ID#{newEmpire.Index}");
 							foreach (Settlement settlement in territoryChange.newMajorSettlements)
                             {
 								Diagnostics.LogWarning($"[Gedemon] city ({settlement.EntityName}) for Old Empire (isMajor={canUseMajorEmpire}) => #{settlement.Region.Entity.Territories[0].Index} ({CultureUnlock.GetTerritoryName(settlement.Region.Entity.Territories[0].Index)}), ProductionNet = {settlement.ProductionNet.Value}, MoneyNet = {settlement.MoneyNet.Value}, ScienceNet = {settlement.ScienceNet.Value}.");
@@ -244,7 +266,7 @@ namespace Gedemon.TrueCultureLocation
 											FixedPoint cost = new FixedPoint();
 											FailureFlags flag = newEmpire.DepartmentOfTheInterior.CanTerritoryBeAttachedToCity(territorySettlement, city, ref cost);
 											Diagnostics.LogWarning($"[Gedemon] Try to re-attach {CultureUnlock.GetTerritoryName(territoryIndex)} to {city.EntityName} for new spawned Empire (flag = {flag})");
-											if (flag == FailureFlags.None || flag == FailureFlags.NotAMajorEmpire)
+											if (flag == FailureFlags.None || flag == FailureFlags.NotAMajorEmpire || flag == FailureFlags.NotEnoughInfluence)
                                             {
 												newEmpire.DepartmentOfTheInterior.MergeSettlementIntoCity(territorySettlement, city);
 											}
@@ -274,16 +296,25 @@ namespace Gedemon.TrueCultureLocation
 						List<Settlement> cityList = kvp.Value;
 						if (listEmpires.TryGetValue(cityFaction, out Empire newEmpire))
 						{
+							Diagnostics.LogWarning($"[Gedemon] Cities for replacing Faction ID#{newEmpire.Index} ({cityFaction})");
 							// Give Cities
 							foreach (Settlement settlement in cityList)
 							{
-								Diagnostics.LogWarning($"[Gedemon] City ( {settlement.EntityName}) for Minor {cityFaction} => #{settlement.Region.Entity.Territories[0].Index} ({CultureUnlock.GetTerritoryName(settlement.Region.Entity.Territories[0].Index)}), ProductionNet = {settlement.ProductionNet.Value}, MoneyNet = {settlement.MoneyNet.Value}, ScienceNet = {settlement.ScienceNet.Value}.");
+								Diagnostics.LogWarning($"[Gedemon]City ( {settlement.EntityName}) => #{settlement.Region.Entity.Territories[0].Index} ({CultureUnlock.GetTerritoryName(settlement.Region.Entity.Territories[0].Index)}), ProductionNet = {settlement.ProductionNet.Value}, MoneyNet = {settlement.MoneyNet.Value}, ScienceNet = {settlement.ScienceNet.Value}.");
 
 								refund.CompensateFor(settlement);
 								DepartmentOfDefense.GiveSettlementTo(settlement, newEmpire);
 
-								Diagnostics.LogWarning($"[Gedemon] Try to spawn defending army at ({settlement.WorldPosition.Column}, {settlement.WorldPosition.Row}) in {CultureUnlock.GetTerritoryName(settlement.GetMainDistrict().Territory.Entity.Index)}");
-								Sandbox.MinorFactionManager.PeacefulHumanSpawner.SpawnArmy(newEmpire as MinorEmpire, settlement.WorldPosition, isDefender: true);
+
+								if(newEmpire != oldEmpire)
+								{
+									Diagnostics.LogWarning($"[Gedemon] Try to spawn defending army at ({settlement.WorldPosition.Column}, {settlement.WorldPosition.Row}) in {CultureUnlock.GetTerritoryName(settlement.GetMainDistrict().Territory.Entity.Index)}");
+									Sandbox.MinorFactionManager.PeacefulHumanSpawner.SpawnArmy(newEmpire as MinorEmpire, settlement.WorldPosition, isDefender: true);
+								}
+                                else
+								{
+									Diagnostics.LogWarning($"[Gedemon] newMinorsSettlements contains an entry for Major OldEmpire Faction (ID#{newEmpire.Index})");
+								}
 
 							}
 
@@ -320,7 +351,7 @@ namespace Gedemon.TrueCultureLocation
 												FixedPoint cost = new FixedPoint();
 												FailureFlags flag = newEmpire.DepartmentOfTheInterior.CanTerritoryBeAttachedToCity(territorySettlement, city, ref cost);
 												Diagnostics.LogWarning($"[Gedemon] Try to re-attach {CultureUnlock.GetTerritoryName(territoryIndex)} to {city.EntityName} for minor faction (flag = {flag})");
-												if (flag == FailureFlags.None || flag == FailureFlags.NotAMajorEmpire)
+												if (flag == FailureFlags.None || flag == FailureFlags.NotAMajorEmpire || flag == FailureFlags.NotEnoughInfluence)
 												{
 													newEmpire.DepartmentOfTheInterior.MergeSettlementIntoCity(territorySettlement, city);
 												}
@@ -363,7 +394,8 @@ namespace Gedemon.TrueCultureLocation
 
 						if (nomadRebels != null)
 						{
-							foreach(int territoryIndex in territoryChange.newRebelsTerritories)
+							Diagnostics.LogWarning($"[Gedemon] - nomad rebels ID#{nomadRebels.Index} {nomadRebels.FactionDefinition.Name}");
+							foreach (int territoryIndex in territoryChange.newRebelsTerritories)
                             {
 								Territory territory = Sandbox.World.Territories[territoryIndex];
 								Settlement territorySettlement = territory.AdministrativeDistrict.Entity.Settlement;
@@ -430,7 +462,7 @@ namespace Gedemon.TrueCultureLocation
 
 							BaseHumanSpawnerDefinition spawnerDefinitionForMinorEmpire = rebelFaction.Spawner.GetSpawnerDefinitionForMinorEmpire(rebelFaction);
 
-							Diagnostics.LogWarning($"[Gedemon] Set Rebels to decline from {rebelFaction.MinorFactionStatus}, HomeStatus = {rebelFaction.MinorEmpireHomeStatus}, RemainingLife = {rebelFaction.RemainingLifeTime}, SpawnPointIndex = {rebelFaction.SpawnPointIndex}, , TimeBeforeEvolveToCity = {spawnerDefinitionForMinorEmpire.TimeBeforeEvolveToCity}, ConstructionTurn = {rebelFaction.ConstructionTurn}, speed X = {defaultGameSpeedMultiplier}");
+							Diagnostics.LogWarning($"[Gedemon] Set Rebels ID#{rebelFaction.Index} ({rebelFaction.FactionDefinition.Name}) to decline from {rebelFaction.MinorFactionStatus}, HomeStatus = {rebelFaction.MinorEmpireHomeStatus}, RemainingLife = {rebelFaction.RemainingLifeTime}, SpawnPointIndex = {rebelFaction.SpawnPointIndex}, , TimeBeforeEvolveToCity = {spawnerDefinitionForMinorEmpire.TimeBeforeEvolveToCity}, ConstructionTurn = {rebelFaction.ConstructionTurn}, speed X = {defaultGameSpeedMultiplier}");
 							Sandbox.MinorFactionManager.PeacefulHumanSpawner.SetMinorEmpireHomeStatus(rebelFaction, MinorEmpireHomeStatuses.Camp);
 							rebelFaction.ConstructionTurn = 100; // test to prevent spawning a city (check is ConstructionTurn++ < TimeBeforeEvolveToCity)
 							rebelFaction.IsPeaceful = false;
@@ -450,21 +482,26 @@ namespace Gedemon.TrueCultureLocation
 						}
 					}
 
-					//for(StaticString factionName listEmpires)
-
 					foreach (KeyValuePair<StaticString, Empire> kvp in listEmpires)
                     {
 
-						Diagnostics.Log($"[Gedemon] Check if {kvp.Key} is rebel ({kvp.Value == rebelFaction}) or is oldEmpire ({kvp.Value == oldEmpire}) ");
+						Diagnostics.Log($"[Gedemon] Check if {kvp.Key} ID#{kvp.Value.Index} ({kvp.Value.FactionDefinition.Name}) is rebel ({kvp.Value == rebelFaction}) or is oldEmpire ({kvp.Value == oldEmpire}) ");
 						if (kvp.Value != rebelFaction && kvp.Value != oldEmpire)
                         {
 							MinorEmpire newMinorFaction = kvp.Value as MinorEmpire;
 							if (newMinorFaction != null)
 							{
 								Diagnostics.LogWarning($"[Gedemon] Update {newMinorFaction.FactionDefinition.Name} RemainingLifeTime =  {newMinorFaction.RemainingLifeTime}");
-								//rebelFaction.MinorFactionStatus = MinorFactionStatuses.InDecline;
 								newMinorFaction.RemainingLifeTime = 25 * defaultGameSpeedMultiplier;
 								Diagnostics.Log($"[Gedemon] - changed to RemainingLifeTime =  {newMinorFaction.RemainingLifeTime}");
+
+								Diagnostics.Log($"[Gedemon] - Add patronnage stock...");
+								MinorToMajorRelation minorToMajorRelation = newMinorFaction.RelationsToMajor[majorEmpire.Index];
+								if (minorToMajorRelation.PatronageStock.Value < 25)
+								{
+									minorToMajorRelation.PatronageStock.Value = 25;
+									MinorFactionManager.RefreshPatronageState(minorToMajorRelation, newMinorFaction.PatronageDefinition);
+								}
 							}
                         }
                     }

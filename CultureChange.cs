@@ -211,6 +211,7 @@ namespace Gedemon.TrueCultureLocation
 					Sandbox.SimulationEntityRepository.SetSynchronizationDirty(potentialLiege);
 					Sandbox.SimulationEntityRepository.SetSynchronizationDirty(oldEmpire);
 				}
+				SetFactionSymbol(oldEmpire);
 			}
 			
 			return oldEmpire != null;
