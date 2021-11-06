@@ -482,7 +482,9 @@ namespace Gedemon.TrueCultureLocation
 				for (int i = 0; i < numberOfMinorEmpires; i++)
 				{
 					MinorEmpire minorEmpire = Amplitude.Mercury.Sandbox.Sandbox.MinorEmpires[i];
-					if (!minorEmpire.IsAlive)
+					int numCities = minorEmpire.Cities.Count;
+
+					if (!minorEmpire.IsAlive || numCities == 0)
 					{
 						continue;
 					}
@@ -493,7 +495,6 @@ namespace Gedemon.TrueCultureLocation
 					Diagnostics.LogWarning($"[Gedemon] Check Minor Faction {minorEmpire.FactionDefinition.name} ID#{minorEmpire.Index}, Era={minorEmpire.EraIndex}, Status={minorEmpire.MinorFactionStatus}, HomeStatus={minorEmpire.MinorEmpireHomeStatus}, RemainingLife={minorEmpire.RemainingLifeTime}, Spawn={minorEmpire.SpawnTurn}, Life={SandboxManager.Sandbox.Turn - minorEmpire.SpawnTurn}, halfLifePassed={halfLifePassed}, FirstPatron ID#{minorEmpire.RankedMajorEmpireIndexes[Amplitude.Mercury.Sandbox.Sandbox.NumberOfMajorEmpires - 1]}  ");
 
 					//CityFlags.Besieged
-					int numCities = minorEmpire.Cities.Count;
 					bool canEvolve = true;
 					for(int c = 0; c < numCities; c++)
                     {
