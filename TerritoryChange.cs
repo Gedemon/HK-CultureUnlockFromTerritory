@@ -312,7 +312,13 @@ namespace Gedemon.TrueCultureLocation
 							{
 								StaticString factionName = new StaticString(minorFactionName);
 								FactionDefinition factionDefinition = Utils.GameUtils.GetFactionDefinition(factionName);
-								if(factionDefinition.EraIndex >= MajorEmpire.DepartmentOfDevelopment.CurrentEraIndex && factionDefinition.EraIndex <= Sandbox.Timeline.GetGlobalEraIndex() && !newMinorsSettlements.ContainsKey(factionName))
+								int minEraIndex = MajorEmpire.DepartmentOfDevelopment.CurrentEraIndex;
+								int maxEraIndex = Sandbox.Timeline.GetGlobalEraIndex();
+								if (minEraIndex > maxEraIndex)
+                                {
+									minEraIndex = maxEraIndex;
+								}
+								if (factionDefinition.EraIndex >= minEraIndex && factionDefinition.EraIndex <= maxEraIndex && !newMinorsSettlements.ContainsKey(factionName))
 								{
 									Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} {CultureUnlock.GetTerritoryName(territoryIndex)}: Add to newMinorsSettlements for {factionName}");
 									newMinorsSettlements.Add(factionName, new List<Settlement>{ settlement });

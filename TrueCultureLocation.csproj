@@ -108,6 +108,7 @@
     <Compile Include="Amplitude.Mercury.Firstpass\DepartmentOfDefensePatch.cs" />
     <Compile Include="Assembly-CSharp\GamePatch.cs" />
     <Compile Include="Amplitude.Mercury.Firstpass\MajorEmpirePatch.cs" />
+    <Compile Include="Types.cs" />
     <Compile Include="TerritoryChange.cs" />
     <Compile Include="CultureChange.cs" />
     <Compile Include="CultureUnlock.cs" />

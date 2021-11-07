@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Amplitude;
 using Amplitude.Framework;
+using Amplitude.Framework.Simulation;
 using Amplitude.Mercury;
 using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Data.Simulation.Costs;
@@ -126,11 +127,6 @@ namespace Gedemon.TrueCultureLocation
 		{
 			Diagnostics.LogWarning($"[Gedemon] TryInitializeFreeMajorEmpireToReplace for {majorEmpire.FactionDefinition.Name}...");
 
-			MajorEmpire potentialLiege = majorEmpire.Liege.Entity != null ? majorEmpire.Liege.Entity : majorEmpire;
-
-			Diagnostics.LogWarning($"[Gedemon] potential Liege of the old Empire : {potentialLiege.FactionDefinition.Name}");
-
-			int numMajor = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires.Length;
 
 			oldEmpire = GetFreeMajorEmpire(true, (int)majorEmpire.FameScore.Value);
 
@@ -181,41 +177,53 @@ namespace Gedemon.TrueCultureLocation
 
 				Diagnostics.LogWarning($"[Gedemon] after changes, EraLevel: {oldEmpire.EraLevel.Value}");
 				oldEmpire.SetEmpireSymbol(majorEmpire.EmpireSymbolDefinition.Name);
-				// reset diplomatic relations
-				for (int otherIndex = 0; otherIndex < numMajor; otherIndex++)
-				{
-					{
-						DiplomaticRelation relationtoReset = Sandbox.DiplomaticAncillary.GetRelationFor(oldEmpire.Index, otherIndex);
-						ResetDiplomaticAmbassy(relationtoReset.LeftAmbassy);
-						ResetDiplomaticAmbassy(relationtoReset.RightAmbassy);
-						relationtoReset.ApplyState(DiplomaticStateType.Unknown, otherIndex);
-					}
-				}
-				// Set Vassal (to do : depending of stability)
-				{
-					DiplomaticRelation relationFor = Sandbox.DiplomaticAncillary.GetRelationFor(potentialLiege.Index, oldEmpire.Index);
-					DiplomaticStateType state = relationFor.DiplomaticState.State;
-					Diagnostics.LogWarning($"[Gedemon] Set Vassal from current DiplomaticState = {state}");
-					/*
-					if (state == DiplomaticStateType.VassalToLiege)
-					{
-						relationFor.ApplyState(DiplomaticStateType.War, majorEmpire.Index);
-						SimulationEvent_DiplomaticStateChanged.Raise(majorEmpire, majorEmpire.Index, relationFor.DiplomaticState.State, state, oldEmpire.Index, -1);
-						state = relationFor.DiplomaticState.State;
-					}
-					//*/
-					relationFor.ApplyState(DiplomaticStateType.VassalToLiege, potentialLiege.Index);
-					relationFor.UpdateAbilities(raiseSimulationEvents: true);
-					SimulationEvent_DiplomaticStateChanged.Raise(potentialLiege, potentialLiege.Index, relationFor.DiplomaticState.State, state, oldEmpire.Index, -1);
-					Diagnostics.LogWarning($"[Gedemon] New  DiplomaticState = {Sandbox.DiplomaticAncillary.GetRelationFor(potentialLiege.Index, oldEmpire.Index).DiplomaticState.State}");
-					Sandbox.SimulationEntityRepository.SetSynchronizationDirty(potentialLiege);
-					Sandbox.SimulationEntityRepository.SetSynchronizationDirty(oldEmpire);
-				}
 				SetFactionSymbol(oldEmpire);
 			}
 			
 			return oldEmpire != null;
 		}
+
+		public static void SetDiplomaticRelationFromEvolution(MajorEmpire majorEmpire, MajorEmpire oldEmpire)
+		{
+			MajorEmpire potentialLiege = majorEmpire.Liege.Entity ?? majorEmpire;
+
+			Diagnostics.LogWarning($"[Gedemon] Setting Diplomatic Relation From Evolution, potential Liege of the old Empire : ID#{potentialLiege.Index} {potentialLiege.FactionDefinition.Name}");
+
+			int numMajor = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires.Length;
+
+			// reset diplomatic relations
+			for (int otherIndex = 0; otherIndex < numMajor; otherIndex++)
+			{
+				{
+					DiplomaticRelation relationtoReset = Sandbox.DiplomaticAncillary.GetRelationFor(oldEmpire.Index, otherIndex);
+					ResetDiplomaticAmbassy(relationtoReset.LeftAmbassy);
+					ResetDiplomaticAmbassy(relationtoReset.RightAmbassy);
+					relationtoReset.ApplyState(DiplomaticStateType.Unknown, otherIndex);
+				}
+			}
+			// Set Vassal (to do : depending of stability)
+			{
+				DiplomaticRelation relationFor = Sandbox.DiplomaticAncillary.GetRelationFor(potentialLiege.Index, oldEmpire.Index);
+				DiplomaticStateType state = relationFor.DiplomaticState.State;
+				Diagnostics.LogWarning($"[Gedemon] Set Vassal from current DiplomaticState = {state}");
+				/*
+				if (state == DiplomaticStateType.VassalToLiege)
+				{
+					relationFor.ApplyState(DiplomaticStateType.War, majorEmpire.Index);
+					SimulationEvent_DiplomaticStateChanged.Raise(majorEmpire, majorEmpire.Index, relationFor.DiplomaticState.State, state, oldEmpire.Index, -1);
+					state = relationFor.DiplomaticState.State;
+				}
+				//*/
+				relationFor.ApplyState(DiplomaticStateType.VassalToLiege, potentialLiege.Index);
+				relationFor.UpdateAbilities(raiseSimulationEvents: true);
+				SimulationEvent_DiplomaticStateChanged.Raise(potentialLiege, potentialLiege.Index, relationFor.DiplomaticState.State, state, oldEmpire.Index, -1);
+				Diagnostics.LogWarning($"[Gedemon] New  DiplomaticState = {Sandbox.DiplomaticAncillary.GetRelationFor(potentialLiege.Index, oldEmpire.Index).DiplomaticState.State}");
+				Sandbox.SimulationEntityRepository.SetSynchronizationDirty(potentialLiege);
+				Sandbox.SimulationEntityRepository.SetSynchronizationDirty(oldEmpire);
+			}
+
+		}
+
 		private static void ResetDiplomaticAmbassy(DiplomaticAmbassy diplomaticAmbassy)
 		{
 			diplomaticAmbassy.OnGoingDemands.Clear();
@@ -252,6 +260,44 @@ namespace Gedemon.TrueCultureLocation
 			//*/
 
 		}
+
+		public static void UpdateDistrictVisuals(Empire empire)
+        {
+			int count = empire.Settlements.Count;
+			for (int m = 0; m < count; m++)
+			{
+				Settlement settlement = empire.Settlements[m];
+
+				// 
+				int count2 = settlement.Region.Entity.Territories.Count;
+				for (int k = 0; k < count2; k++)
+				{
+					Territory territory = settlement.Region.Entity.Territories[k];
+					District district = territory.AdministrativeDistrict;
+					if (CultureUnlock.HasTerritory(empire.FactionDefinition.Name.ToString(), territory.Index))
+					{
+						if (district != null)
+						{
+							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : update Administrative District visual in territory {district.Territory.Entity.Index}.");
+							district.InitialVisualAffinityName = DepartmentOfTheInterior.GetInitialVisualAffinityFor(empire, district.DistrictDefinition);
+						}
+						else
+						{
+							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : no Administrative District in territory {district.Territory.Entity.Index}.");
+						}
+					}
+					else
+					{
+						// add instability here ?
+						Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : PublicOrderCurrent = {settlement.PublicOrderCurrent.Value}, PublicOrderPositiveTrend = {settlement.PublicOrderPositiveTrend.Value}, PublicOrderNegativeTrend = {settlement.PublicOrderNegativeTrend.Value}, DistanceInTerritoryToCapital = {settlement.DistanceInTerritoryToCapital.Value}.");
+						if (district != null)
+							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {district.DistrictDefinition.Name} : PublicOrderProduced = {district.PublicOrderProduced.Value}.");
+
+					}
+				}
+			}
+		}
+
 		public static bool GetTerritoryChangesOnEvolve(DepartmentOfDevelopment instance, StaticString nextFactionName, out int numCitiesLost, out District potentialCapital, ref IDictionary<Settlement, List<int>> territoryToDetachAndCreate, ref IDictionary<Settlement, List<int>> territoryToDetachAndFree, ref List<Settlement> settlementToLiberate, ref List<Settlement> settlementToFree)
 		{
 
@@ -534,18 +580,107 @@ namespace Gedemon.TrueCultureLocation
 
 	class SettlementRefund
     {
-		int compensationFactor = TrueCultureLocation.GetCompensationFactor();
-		int baseInfluenceRefund;
-		public int influenceRefund;
+		FixedPoint defaultGameSpeedMultiplier = Sandbox.GameSpeedController.CurrentGameSpeedDefinition.DefaultGameSpeedMultiplier;
+
+		CompensationLevel compensationLevel = (CompensationLevel)TrueCultureLocation.GetCompensationLevel();
+		int compensationFactor;
+		FixedPoint baseInfluenceFactor;
+		FixedPoint baseProductionFactor;
+		FixedPoint baseMoneyFactor;
+		FixedPoint baseScienceFactor;
+		FixedPoint influenceRefundFactor;
+		FixedPoint productionRefundFactor;
+		FixedPoint moneyRefundFactor;
+		FixedPoint scienceRefundFactor;
+		public FixedPoint influenceRefund;
 		public FixedPoint productionRefund;
 		public FixedPoint moneyRefund;
 		public FixedPoint scienceRefund;
 
 		MajorEmpire majorEmpire;
-
+		// 5- 10 -20
 		public SettlementRefund(MajorEmpire empire)
         {
-			baseInfluenceRefund = compensationFactor * 10;
+			switch(compensationLevel)
+            {
+				case CompensationLevel.None:
+                {
+						compensationFactor = 0;
+						baseInfluenceFactor = FixedPoint.Zero;
+						baseProductionFactor = FixedPoint.Zero;
+						baseMoneyFactor = FixedPoint.Zero;
+						baseScienceFactor = FixedPoint.Zero;
+
+						influenceRefundFactor = FixedPoint.Zero;
+						productionRefundFactor = FixedPoint.Zero;
+						moneyRefundFactor = FixedPoint.Zero;
+						scienceRefundFactor = FixedPoint.Zero;
+
+						break;
+					}
+				case CompensationLevel.Low:
+					{
+						compensationFactor = 5;
+						baseInfluenceFactor = 1;
+						baseProductionFactor = (FixedPoint)0.15;
+						baseMoneyFactor = (FixedPoint)0.5;
+						baseScienceFactor = (FixedPoint)1.5;
+
+						influenceRefundFactor = baseInfluenceFactor;
+						productionRefundFactor = compensationFactor * baseProductionFactor;
+						moneyRefundFactor = compensationFactor * baseMoneyFactor * defaultGameSpeedMultiplier;
+						scienceRefundFactor = compensationFactor * baseScienceFactor * defaultGameSpeedMultiplier;
+
+						break;
+					}
+
+				case CompensationLevel.Average:
+					{
+						compensationFactor = 10;
+						baseInfluenceFactor = 2;
+						baseProductionFactor = (FixedPoint)0.25;
+						baseMoneyFactor = (FixedPoint)0.5;
+						baseScienceFactor = (FixedPoint)2;
+
+						break;
+					}
+				case CompensationLevel.High:
+					{
+						compensationFactor = 20;
+						baseInfluenceFactor = 5;
+						baseProductionFactor = (FixedPoint)0.5;
+						baseMoneyFactor = (FixedPoint)0.75;
+						baseScienceFactor = (FixedPoint)2.5;
+
+						influenceRefundFactor = baseInfluenceFactor;
+						productionRefundFactor = compensationFactor * baseProductionFactor;
+						moneyRefundFactor = compensationFactor * baseMoneyFactor * defaultGameSpeedMultiplier;
+						scienceRefundFactor = compensationFactor * baseScienceFactor * defaultGameSpeedMultiplier;
+
+						break;
+					}
+				default:
+					{
+						compensationFactor = 10;
+						baseInfluenceFactor = 2;
+						baseProductionFactor = (FixedPoint)0.25;
+						baseMoneyFactor = (FixedPoint)0.5;
+						baseScienceFactor = (FixedPoint)2;
+
+						influenceRefundFactor = baseInfluenceFactor;
+						productionRefundFactor = compensationFactor * baseProductionFactor;
+						moneyRefundFactor = compensationFactor * baseMoneyFactor * defaultGameSpeedMultiplier;
+						scienceRefundFactor = compensationFactor * baseScienceFactor * defaultGameSpeedMultiplier;
+
+						break;
+					}
+			}
+
+			influenceRefundFactor = baseInfluenceFactor;
+			productionRefundFactor = compensationFactor * (1 + baseProductionFactor);
+			moneyRefundFactor = compensationFactor * baseMoneyFactor * defaultGameSpeedMultiplier;
+			scienceRefundFactor = compensationFactor * baseScienceFactor * defaultGameSpeedMultiplier;
+
 			influenceRefund = 0;
 			productionRefund = 0;
 			moneyRefund = 0;
@@ -555,11 +690,18 @@ namespace Gedemon.TrueCultureLocation
 
 		public void CompensateFor(Settlement settlement)
         {
-			influenceRefund += 30 + (baseInfluenceRefund * majorEmpire.Settlements.Count);
-			productionRefund += settlement.ProductionNet.Value * compensationFactor;
-			moneyRefund += settlement.MoneyNet.Value * compensationFactor;
-			moneyRefund += CultureChange.GetResourcesCompensation(settlement, majorEmpire);
-			scienceRefund += settlement.ScienceNet.Value * compensationFactor;
+			FixedPoint settleCost = majorEmpire.DepartmentOfTheTreasury.GetSettleCost(settlement.GetMainDistrict().Territory.Entity.Index);
+
+			Diagnostics.LogWarning($"[Gedemon] Calculating refund for settlement (compensationLevel = {compensationLevel})=> settleCost = {settleCost}, ProductionNet = {settlement.ProductionNet.Value}, MoneyNet = {settlement.MoneyNet.Value}, ScienceNet = {settlement.ScienceNet.Value}.");
+			Diagnostics.LogWarning($"[Gedemon] - influenceFactor = {influenceRefundFactor}, productionFactor = {productionRefundFactor}, moneyFactor = {moneyRefundFactor}, scienceFactor = {scienceRefundFactor}.");
+
+
+			FixedPoint settlementInfluenceRefund = influenceRefundFactor * settleCost;
+			FixedPoint settlementProductionRefund = settlement.ProductionNet.Value * productionRefundFactor;
+			FixedPoint settlementMoneyRefund = settlement.MoneyNet.Value * moneyRefundFactor;
+			FixedPoint settlementscienceRefund = settlement.ScienceNet.Value * scienceRefundFactor;
+
+			settlementMoneyRefund += CultureChange.GetResourcesCompensation(settlement, majorEmpire) * baseMoneyFactor;
 
 			Diagnostics.LogWarning($"[Gedemon] iterating SettlementImprovements...");
 			foreach (SettlementImprovement improvement in settlement.SettlementImprovements.Data)
@@ -572,15 +714,21 @@ namespace Gedemon.TrueCultureLocation
 						Diagnostics.LogWarning($"[Gedemon] Improvement {definition.Name}");
 						FixedPoint cost = definition.ProductionCostDefinition.GetCost(majorEmpire);
 						Diagnostics.LogWarning($"[Gedemon] Cost = {cost}");
-						productionRefund += cost;
+						productionRefund += cost * baseProductionFactor;
 					}
-
 				}
 				else
 				{
 					Diagnostics.LogError($"[Gedemon] improvement.BuiltImprovements is NULL, ignoring");
 				}
 			}
+
+			Diagnostics.LogWarning($"[Gedemon] - influenceGain   = {settlementInfluenceRefund}, productionGain   = {settlementProductionRefund}, MoneyGain   = {settlementMoneyRefund}, scienceGain   = {settlementscienceRefund}.");
+
+			influenceRefund += FixedPoint.Round(settlementInfluenceRefund);
+			productionRefund += FixedPoint.Round(settlementProductionRefund);
+			moneyRefund += FixedPoint.Round(settlementMoneyRefund);
+			scienceRefund += FixedPoint.Round(settlementscienceRefund);
 
 		}
 		public void ApplyCompensation()

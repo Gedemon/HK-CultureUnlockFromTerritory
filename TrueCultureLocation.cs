@@ -445,7 +445,7 @@ namespace Gedemon.TrueCultureLocation
 			ControlType = UIControlType.DropList,
 			Key = "GameOption_TCL_CompensationLevel",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
-			DefaultValue = "10",
+			DefaultValue = "2",
 			Title = "[TCL] Level of Compensation",
 			Description = "Define the level of compensation an Empire will get per Settlement lost during an Evolution, based on total number of Settlements for Influence, and on yield per turn for Money, Science, Production",
 			States =
@@ -459,20 +459,20 @@ namespace Gedemon.TrueCultureLocation
 				new GameOptionStateInfo
 				{
 					Title = "Low",
-					Description = "x5",
-					Value = "5"
+					Description = "Low compensation (x5)",
+					Value = "1"
 				},
 				new GameOptionStateInfo
 				{
 					Title = "Average",
-					Description = "x10",
-					Value = "10"
+					Description = "Average compensation (x10)",
+					Value = "2"
 				},
 				new GameOptionStateInfo
 				{
 					Title = "High",
-					Description = "x20",
-					Value = "20"
+					Description = "High compensation (x20)",
+					Value = "3"
 				}
 			}
 		};
@@ -669,7 +669,7 @@ namespace Gedemon.TrueCultureLocation
 		public int EraIndexCityRequiredForUnlock => int.Parse(GameOptionHelper.GetGameOption(FirstEraRequiringCityToUnlock));
 		public int TotalEmpireSlots => int.Parse(GameOptionHelper.GetGameOption(ExtraEmpireSlots));
 		public int SettlingEmpireSlots => int.Parse(GameOptionHelper.GetGameOption(SettlingEmpireSlotsOption));
-		public int CompensationFactor => int.Parse(GameOptionHelper.GetGameOption(CompensationLevel));
+		public int CompensationLevelValue => int.Parse(GameOptionHelper.GetGameOption(CompensationLevel));
 		public int EmpireIconsNumColumn => int.Parse(GameOptionHelper.GetGameOption(EmpireIconsNumColumnOption));
 
 		// Awake is called once when both the game and the plug-in are loaded
@@ -733,9 +733,9 @@ namespace Gedemon.TrueCultureLocation
 			return Instance.SettlingEmpireSlots;
 		}
 
-		public static int GetCompensationFactor()
+		public static int GetCompensationLevel()
 		{
-			return Instance.CompensationFactor;
+			return Instance.CompensationLevelValue;
 		}
 
 		public static bool UseExtraEmpireSlots()
@@ -897,6 +897,28 @@ namespace Gedemon.TrueCultureLocation
 	}
 	//*/
 
+
+	//*
+	[HarmonyPatch(typeof(DepartmentOfScience))]
+	public class DepartmentOfScience_Patch
+	{
+		[HarmonyPatch("EndTurnPass_ClampResearchStock")]
+		[HarmonyPrefix]
+		public static bool EndTurnPass_ClampResearchStock(DepartmentOfScience __instance, SimulationPasses.PassContext context, string name)
+		{
+			if (__instance.majorEmpire.DepartmentOfDevelopment.CurrentEraIndex != 0)
+			{
+				FixedPoint value = __instance.majorEmpire.ResearchNet.Value;
+				if (!(value <= 0) && (__instance.TechnologyQueue.CurrentResourceStock < value))
+				{
+					__instance.TechnologyQueue.CurrentResourceStock = value;
+					Amplitude.Mercury.Sandbox.Sandbox.SimulationEntityRepository.SetSynchronizationDirty(__instance.TechnologyQueue);
+				}
+			}
+			return false;
+		}
+	}
+	//*/
 
 	//*
 	[HarmonyPatch(typeof(DepartmentOfIndustry))]

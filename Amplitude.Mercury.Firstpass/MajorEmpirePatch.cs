@@ -517,6 +517,10 @@ namespace Gedemon.TrueCultureLocation
 					for (int s = 0; s < numSettlment; s++)
 					{
 						Settlement settlement = minorEmpire.Settlements[s];
+                        if(settlement.SettlementStatus != SettlementStatuses.City)
+						{
+							continue;
+                        }
 						int count2 = settlement.Region.Entity.Territories.Count;
 						for (int k = 0; k < count2; k++)
 						{
@@ -536,7 +540,7 @@ namespace Gedemon.TrueCultureLocation
 										if (halfLifePassed && factionDefinition.EraIndex <= Sandbox.Timeline.GetGlobalEraIndex() - 1 && factionDefinition.EraIndex >= minorEmpire.EraIndex)
 										{
 											newfaction = factionDefinition;
-											break;
+											goto FoundNewFaction;
 										}
 									}
 									else
@@ -544,17 +548,10 @@ namespace Gedemon.TrueCultureLocation
 										Diagnostics.LogError($"[Gedemon] - Can't find FactionDefinition for {empireName}");
 									}
 								}
-								if (newfaction != null)
-								{
-									break;
-								}
 							}
 						}
-						if (newfaction != null)
-						{
-							break;
-						}
 					}
+				FoundNewFaction:;
 					if (newfaction != null)
 					{
 
@@ -618,6 +615,8 @@ namespace Gedemon.TrueCultureLocation
 							}
 
 							newEmpire.DepartmentOfForeignAffairs.AssimilateMinorEmpire(minorEmpire);
+
+							CultureChange.UpdateDistrictVisuals(newEmpire);
 							CultureChange.SetFactionSymbol(newEmpire);
 						}
 					}
