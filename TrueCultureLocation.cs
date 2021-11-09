@@ -183,7 +183,7 @@ namespace Gedemon.TrueCultureLocation
 				Description = "16 Empires",
 				Value = "16"
 			},
-			/*
+			//*
 			new GameOptionStateInfo
 			{
 				Title = "17",
