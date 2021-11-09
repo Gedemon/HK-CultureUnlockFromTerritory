@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Amplitude.Mercury.Simulation;
 using Amplitude;
 using HarmonyLib;
@@ -7,9 +6,7 @@ using Amplitude.Mercury.Interop;
 using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Sandbox;
 using FailureFlags = Amplitude.Mercury.Simulation.FailureFlags;
-using Amplitude.Framework;
 using HumankindModTool;
-using Amplitude.Mercury.Data.Simulation.Costs;
 using Amplitude.Mercury;
 using System.Linq;
 
@@ -73,7 +70,20 @@ namespace Gedemon.TrueCultureLocation
 					{
 						foreach (int territoryIndex in kvp.Value)
 						{
-							Diagnostics.LogWarning($"[Gedemon] territoryToDetachAndCreate => #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)}).");
+							Diagnostics.LogWarning($"[Gedemon] {kvp.Key.EntityName} : territoryToDetachAndCreate => #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)}).");
+
+							//debug
+							bool canDetach = true;
+                            {
+								Territory territory = Amplitude.Mercury.Sandbox.Sandbox.World.Territories[territoryIndex];
+								Region region = kvp.Key.Region.Entity;
+								if(!(region.TerritoryIndices.Contains(territoryIndex) && region.Territories.Contains(territory)))
+								{
+									Diagnostics.LogError($"[Gedemon] Failed Check for territory is in region = {region.TerritoryIndices.Contains(territoryIndex)}, territoryIndex in region indices = {region.Territories.Contains(territory)}.");
+									canDetach = false;
+								}
+							}
+							if(canDetach)
 							DepartmentOfTheInterior.DetachTerritoryFromCity(kvp.Key, territoryIndex, createNewSettlement: true);
 						}
 					}
@@ -99,11 +109,19 @@ namespace Gedemon.TrueCultureLocation
 									if (settlement.SettlementStatus != SettlementStatuses.City)
 									{
 										District potentialDistrict = settlement.GetMainDistrict();
-										if (territoryIndex == potentialDistrict.Territory.Entity.Index)
+
+										if (potentialDistrict != null)
 										{
-											Diagnostics.LogWarning($"[Gedemon] found new Capital District in {CultureUnlock.GetTerritoryName(territoryIndex)}");
-											territoryChange.PotentialCapital = potentialDistrict;
-											goto Found;
+											if (territoryIndex == potentialDistrict.Territory.Entity.Index)
+											{
+												Diagnostics.LogWarning($"[Gedemon] found new Capital District in {CultureUnlock.GetTerritoryName(territoryIndex)}");
+												territoryChange.PotentialCapital = potentialDistrict;
+												goto Found;
+											}
+										}
+										else
+										{
+											Diagnostics.LogError($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : GetMainDistrict returns null");
 										}
 									}
 								}
@@ -229,6 +247,7 @@ namespace Gedemon.TrueCultureLocation
 
 								refund.CompensateFor(settlement);
 								DepartmentOfDefense.GiveSettlementTo(settlement, newEmpire);
+								CultureChange.RemoveTradeRoutesEnding(settlement, majorEmpire);
 
 								if (canUseMajorEmpire)
 								{
@@ -310,9 +329,9 @@ namespace Gedemon.TrueCultureLocation
 
 								refund.CompensateFor(settlement);
 								DepartmentOfDefense.GiveSettlementTo(settlement, newEmpire);
+								CultureChange.RemoveTradeRoutesEnding(settlement, majorEmpire);
 
-
-								if(newEmpire != oldEmpire)
+								if (newEmpire != oldEmpire)
 								{
 									Diagnostics.LogWarning($"[Gedemon] Try to spawn defending army at ({settlement.WorldPosition.Column}, {settlement.WorldPosition.Row}) in {CultureUnlock.GetTerritoryName(settlement.GetMainDistrict().Territory.Entity.Index)}");
 									Sandbox.MinorFactionManager.PeacefulHumanSpawner.SpawnArmy(newEmpire as MinorEmpire, settlement.WorldPosition, isDefender: true);
@@ -423,6 +442,9 @@ namespace Gedemon.TrueCultureLocation
 
 					#region 8/ finalize evolving Empire
 
+					// Update for removed trade routes
+					Sandbox.TradeController.EndTurn_UpdateTradeRoad(SimulationPasses.PassContext.TurnEnd, "");
+
 					Diagnostics.Log($"[Gedemon] Check to re-attach territories to the Evolved Empire (Cities = {majorEmpire.Cities.Count})");
 					int numCities = majorEmpire.Cities.Count;
 					for(int c = 0; c < numCities; c++)
@@ -460,6 +482,7 @@ namespace Gedemon.TrueCultureLocation
 					#region 9/ finalize Minor Factions
 
 					FixedPoint defaultGameSpeedMultiplier = Sandbox.GameSpeedController.CurrentGameSpeedDefinition.DefaultGameSpeedMultiplier;
+					List<MinorEmpire> rebelList = new List<MinorEmpire>();
 
 					if (rebelFaction != null)
 					{
@@ -469,12 +492,13 @@ namespace Gedemon.TrueCultureLocation
 							BaseHumanSpawnerDefinition spawnerDefinitionForMinorEmpire = rebelFaction.Spawner.GetSpawnerDefinitionForMinorEmpire(rebelFaction);
 
 							Diagnostics.LogWarning($"[Gedemon] Set Rebels ID#{rebelFaction.Index} ({rebelFaction.FactionDefinition.Name}) to decline from {rebelFaction.MinorFactionStatus}, HomeStatus = {rebelFaction.MinorEmpireHomeStatus}, RemainingLife = {rebelFaction.RemainingLifeTime}, SpawnPointIndex = {rebelFaction.SpawnPointIndex}, , TimeBeforeEvolveToCity = {spawnerDefinitionForMinorEmpire.TimeBeforeEvolveToCity}, ConstructionTurn = {rebelFaction.ConstructionTurn}, speed X = {defaultGameSpeedMultiplier}");
-							Sandbox.MinorFactionManager.PeacefulHumanSpawner.SetMinorEmpireHomeStatus(rebelFaction, MinorEmpireHomeStatuses.Camp);
+							Sandbox.MinorFactionManager.ViolentHumanSpawner.SetMinorEmpireHomeStatus(rebelFaction, MinorEmpireHomeStatuses.Camp);
 							rebelFaction.ConstructionTurn = 100; // test to prevent spawning a city (check is ConstructionTurn++ < TimeBeforeEvolveToCity)
 							rebelFaction.IsPeaceful = false;
 							rebelFaction.MinorFactionStatus = MinorFactionStatuses.InDecline;
 							rebelFaction.RemainingLifeTime = 10 * defaultGameSpeedMultiplier;
 							Sandbox.SimulationEntityRepository.SetSynchronizationDirty(rebelFaction);
+							Diagnostics.LogWarning($"[Gedemon] Updated {rebelFaction.FactionDefinition.Name} ID#{rebelFaction.Index} RemainingLifeTime =  {rebelFaction.RemainingLifeTime}, {rebelFaction.MinorFactionStatus}, {rebelFaction.MinorEmpireHomeStatus}");
 
 							int numSettlement = rebelFaction.Settlements.Count;
 							for (int s = 0; s < numSettlement; s++)
@@ -494,52 +518,65 @@ namespace Gedemon.TrueCultureLocation
 							Diagnostics.Log($"[Gedemon] Check to split rebel faction (Cities = {numRebelsCities}, available minors = {availableRebelFactions} )");
 							if (availableRebelFactions > 0)
 							{
-								List<MinorEmpire> rebelList = new List<MinorEmpire>();
-								rebelList.Add(rebelFaction);
-								int numRebelFaction = System.Math.Min(availableRebelFactions, numRebelsCities);
-								int rebelListIndex = 0;
-
-								for(int i = 1; i <= numRebelFaction; i++)
-                                {
-									MinorEmpire newRebels = CultureChange.GetMinorFactionFor(majorEmpire.FactionDefinition);
-									Diagnostics.LogWarning($"[Gedemon] Additional Rebel Faction #{i} created = {newRebels != null}");
-									if (newRebels != null)
-                                    {
-										rebelList.Add(newRebels);
-									}
-									else
-                                    {
-										break;
-                                    }
-								}
-
-								for (int c = 0; c < numRebelsCities; c++)
+								if (rebelFaction.Cities.Count > 1)
 								{
-									MinorEmpire newRebels = rebelList[rebelListIndex]; // there is at least rebelFaction at [0]
-									rebelListIndex++;
-									if(rebelListIndex >= rebelList.Count)
-                                    {
-										rebelListIndex = 0;
+									rebelList.Add(rebelFaction);
+									int numRebelFaction = System.Math.Min(availableRebelFactions, numRebelsCities);
+									int rebelListIndex = 0;
+
+									for (int i = 1; i <= numRebelFaction; i++)
+									{
+										MinorEmpire newRebels = CultureChange.GetMinorFactionFor(majorEmpire.FactionDefinition);
+										Diagnostics.LogWarning($"[Gedemon] Additional Rebel Faction #{i} created = {newRebels != null}");
+										if (newRebels != null)
+										{
+											rebelList.Add(newRebels);
+										}
+										else
+										{
+											break;
+										}
 									}
-									Settlement city = rebelFaction.Cities[c];
 
-									Diagnostics.LogWarning($"[Gedemon] City for separated Rebels => #{city.GetMainDistrict().Territory.Entity.Index} ({CultureUnlock.GetTerritoryName(city.GetMainDistrict().Territory.Entity.Index)})  Rebels ID#{newRebels.Index} ({newRebels.FactionDefinition.Name})");
+									for (int c = 0; c < numRebelsCities; c++)
+									{
+										MinorEmpire newRebels = rebelList[rebelListIndex]; // there is at least rebelFaction at [0]
+										rebelListIndex++;
+										if (rebelListIndex >= rebelList.Count)
+										{
+											rebelListIndex = 0;
+										}
+										Settlement city = rebelFaction.Cities[c];
 
-									DepartmentOfDefense.GiveSettlementTo(city, newRebels);
+										Diagnostics.LogWarning($"[Gedemon] City for separated Rebels => #{city.GetMainDistrict().Territory.Entity.Index} ({CultureUnlock.GetTerritoryName(city.GetMainDistrict().Territory.Entity.Index)})  Rebels ID#{newRebels.Index} ({newRebels.FactionDefinition.Name})");
 
-									WorldPosition position = city.GetMainDistrict().WorldPosition;
+										DepartmentOfDefense.GiveSettlementTo(city, newRebels);
 
-									Diagnostics.LogWarning($"[Gedemon] Try to spawn new rebels army at ({position.Column}, {position.Row}) in {CultureUnlock.GetTerritoryName(city.GetMainDistrict().Territory.Entity.Index)}");
-									Sandbox.MinorFactionManager.ViolentHumanSpawner.SpawnArmy(newRebels, position, isDefender: true);
+										WorldPosition position = city.GetMainDistrict().WorldPosition;
 
-									Sandbox.MinorFactionManager.PeacefulHumanSpawner.SetMinorEmpireHomeStatus(newRebels, MinorEmpireHomeStatuses.City);
-									newRebels.RemainingLifeTime = 20 * defaultGameSpeedMultiplier;
-									newRebels.IsPeaceful = true;
-									newRebels.MinorFactionStatus = MinorFactionStatuses.InDecline;
-									Sandbox.SimulationEntityRepository.SetSynchronizationDirty(newRebels);
+										Diagnostics.LogWarning($"[Gedemon] Try to spawn new rebels army at ({position.Column}, {position.Row}) in {CultureUnlock.GetTerritoryName(city.GetMainDistrict().Territory.Entity.Index)}");
+										Sandbox.MinorFactionManager.PeacefulHumanSpawner.SpawnArmy(newRebels, position, isDefender: true);
+
+										Sandbox.MinorFactionManager.PeacefulHumanSpawner.SetMinorEmpireHomeStatus(newRebels, MinorEmpireHomeStatuses.City);
+										newRebels.MinorFactionStatus = MinorFactionStatuses.Zenith;
+										newRebels.RemainingLifeTime = 20 * defaultGameSpeedMultiplier;
+										newRebels.IsPeaceful = true;
+										Sandbox.SimulationEntityRepository.SetSynchronizationDirty(newRebels);
+										Diagnostics.LogWarning($"[Gedemon] Updated {newRebels.FactionDefinition.Name} ID#{newRebels.Index} RemainingLifeTime =  {newRebels.RemainingLifeTime} {rebelFaction.MinorFactionStatus} {rebelFaction.MinorEmpireHomeStatus}");
+									}
+
+								}
+                                else // initialize the rebel faction with one city
+                                {
+									Sandbox.MinorFactionManager.PeacefulHumanSpawner.SetMinorEmpireHomeStatus(rebelFaction, MinorEmpireHomeStatuses.City);
+									rebelFaction.MinorFactionStatus = MinorFactionStatuses.Zenith;
+									rebelFaction.RemainingLifeTime = 20 * defaultGameSpeedMultiplier;
+									rebelFaction.IsPeaceful = true;
+									Sandbox.SimulationEntityRepository.SetSynchronizationDirty(rebelFaction);
+									Diagnostics.LogWarning($"[Gedemon] Updated {rebelFaction.FactionDefinition.Name} ID#{rebelFaction.Index} for one city, RemainingLifeTime = {rebelFaction.RemainingLifeTime} {rebelFaction.MinorFactionStatus} {rebelFaction.MinorEmpireHomeStatus}");
 								}
 
-								// Try to give non-cities territories of the rebel faction to a new nomad faction
+								// Try to give non-cities territories of the rebel faction to a new nomad faction (check again if we still have enough faction in the pool)
 								if(Sandbox.MinorFactionManager.minorEmpirePool.Count > 0)
 								{
 									List<Settlement> finalOrphanTerritories = new List<Settlement>();
@@ -566,25 +603,31 @@ namespace Gedemon.TrueCultureLocation
 												Diagnostics.LogWarning($"[Gedemon] Try to spawn new rebels army at ({position.Column}, {position.Row}) in {CultureUnlock.GetTerritoryName(settlement.GetMainDistrict().Territory.Entity.Index)}");
 												Sandbox.MinorFactionManager.ViolentHumanSpawner.SpawnArmy(newRebels, position, isDefender: false);
 											}
-											Sandbox.MinorFactionManager.PeacefulHumanSpawner.SetMinorEmpireHomeStatus(rebelFaction, MinorEmpireHomeStatuses.Camp);
-											rebelFaction.ConstructionTurn = 100; // test to prevent spawning a city (check is ConstructionTurn++ < TimeBeforeEvolveToCity)
-											rebelFaction.IsPeaceful = false;
-											rebelFaction.MinorFactionStatus = MinorFactionStatuses.InDecline;
-											rebelFaction.RemainingLifeTime = 10 * defaultGameSpeedMultiplier;
-											Sandbox.SimulationEntityRepository.SetSynchronizationDirty(rebelFaction);
+											Sandbox.MinorFactionManager.ViolentHumanSpawner.SetMinorEmpireHomeStatus(newRebels, MinorEmpireHomeStatuses.Camp);
+											newRebels.ConstructionTurn = 100; // test to prevent spawning a city (check is ConstructionTurn++ < TimeBeforeEvolveToCity)
+											newRebels.IsPeaceful = false;
+											newRebels.MinorFactionStatus = MinorFactionStatuses.InDecline;
+											newRebels.RemainingLifeTime = 10 * defaultGameSpeedMultiplier;
+											Sandbox.SimulationEntityRepository.SetSynchronizationDirty(newRebels);
+											Diagnostics.LogWarning($"[Gedemon] Updated {newRebels.FactionDefinition.Name} ID#{newRebels.Index} RemainingLifeTime = {newRebels.RemainingLifeTime}, {newRebels.MinorFactionStatus}, {newRebels.MinorEmpireHomeStatus}");
+										}
+                                        else
+                                        {
+											Diagnostics.LogWarning($"[Gedemon] Failed to create minor faction for rebels orphan territories, the first rebel faction keep control of the rebel territories...");
 										}
 									}
 								}
-
 							}
                             else
-                            {
+							{
+								Diagnostics.LogWarning($"[Gedemon] No available minor faction to split the Rebels faction, use only one faction for cities and territories...");
 
-								Sandbox.MinorFactionManager.PeacefulHumanSpawner.SetMinorEmpireHomeStatus(rebelFaction, MinorEmpireHomeStatuses.City);
+								Sandbox.MinorFactionManager.ViolentHumanSpawner.SetMinorEmpireHomeStatus(rebelFaction, MinorEmpireHomeStatuses.City);
+								rebelFaction.MinorFactionStatus = MinorFactionStatuses.Zenith;
 								rebelFaction.RemainingLifeTime = 20 * defaultGameSpeedMultiplier;
 								rebelFaction.IsPeaceful = false;
-								rebelFaction.MinorFactionStatus = MinorFactionStatuses.InDecline;
 								Sandbox.SimulationEntityRepository.SetSynchronizationDirty(rebelFaction);
+								Diagnostics.LogWarning($"[Gedemon] Update {rebelFaction.FactionDefinition.Name} ID#{rebelFaction.Index} RemainingLifeTime = {rebelFaction.RemainingLifeTime}, {rebelFaction.MinorFactionStatus}, {rebelFaction.MinorEmpireHomeStatus}");
 							}
 						}
 
@@ -593,15 +636,14 @@ namespace Gedemon.TrueCultureLocation
 					foreach (KeyValuePair<StaticString, Empire> kvp in listEmpires)
                     {
 
-						Diagnostics.Log($"[Gedemon] Check if {kvp.Key} ID#{kvp.Value.Index} ({kvp.Value.FactionDefinition.Name}) is rebel ({kvp.Value == rebelFaction}) or is oldEmpire ({kvp.Value == oldEmpire}) ");
-						if (kvp.Value != rebelFaction && kvp.Value != oldEmpire)
+						Diagnostics.Log($"[Gedemon] Check if {kvp.Key} ID#{kvp.Value.Index} ({kvp.Value.FactionDefinition.Name}) is rebel ({kvp.Value == rebelFaction || rebelList.Contains(kvp.Value)}) or is oldEmpire ({kvp.Value == oldEmpire}) ");
+						if (kvp.Value != rebelFaction && kvp.Value != oldEmpire && !rebelList.Contains(kvp.Value))
                         {
 							MinorEmpire newMinorFaction = kvp.Value as MinorEmpire;
 							if (newMinorFaction != null)
 							{
-								Diagnostics.LogWarning($"[Gedemon] Update {newMinorFaction.FactionDefinition.Name} RemainingLifeTime =  {newMinorFaction.RemainingLifeTime}");
 								newMinorFaction.RemainingLifeTime = 25 * defaultGameSpeedMultiplier;
-								Diagnostics.Log($"[Gedemon] - changed to RemainingLifeTime =  {newMinorFaction.RemainingLifeTime}");
+								Diagnostics.LogWarning($"[Gedemon] Updated {newMinorFaction.FactionDefinition.Name} ID#{newMinorFaction.Index} RemainingLifeTime = {newMinorFaction.RemainingLifeTime}, {newMinorFaction.MinorFactionStatus}, {newMinorFaction.MinorEmpireHomeStatus}");
 
 								Diagnostics.Log($"[Gedemon] - Add patronnage stock...");
 								MinorToMajorRelation minorToMajorRelation = newMinorFaction.RelationsToMajor[majorEmpire.Index];
@@ -613,6 +655,17 @@ namespace Gedemon.TrueCultureLocation
 							}
                         }
                     }
+					if(rebelFaction != null)
+                    {
+						if(rebelFaction.Cities.Count > 0 && rebelFaction.RemainingLifeTime < 20 * defaultGameSpeedMultiplier)
+                        {
+							// could be here because giving territories lowered the status / remaining life span ?
+							// restore them
+							rebelFaction.MinorFactionStatus = MinorFactionStatuses.Zenith; //.InDecline; // could use in decline to prevent bribing
+							rebelFaction.RemainingLifeTime = 20 * defaultGameSpeedMultiplier;
+						}
+						Diagnostics.LogWarning($"[Gedemon] Final check {rebelFaction.FactionDefinition.Name} ID#{rebelFaction.Index}, RemainingLifeTime = {rebelFaction.RemainingLifeTime}, {rebelFaction.MinorFactionStatus}, {rebelFaction.MinorEmpireHomeStatus}");
+					}
 					#endregion
 				}
 			}
@@ -629,41 +682,6 @@ namespace Gedemon.TrueCultureLocation
 
 				Diagnostics.LogWarning($"[Gedemon] in ApplyFactionChangePost.");
 
-				/*
-				int count = majorEmpire.Settlements.Count;
-				for (int m = 0; m < count; m++)
-				{
-					Settlement settlement = majorEmpire.Settlements[m];
-
-					// 
-					int count2 = settlement.Region.Entity.Territories.Count;
-					for (int k = 0; k < count2; k++)
-					{
-						Territory territory = settlement.Region.Entity.Territories[k];
-						District district = territory.AdministrativeDistrict;
-						if (CultureUnlock.HasTerritory(majorEmpire.FactionDefinition.Name.ToString(), territory.Index))
-						{
-							if (district != null)
-							{
-								Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : update Administrative District visual in territory {district.Territory.Entity.Index}.");
-								district.InitialVisualAffinityName = DepartmentOfTheInterior.GetInitialVisualAffinityFor(majorEmpire, district.DistrictDefinition);
-							}
-							else
-							{
-								Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : no Administrative District in territory {district.Territory.Entity.Index}.");
-							}
-						}
-						else
-						{
-							// add instability here ?
-							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : PublicOrderCurrent = {settlement.PublicOrderCurrent.Value}, PublicOrderPositiveTrend = {settlement.PublicOrderPositiveTrend.Value}, PublicOrderNegativeTrend = {settlement.PublicOrderNegativeTrend.Value}, DistanceInTerritoryToCapital = {settlement.DistanceInTerritoryToCapital.Value}.");
-							if (district != null)
-								Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {district.DistrictDefinition.Name} : PublicOrderProduced = {district.PublicOrderProduced.Value}.");
-
-						}
-					}
-				}
-				//*/
 				CultureChange.UpdateDistrictVisuals(majorEmpire);
 				CultureChange.SetFactionSymbol(majorEmpire);
 			}
@@ -696,23 +714,26 @@ namespace Gedemon.TrueCultureLocation
 					{
 						Settlement settlement = majorEmpire.Settlements[i];
 
-						int count2 = settlement.Region.Entity.Territories.Count;
-						for (int k = 0; k < count2; k++)
+						if ((settlement.CityFlags & CityFlags.Captured) == 0)
 						{
-							Amplitude.Mercury.Simulation.Territory territory = settlement.Region.Entity.Territories[k];
-							bool anyTerritory = majorEmpire.DepartmentOfDevelopment.CurrentEraIndex == 0 || CultureUnlock.HasNoCapitalTerritory(factionName);
-							bool validSettlement = (TrueCultureLocation.GetEraIndexCityRequiredForUnlock() > majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1 || settlement.SettlementStatus == SettlementStatuses.City || CultureUnlock.IsNomadCulture(majorEmpire.FactionDefinition.name));
-							if (CultureUnlock.HasTerritory(factionName, territory.Index, anyTerritory))
+							int count2 = settlement.Region.Entity.Territories.Count;
+							for (int k = 0; k < count2; k++)
 							{
-								if (validSettlement)
+								Amplitude.Mercury.Simulation.Territory territory = settlement.Region.Entity.Territories[k];
+								bool anyTerritory = majorEmpire.DepartmentOfDevelopment.CurrentEraIndex == 0 || CultureUnlock.HasNoCapitalTerritory(factionName);
+								bool validSettlement = (TrueCultureLocation.GetEraIndexCityRequiredForUnlock() > majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1 || settlement.SettlementStatus == SettlementStatuses.City || CultureUnlock.IsNomadCulture(majorEmpire.FactionDefinition.name));
+								if (CultureUnlock.HasTerritory(factionName, territory.Index, anyTerritory))
 								{
-									//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Territory unlock for {factionDefinition.Name} from Territory ID = {territory.Index}");
-									lockedByTerritory = false;
-									break;
-								}
-								else
-								{
-									//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Territory for {factionDefinition.Name} from Territory ID = {territory.Index}, but is invalid ({settlement.SettlementStatus}, nextEraID = {majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1}, cityRequiredAtEraID = {TrueCultureLocation.GetEraIndexCityRequiredForUnlock()}) ");
+									if (validSettlement)
+									{
+										//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Territory unlock for {factionDefinition.Name} from Territory ID = {territory.Index}");
+										lockedByTerritory = false;
+										break;
+									}
+									else
+									{
+										//Diagnostics.Log($"[Gedemon] in ComputeFactionStatus, {majorEmpire.PersonaName} has Territory for {factionDefinition.Name} from Territory ID = {territory.Index}, but is invalid ({settlement.SettlementStatus}, nextEraID = {majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1}, cityRequiredAtEraID = {TrueCultureLocation.GetEraIndexCityRequiredForUnlock()}) ");
+									}
 								}
 							}
 						}
@@ -769,7 +790,9 @@ namespace Gedemon.TrueCultureLocation
 				{
 					// unlock "backup" Culture after some time
 					bool backupUnlocked = false;
-					if (majorEmpire.KnowledgeStock.Value >= CultureUnlock.knowledgeForBackupCiv && CultureUnlock.IsFirstEraBackupCivilization(factionName))
+					FixedPoint defaultGameSpeedMultiplier = Sandbox.GameSpeedController.CurrentGameSpeedDefinition.DefaultGameSpeedMultiplier;
+					FixedPoint knowledgeUnlock = CultureUnlock.knowledgeForBackupCiv * defaultGameSpeedMultiplier;
+					if (majorEmpire.KnowledgeStock.Value >= knowledgeUnlock && CultureUnlock.IsFirstEraBackupCivilization(factionName))
 					{
 						backupUnlocked = true;
 					}

@@ -1,18 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using Amplitude;
 using Amplitude.Framework;
-using Amplitude.Framework.Simulation;
-using Amplitude.Mercury;
 using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Data.Simulation.Costs;
 using Amplitude.Mercury.Interop;
 using Amplitude.Mercury.Sandbox;
 using Amplitude.Mercury.Simulation;
-using Amplitude.Mercury.WorldGenerator;
-using Amplitude.Serialization;
-using BepInEx.Configuration;
 using FailureFlags = Amplitude.Mercury.Simulation.FailureFlags;
 
 namespace Gedemon.TrueCultureLocation
@@ -576,6 +570,25 @@ namespace Gedemon.TrueCultureLocation
 			}
 			return compensation;
 		}
+
+		public static void RemoveTradeRoutesEnding(Settlement settlement, Empire empire)
+		{
+			Sandbox.TradeController.SetAvailableTradeRoadDirty();
+			int capacity = Sandbox.TradeController.TradeRoadAllocator.Capacity;
+			for (int tradeRoadIndex = 0; tradeRoadIndex < capacity; tradeRoadIndex++)
+			{
+				ref TradeRoadInfo tradeRoadInfo = ref Sandbox.TradeController.TradeRoadAllocator.GetReferenceAt(tradeRoadIndex);
+				if (tradeRoadInfo.PoolAllocationIndex < 0 || tradeRoadInfo.TradeRoadStatus == TradeRoadStatus.Destroyed || tradeRoadInfo.DestinationEmpireIndex != empire.Index)
+				{
+					continue;
+				}
+				if (tradeRoadInfo.DestinationCity == settlement.GUID)
+				{
+					Diagnostics.LogWarning($"[Gedemon] Destroying route ending in settlmeent to prevent suspension (ID#{tradeRoadIndex}), originEmpire = {tradeRoadInfo.OriginEmpireIndex}, destinationEmpire = {tradeRoadInfo.DestinationEmpireIndex}");
+					Sandbox.TradeController.DestroyTradeRoad(tradeRoadIndex, TradeRoadChangeAction.TimedOut);
+				}
+			}
+		}
 	}
 
 	class SettlementRefund
@@ -706,9 +719,9 @@ namespace Gedemon.TrueCultureLocation
 			Diagnostics.LogWarning($"[Gedemon] iterating SettlementImprovements...");
 			foreach (SettlementImprovement improvement in settlement.SettlementImprovements.Data)
 			{
-				Diagnostics.LogWarning($"[Gedemon] Family = {improvement.Family}");
 				if (improvement.BuiltImprovements != null)
 				{
+					Diagnostics.LogWarning($"[Gedemon] Family = {improvement.Family}");
 					foreach (SettlementImprovementDefinition definition in improvement.BuiltImprovements)
 					{
 						Diagnostics.LogWarning($"[Gedemon] Improvement {definition.Name}");
@@ -716,10 +729,6 @@ namespace Gedemon.TrueCultureLocation
 						Diagnostics.LogWarning($"[Gedemon] Cost = {cost}");
 						productionRefund += cost * baseProductionFactor;
 					}
-				}
-				else
-				{
-					Diagnostics.LogError($"[Gedemon] improvement.BuiltImprovements is NULL, ignoring");
 				}
 			}
 

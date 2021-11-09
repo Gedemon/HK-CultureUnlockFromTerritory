@@ -1,10 +1,5 @@
 ﻿using BepInEx;
-using BepInEx.Configuration;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Amplitude.Mercury.Simulation;
 using HarmonyLib;
 using Amplitude.Mercury.Sandbox;
@@ -12,18 +7,11 @@ using Amplitude.Framework;
 using Amplitude.Mercury.UI;
 using UnityEngine;
 using HumankindModTool;
-using Amplitude.Mercury.Presentation;
 using Amplitude;
-using Amplitude.Mercury.Data;
-using Amplitude.Mercury.Terrain;
-using Amplitude.Mercury.Game;
 using Amplitude.Framework.Session;
 using Amplitude.Mercury.Session;
-using Amplitude.Mercury;
-using System.Reflection;
 using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Interop;
-using Amplitude.Framework.Networking;
 using Amplitude.Mercury.Data.Simulation.Costs;
 
 namespace Gedemon.TrueCultureLocation
@@ -195,7 +183,7 @@ namespace Gedemon.TrueCultureLocation
 				Description = "16 Empires",
 				Value = "16"
 			},
-			//*
+			/*
 			new GameOptionStateInfo
 			{
 				Title = "17",
@@ -1108,7 +1096,6 @@ namespace Gedemon.TrueCultureLocation
 		}
 	}
 	//*/
-
 
 	/*
 	[HarmonyPatch(typeof(EliminationController))]

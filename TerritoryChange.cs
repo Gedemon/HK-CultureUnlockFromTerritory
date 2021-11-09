@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Amplitude;
-using Amplitude.Framework;
 using Amplitude.Mercury;
 using Amplitude.Mercury.Data.Simulation;
-using Amplitude.Mercury.Interop;
 using Amplitude.Mercury.Sandbox;
 using Amplitude.Mercury.Simulation;
-using Amplitude.Mercury.WorldGenerator;
-using Amplitude.Serialization;
-using BepInEx.Configuration;
 using FailureFlags = Amplitude.Mercury.Simulation.FailureFlags;
 
 namespace Gedemon.TrueCultureLocation
@@ -113,7 +106,7 @@ namespace Gedemon.TrueCultureLocation
 							for (int m = 0; m < numSettlement; m++)
 							{
 								Settlement settlement = MajorEmpire.Settlements[m];
-								if (settlement.SettlementStatus == SettlementStatuses.City)
+								if (settlement.SettlementStatus == SettlementStatuses.City && (settlement.CityFlags & CityFlags.Captured) == 0)
 								{
 									District potentialDistrict = settlement.GetMainDistrict();
 									if (territoryIndex == potentialDistrict.Territory.Entity.Index)
@@ -131,19 +124,29 @@ namespace Gedemon.TrueCultureLocation
 						Diagnostics.LogWarning($"[Gedemon] New Capital not found, now searching in Settlement without cities for a potential Capital position.");
 						foreach (int territoryIndex in CultureUnlock.GetListTerritories(nextFactionName.ToString()))
 						{
+							//Diagnostics.LogWarning($"[Gedemon] - check territory #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)})");
 							for (int n = 0; n < numSettlement; n++)
 							{
 								Settlement settlement = MajorEmpire.Settlements[n];
+								//Diagnostics.LogWarning($"[Gedemon] - check settlement #{n} (exist = {settlement != null})");
 								if (settlement.SettlementStatus != SettlementStatuses.City)
 								{
 									District potentialDistrict = settlement.GetMainDistrict();
-									if (territoryIndex == potentialDistrict.Territory.Entity.Index)
+									//Diagnostics.LogWarning($"[Gedemon] - check main District (exist = {potentialDistrict != null})");
+									if(potentialDistrict != null)
 									{
-										Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : register Settlement to Create new Capital in territory {potentialDistrict.Territory.Entity.Index}.");
-										needNewCapital = false;
-										capitalChanged = true;
-										PotentialCapital = potentialDistrict;
-										goto FoundCapital;
+										if (territoryIndex == potentialDistrict.Territory.Entity.Index)
+										{
+											Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : register Settlement to Create new Capital in territory {potentialDistrict.Territory.Entity.Index}.");
+											needNewCapital = false;
+											capitalChanged = true;
+											PotentialCapital = potentialDistrict;
+											goto FoundCapital;
+										}
+									}
+									else
+                                    {
+										Diagnostics.LogError($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : GetMainDistrict returns null");
 									}
 								}
 							}
@@ -173,7 +176,7 @@ namespace Gedemon.TrueCultureLocation
 
 						//settlement.PublicOrderCurrent.Value
 
-						bool keepSettlement = hasTerritoryFromNewCulture && keepTerritoryAttached;
+						bool keepSettlement = (hasTerritoryFromNewCulture && keepTerritoryAttached) || ((settlement.CityFlags & CityFlags.Captured) != 0) ;
 
 						if (!keepSettlement)
 						{

@@ -2,15 +2,8 @@
 using Amplitude;
 using HarmonyLib;
 using Amplitude.Framework;
-using Amplitude.Framework.Input;
-using Amplitude.Mercury.Data.Simulation;
-using Amplitude.Mercury.Data.World;
-using System.Linq;
-using System.Collections.Generic;
 using Amplitude.Mercury.Options;
 using Amplitude.Mercury.Data.GameOptions;
-using HumankindModTool;
-using Amplitude.Mercury.Sandbox;
 
 namespace Gedemon.TrueCultureLocation
 {

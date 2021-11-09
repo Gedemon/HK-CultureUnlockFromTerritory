@@ -1,5 +1,4 @@
-﻿
-using Amplitude.Mercury.Simulation;
+﻿using Amplitude.Mercury.Simulation;
 using Amplitude;
 using HarmonyLib;
 

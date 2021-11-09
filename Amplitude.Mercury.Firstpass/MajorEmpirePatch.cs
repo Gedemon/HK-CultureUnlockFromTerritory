@@ -4,9 +4,6 @@ using Amplitude.Mercury.Sandbox;
 using Amplitude;
 using Amplitude.Mercury;
 using Amplitude.Mercury.Data.Simulation;
-using Amplitude.Framework.Session;
-using Amplitude.Framework;
-using Amplitude.Mercury.Session;
 using System;
 using Amplitude.Mercury.Interop;
 using System.Collections.Generic;
@@ -490,9 +487,10 @@ namespace Gedemon.TrueCultureLocation
 					}
 					//*
 					int count = minorEmpire.RelationsToMajor.Count;
-					bool halfLifePassed = (SandboxManager.Sandbox.Turn - minorEmpire.SpawnTurn) > minorEmpire.RemainingLifeTime;
+					FixedPoint lifeRatio = (FixedPoint)0.5;
+					bool hasEnoughLifeTime = (SandboxManager.Sandbox.Turn - minorEmpire.SpawnTurn) > minorEmpire.RemainingLifeTime * lifeRatio;
 					PatronageDefinition patronageDefinition = minorEmpire.PatronageDefinition;
-					Diagnostics.LogWarning($"[Gedemon] Check Minor Faction {minorEmpire.FactionDefinition.name} ID#{minorEmpire.Index}, Era={minorEmpire.EraIndex}, Status={minorEmpire.MinorFactionStatus}, HomeStatus={minorEmpire.MinorEmpireHomeStatus}, RemainingLife={minorEmpire.RemainingLifeTime}, Spawn={minorEmpire.SpawnTurn}, Life={SandboxManager.Sandbox.Turn - minorEmpire.SpawnTurn}, halfLifePassed={halfLifePassed}, FirstPatron ID#{minorEmpire.RankedMajorEmpireIndexes[Amplitude.Mercury.Sandbox.Sandbox.NumberOfMajorEmpires - 1]}  ");
+					Diagnostics.LogWarning($"[Gedemon] Check Minor Faction {minorEmpire.FactionDefinition.name} ID#{minorEmpire.Index}, Era={minorEmpire.EraIndex}, Status={minorEmpire.MinorFactionStatus}, HomeStatus={minorEmpire.MinorEmpireHomeStatus}, RemainingLife={minorEmpire.RemainingLifeTime}, Spawn={minorEmpire.SpawnTurn}, Life={SandboxManager.Sandbox.Turn - minorEmpire.SpawnTurn}, hasEnoughLifeTime={hasEnoughLifeTime}, lifeRatio = {lifeRatio}, FirstPatron ID#{minorEmpire.RankedMajorEmpireIndexes[Amplitude.Mercury.Sandbox.Sandbox.NumberOfMajorEmpires - 1]}  ");
 
 					//CityFlags.Besieged
 					bool canEvolve = true;
@@ -537,7 +535,7 @@ namespace Gedemon.TrueCultureLocation
 									if (factionDefinition != null)
 									{
 										Diagnostics.LogWarning($"[Gedemon] - {empireName}, Era Index = {factionDefinition.EraIndex}");
-										if (halfLifePassed && factionDefinition.EraIndex <= Sandbox.Timeline.GetGlobalEraIndex() - 1 && factionDefinition.EraIndex >= minorEmpire.EraIndex)
+										if (hasEnoughLifeTime && factionDefinition.EraIndex <= Sandbox.Timeline.GetGlobalEraIndex() - 1 && factionDefinition.EraIndex >= minorEmpire.EraIndex)
 										{
 											newfaction = factionDefinition;
 											goto FoundNewFaction;

@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Amplitude;
-using Amplitude.Mercury;
-using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Interop;
-using Amplitude.Mercury.Sandbox;
 using Amplitude.Mercury.Simulation;
-using Amplitude.Mercury.WorldGenerator;
-using Amplitude.Serialization;
-using BepInEx.Configuration;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -488,7 +480,7 @@ namespace Gedemon.TrueCultureLocation
 					//{ 255, ""}, // Last Index !
 				};
 
-		public static readonly int knowledgeForBackupCiv = 50;
+		public static readonly int knowledgeForBackupCiv = 25;
 		public static readonly int maxNumTerritories = 256;
 		public static readonly List<int> CompatibleMapHash = new List<int> { 33903987 /*1.1.0*/, -1220785390 /*1.1.1*/, };
 

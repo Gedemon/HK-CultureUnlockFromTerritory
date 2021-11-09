@@ -16,6 +16,7 @@ using Amplitude.Framework.Simulation;
 
 namespace Gedemon.TrueCultureLocation
 {
+
 	//*
 	[HarmonyPatch(typeof(Sandbox))]
 	public class Sandbox_Patch
