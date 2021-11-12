@@ -13,6 +13,11 @@ using Amplitude.Mercury.Session;
 using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Interop;
 using Amplitude.Mercury.Data.Simulation.Costs;
+using System.IO;
+using Amplitude.Framework.Runtime;
+using System;
+using Amplitude.Framework.Asset;
+using Newtonsoft.Json;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -49,8 +54,8 @@ namespace Gedemon.TrueCultureLocation
 		public static GameOptionStateInfo TerritoryLoss_Full = new GameOptionStateInfo
 		{
 			Value = "TerritoryLoss_Full",
-			Title = "Full",
-			Description = "Lose all territories that were not controlled by the new Culture"
+			Title = "Keep Only New Empire",
+			Description = "Lose all territories that were not controlled by the Empire of new Culture"
 		};
 
 		public static GameOptionStateInfo TerritoryLoss_None = new GameOptionStateInfo
@@ -64,15 +69,21 @@ namespace Gedemon.TrueCultureLocation
 		{
 			Value = "TerritoryLoss_KeepAttached",
 			Title = "Keep Attached",
-			Description = "Territories that are attached to a Settlement that has at least one territory belonging to the new Culture will not be detached and kept in the Empire, the other territories will be lost."
+			Description = "Territories that are attached to a Settlement that has at least one territory belonging to the new Culture's Empire will not be detached and kept in the Empire, only the other territories will be lost."
 		};
 
+		public static GameOptionStateInfo TerritoryLoss_Full_Core = new GameOptionStateInfo
+		{
+			Value = "TerritoryLoss_Full_Core",
+			Title = "Keep Only Core Empire",
+			Description = "Lose all territories that were not controlled by the core Empire of the new Culture"
+		};
 		/*
 		public static GameOptionStateInfo TerritoryLoss_ByStability = new GameOptionStateInfo
 		{
 			Value = "TerritoryLoss_ByStability",
 			Title = "By Stability",
-			Description = "territories that were not controlled by the new Culture are kept only if they have a high Stability"
+			Description = "Territories that were not controlled by the new Culture are kept only if they have a high Stability"
 		};
 		//*/
 
@@ -85,7 +96,7 @@ namespace Gedemon.TrueCultureLocation
 			Title = "[TCL] Territory Loss on Culture Change",
 			Description = "Determines which territories you may loss when changing Culture",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
-			States = { TerritoryLoss_Full, TerritoryLoss_None, TerritoryLoss_KeepAttached }//, TerritoryLoss_ByStability }
+			States = { TerritoryLoss_None, TerritoryLoss_KeepAttached, TerritoryLoss_Full, TerritoryLoss_Full_Core  }//, TerritoryLoss_ByStability }
 		};
 
 		private static readonly List<GameOptionStateInfo> ErasCityRequired = new List<GameOptionStateInfo>
@@ -404,25 +415,25 @@ namespace Gedemon.TrueCultureLocation
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			DefaultValue = "Default",
 			Title = "[GEM] Starting Position List",
-			Description = "When you use the Giant Earth Map, choose if you want the map's default Starting Positions or one of the alternate list (only active when that map is used)",
+			Description = "Choose if you want the map's default Starting Positions or one of the alternate list (only active when compatible maps are used)",
 			States =
 			{
 				new GameOptionStateInfo
 				{
 					Title = "Map Default",
-					Description = "Use the Map's default Starting Positions (this setting is overriden if the maximum number of competitor is raised above 10, the Alternate list is then used)",
+					Description = "Use the Map's default Starting Positions (this setting is overriden if the maximum number of competitor is raised above 10, the Alternate list is then used if available)",
 					Value = "Default"
 				},
 				new GameOptionStateInfo
 				{
 					Title = "Alternate",
-					Description = "Use only the Alternate Starting Positions, ignoring the map's default positions. Some starting positions will be adjacent from each other, even with a low number of players. This setting allows the 10 Ancient Cultures to spawn with the [TCL] option (Slots 1 to 9 + 13 to 16 = Old World, 10 to 12 = Americas)",
+					Description = "Use only the Alternate Starting Positions, ignoring the map's default positions aven with 10 players or less. Some starting positions may be adjacent from each other, even with a low number of players as the ist is made for 16 slots)",
 					Value = "ExtraStart"
 				},
 				new GameOptionStateInfo
 				{
 					Title = "Old World",
-					Description = "Use only the Alternate starting positions (16 slots max, Old World starts only), ignoring the map's default positions. Some starting positions will be adjacent from each other, even with a low number of players.",
+					Description = "Use only the Alternate starting positions (Old World starts only if the map allows it), ignoring the map's default positions.",
 					Value = "OldWorld"
 				}
 			}
@@ -643,6 +654,7 @@ namespace Gedemon.TrueCultureLocation
 		public bool OnlyCultureTerritory => !GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_None");
 		public bool RespawnDeadPlayer => GameOptionHelper.CheckGameOption(RespawnDeadPlayersOption, "True");
 		public bool KeepAttached => GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_KeepAttached");
+		public bool KeepOnlyCore => GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_Full_Core");
 		public bool NoLossForAI => GameOptionHelper.CheckGameOption(TerritoryLossIgnoreAI, "True");
 		public bool LimitDecisionForAI => GameOptionHelper.CheckGameOption(TerritoryLossLimitDecisionForAI, "True");
 		public bool OnlyOldWorldStart => GameOptionHelper.CheckGameOption(StartPositionList, "OldWorld");
@@ -697,6 +709,10 @@ namespace Gedemon.TrueCultureLocation
 		public static bool KeepOnlyCultureTerritory()
 		{
 			return Instance.OnlyCultureTerritory;
+		}
+		public static bool KeepOnlyCoreTerritories()
+		{
+			return Instance.KeepOnlyCore;
 		}
 		public static bool KeepTerritoryAttached()
 		{
@@ -1066,7 +1082,7 @@ namespace Gedemon.TrueCultureLocation
 					ref SettlementInfo reference2 = ref Snapshots.GameSnapshot.PresentationData.SettlementInfo.Data[reference.SettlementIndex];
 					if (reference2.TileIndex == reference.AdministrativeDistrictTileIndex)
 					{
-						string text = CultureUnlock.GetTerritoryName(territoryIndex);// reference2.EntityName.ToString();
+						string text = CultureUnlock.TerritoryHasName(territoryIndex) ? CultureUnlock.GetTerritoryName(territoryIndex, hasName : true) : reference2.EntityName.ToString();// reference2.EntityName.ToString();
 						if (flag)
 						{
 							//Color empireColor = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
@@ -1079,7 +1095,7 @@ namespace Gedemon.TrueCultureLocation
 					}
 				}
 
-				string text2 = CultureUnlock.GetTerritoryName(territoryIndex);// reference.LocalizedName ?? string.Empty;
+				string text2 = CultureUnlock.TerritoryHasName(territoryIndex) ? CultureUnlock.GetTerritoryName(territoryIndex, hasName : true) : reference.LocalizedName ?? string.Empty;// reference.LocalizedName ?? string.Empty;
 				if (flag && reference.Claimed)
 				{
 					//Color empireColor2 = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
@@ -1093,6 +1109,113 @@ namespace Gedemon.TrueCultureLocation
 			}
 			return true;
 
+		}
+	}
+	//*/
+
+	//*
+	[HarmonyPatch(typeof(Amplitude.Mercury.Runtime.RuntimeManager))]
+	public class TCL_RuntimeManager
+	{
+		[HarmonyPatch("EnumerateRuntimeModules")]
+		[HarmonyPatch(new Type[] { typeof(DirectoryInfo), typeof(bool), typeof(Action<RuntimeModuleInfo>)})]
+		[HarmonyPrefix]
+		public static bool EnumerateRuntimeModules(Amplitude.Mercury.Runtime.RuntimeManager __instance, DirectoryInfo directoryInfo, bool recursive, Action<RuntimeModuleInfo> action = null)
+		{
+
+            //Diagnostics.LogError($"[Gedemon] [RuntimeManager] [EnumerateRuntimeModules] (UseTrueCultureLocation: {CultureUnlock.UseTrueCultureLocation()}).");
+            //if (CultureUnlock.UseTrueCultureLocation())
+			// Gedemon <<<<<
+            {
+				DirectoryInfo[] directories = directoryInfo.GetDirectories("*", SearchOption.TopDirectoryOnly);
+				foreach (DirectoryInfo obj in directories)
+				{
+					Diagnostics.Log($"[Gedemon] [RuntimeManager] searching *TCL.json file in {obj.FullName}");
+					string searchPattern = "*TCL.json";
+					SearchOption searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+					FileInfo[] files = obj.GetFiles(searchPattern, searchOption);
+					foreach (FileInfo fileInfo in files)
+					{
+						Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] loading *TCL.json file : ({fileInfo.FullName})");
+						StreamReader stream = fileInfo.OpenText();
+						ModLoading.AddModdedTCL(stream.ReadToEnd(), fileInfo);
+					}
+				}
+			}
+			// Gedemon >>>>>
+			{
+				DirectoryInfo[] directories = directoryInfo.GetDirectories("*", SearchOption.TopDirectoryOnly);
+				foreach (DirectoryInfo obj in directories)
+				{
+					string searchPattern = "*.assetbundle";
+					SearchOption searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+					FileInfo[] files = obj.GetFiles(searchPattern, searchOption);
+					foreach (FileInfo fileInfo in files)
+					{
+						UnityEngine.AssetBundle assetBundle = null;
+						bool flag = false;
+						try
+						{
+							string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(fileInfo.Name);
+							flag = AssetDatabase.TryGetAssetBundleFromPath(fileInfo.FullName, out assetBundle);
+							if (!flag)
+							{
+								assetBundle = UnityEngine.AssetBundle.LoadFromFile(fileInfo.FullName);
+							}
+							if (assetBundle == null)
+							{
+								Diagnostics.LogError($"[Mercury] [RuntimeManager] Failed to load asset bundle from file (path: {fileInfo.FullName} loaded: {flag}).");
+								continue;
+							}
+
+							// Gedemon <<<<
+							Diagnostics.Log($"[Gedemon] [RuntimeManager] loading asset bundle from file (path: {fileInfo.FullName} loaded: {flag}).");
+							Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains TCL.json is {assetBundle.Contains("TCL.json")}");
+							Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains CityMap.json is {assetBundle.Contains("CityMap.json")}");
+							if (assetBundle.Contains("TCL.json"))
+                            {
+								TextAsset textAsset = assetBundle.LoadAsset<TextAsset>("TCL.json");
+								//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
+								ModLoading.AddModdedTCL(textAsset.text, fileInfo);
+							}
+							if (assetBundle.Contains("CityMap.json"))
+							{
+								TextAsset textAsset = assetBundle.LoadAsset<TextAsset>("CityMap.json");
+								//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] CityMap.json = {textAsset.text}");
+								//
+
+							}
+							// Gedemon >>>>>
+
+							RuntimeModule runtimeModule = assetBundle.LoadAsset<RuntimeModule>(fileNameWithoutExtension);
+							if (runtimeModule != null)
+							{
+								RuntimeModuleInfo runtimeModuleInfo = RuntimeModuleInfo.CreateInstance(runtimeModule);
+								runtimeModuleInfo.File = fileInfo;
+								if (__instance.TryAddRuntimeModuleInfo(runtimeModuleInfo))
+								{
+									//Diagnostics.LogError($"[Gedemon] [RuntimeManager] TryAddRuntimeModuleInfo passed,  (path: {assetBundle.LoadAsset<TextAsset>("Resources")}).");
+									action?.Invoke(runtimeModuleInfo);
+								}
+							}
+						}
+						catch (Exception exception)
+						{
+							Diagnostics.LogException(exception);
+						}
+						finally
+						{
+							if (assetBundle != null && !flag)
+							{
+								assetBundle.Unload(unloadAllLoadedObjects: false);
+								assetBundle = null;
+							}
+						}
+					}
+				}
+				return false;
+            }
+			return true;
 		}
 	}
 	//*/

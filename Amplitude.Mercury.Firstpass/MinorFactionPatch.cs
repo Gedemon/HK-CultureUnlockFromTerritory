@@ -5,6 +5,7 @@ using Amplitude;
 using Amplitude.Mercury;
 using Amplitude.Mercury.Data.Simulation;
 using System.Collections.Generic;
+using Amplitude.Mercury.Interop;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -111,6 +112,7 @@ namespace Gedemon.TrueCultureLocation
 			}
 			return true;
 		}
+
 	}
 	//*/
 
@@ -373,9 +375,9 @@ namespace Gedemon.TrueCultureLocation
 	}
 	//*/
 
-	//*
+	/*
 	[HarmonyPatch(typeof(BaseHumanMinorFactionSpawner<>))]
-	public class BaseHumanMinorFactionSpawner_Patch
+	public class TLC_BaseHumanMinorFactionSpawner
 	{
 		[HarmonyPatch("SetMinorFactionDead")]
 		[HarmonyPrefix]
@@ -415,6 +417,26 @@ namespace Gedemon.TrueCultureLocation
 				__instance.AlivedFactionCount--;
 				Amplitude.Mercury.Sandbox.Sandbox.MinorFactionManager.TotalAlivedFactionCount--;
 				__instance.OnMinorFactionDead(minorEmpire);
+				return false;
+            }
+			return true;
+		}
+	}
+	//*/
+
+	//*
+	[HarmonyPatch(typeof(DepartmentOfTheInterior))]
+	public class TLC_DepartmentOfTheInterior
+	{
+		[HarmonyPatch("DestroyAllDistrictsFromSettlement")]
+		[HarmonyPrefix]
+		public static bool DestroyAllDistrictsFromSettlement(DepartmentOfTheInterior __instance, Settlement settlement, DistrictDestructionSource damageSource)
+		{
+
+			Diagnostics.LogWarning($"[Gedemon] in DepartmentOfTheInterior, DestroyAllDistrictsFromSettlement for {settlement.EntityName}, empire index = {__instance.Empire.Index}");
+
+			if (CultureUnlock.UseTrueCultureLocation() && damageSource == DistrictDestructionSource.MinorDecay)
+			{
 				return false;
             }
 			return true;

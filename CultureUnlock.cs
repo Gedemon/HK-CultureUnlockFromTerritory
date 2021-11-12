@@ -7,7 +7,7 @@ namespace Gedemon.TrueCultureLocation
 {
 	public class CultureUnlock
 	{
-		static readonly IDictionary<int, Hexagon.OffsetCoords> ExtraPositions = new Dictionary<int, Hexagon.OffsetCoords> // EmpireIndex (player slots)
+		static readonly IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsGiantEarthMap = new Dictionary<int, Hexagon.OffsetCoords> // EmpireIndex (player slots)
 				{
 					{ 0, new Hexagon.OffsetCoords(32, 41)}, // Nubia 
 					{ 1, new Hexagon.OffsetCoords(40, 51)}, // Mesopotamia 
@@ -43,7 +43,7 @@ namespace Gedemon.TrueCultureLocation
 					{ 31, new Hexagon.OffsetCoords(78, 48)}, // 
 				};
 
-		static readonly IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsNewWorld = new Dictionary<int, Hexagon.OffsetCoords> // EmpireIndex (player slots)
+		static readonly IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsNewWorldGiantEarthMap = new Dictionary<int, Hexagon.OffsetCoords> // EmpireIndex (player slots)
 				{
 					{ 0, new Hexagon.OffsetCoords(32, 41)}, // Nubia 
 					{ 1, new Hexagon.OffsetCoords(40, 51)}, // Mesopotamia 
@@ -79,10 +79,7 @@ namespace Gedemon.TrueCultureLocation
 					{ 31, new Hexagon.OffsetCoords(78, 48)}, // 
 				};
 
-		static List<string>[] territoriesWithMinorFactions;
-		static List<string>[] territoriesWithMajorEmpires;
-
-		static readonly IDictionary<string, List<int>> listMinorFactionTerritories = new Dictionary<string, List<int>>  // CivName, list of territory indexes
+		static readonly IDictionary<string, List<int>> listMinorFactionTerritoriesGiantEarthMap = new Dictionary<string, List<int>>  // CivName, list of territory indexes
 				{
 					{ "IndependentPeople_Era1_Peaceful_Akkadians",      new List<int>() { 142, 123 } }, // Mesopotamia, Assyria
 					{ "IndependentPeople_Era1_Peaceful_Elamites",       new List<int>() { 243 } }, // Persia
@@ -136,7 +133,7 @@ namespace Gedemon.TrueCultureLocation
 					{ "IndependentPeople_Era4_Violent_Tlaxcaltecs",     new List<int>() { 41 } }, // Mexicum
 				};
 
-		static readonly IDictionary<string, List<int>> listMajorEmpireTerritories = new Dictionary<string, List<int>>  // CivName, list of territory indexes
+		static readonly IDictionary<string, List<int>> listMajorEmpireTerritoriesGiantEarthMap = new Dictionary<string, List<int>>  // CivName, list of territory indexes
 				{
 					{ "Civilization_Era1_Phoenicia",                new List<int>() { 188, 190, 106, 127, 95, 100, 99, 22 } }, // Morocco, Carthage, Liban, Lybia, South Spain
 					{ "Civilization_Era1_EgyptianKingdom",          new List<int>() { 128 } }, // Egypt
@@ -159,7 +156,7 @@ namespace Gedemon.TrueCultureLocation
 					{ "Civilization_Era2_AncientGreece",            new List<int>() { 101, 102, 238, 103, 118 } }, // Greece, Balkans, Bulgaria/Romania, Anatolia
 					{ "Civilization_Era2_AksumiteEmpire",           new List<int>() { 132, 209, 143, 233 } }, // Abyssinia, Ethiopia/Somalia, Sudan, Yemen
 					{ "Civilization_Era3_Vikings",                  new List<int>() { 107, 109, 111, 112, 191, 152, 17, 11 } }, // Norway, Sweden 
-					{ "Civilization_Era3_UmayyadCaliphate",         new List<int>() { 106, 123, 142, 143, 227, 144, 243, 146, 207, 128, 127, 190, 188, 95 } }, // Syria, Weast Anatolia, Iraq, Saudi Arabia, Iran, Afghanistan, Pakistan, Egypt, Libya, Carthage, Morroco, South Spain
+					{ "Civilization_Era3_UmayyadCaliphate",         new List<int>() { 106, 123, 142, 143, 227, 144, 243, 146, 207, 128, 127, 190, 188, 95 } }, // Syria, West Anatolia, Iraq, Saudi Arabia, Iran, Afghanistan, Pakistan, Egypt, Libya, Carthage, Morroco, South Spain
 					{ "Civilization_Era3_MongolEmpire",             new List<int>() { 225, 239, 240, 229, 161, 208, 187, 151, 206, 228, 230, 205, 149, 193 } }, // Mongolia
 					{ "Civilization_Era3_MedievalEngland",          new List<int>() { 21, 20 } }, // South England 
 					{ "Civilization_Era3_KhmerEmpire",              new List<int>() { 38, 167, 168 } }, // Cambodia, Vietnam, Siam 
@@ -200,18 +197,71 @@ namespace Gedemon.TrueCultureLocation
 					{ "Civilization_Era6_Australia",                new List<int>() { 35, 31, 32, 33, 34, 36, 37, 38, 39 } }  // Australia
 				};
 
-		static readonly IDictionary<string, List<int>> listSlots = new Dictionary<string, List<int>>  // civName, list of player slots (majorEmpire.Index) starting at 0
-		{
-			//{ "Civilization_Era1_Assyria", new List<int>() { 6, 7 } },
-		};
+		static readonly IDictionary<string, List<int>> listMajorEmpireCoreTerritoriesGiantEarthMap = new Dictionary<string, List<int>>  // CivName, list of territory indexes
+				{
+					{ "Civilization_Era1_Phoenicia",                new List<int>() { 188, 190, 106, 127, 95, 100, 99, 22 } }, // Morocco, Carthage, Liban, Lybia, South Spain
+					{ "Civilization_Era1_EgyptianKingdom",          new List<int>() { 128 } }, // Egypt
+					{ "Civilization_Era1_HittiteEmpire",            new List<int>() { 118 } }, // East/West Anatiolia
+					{ "Civilization_Era1_Babylon",                  new List<int>() { 142 } }, // Iraq
+					{ "Civilization_Era1_Assyria",                  new List<int>() { 123 } }, // Iraq + Steppe
+					{ "Civilization_Era1_HarappanCivilization",     new List<int>() { 207, 147, 145 } }, // Pakistan, North India
+					{ "Civilization_Era1_MycenaeanCivilization",    new List<int>() { 101, 102, 238 } }, // Greece, Balkans, Thrace
+					{ "Civilization_Era1_Nubia",                    new List<int>() { 233, 132, 209, 213 } }, // Sudan, Abyssinian, Ethiopia/Somalia, Central African Republic
+					{ "Civilization_Era1_ZhouChina",                new List<int>() { 162, 163, 164, 221 } }, // China
+					{ "Civilization_Era1_OlmecCivilization",        new List<int>() { 45, 41, 48, 219, 62, 58, 50, 47, 46 } }, // South Mexico/Central America
+					{ "Civilization_Era2_RomanEmpire",              new List<int>() { 100 } }, // South Italy
+					{ "Civilization_Era2_Persia",                   new List<int>() { 243 } }, // Persia
+					{ "Civilization_Era2_MayaCivilization",         new List<int>() { 219 } }, // Yucatan
+					{ "Civilization_Era2_MauryaEmpire",             new List<int>() { 147 } }, // North India
+					{ "Civilization_Era2_Huns",                     new List<int>() { 226, 124, 149, 205, 206, 245, 230 } }, // Voronegia, Ciscaucasia, 3, 4, Kazachia, 6, 7
+					{ "Civilization_Era2_Goths",                    new List<int>() { 117, 119, 103 } }, // Poland, Ukraine
+					{ "Civilization_Era2_CelticCivilization",       new List<int>() { 104, 22, 24, 23, 21, 19, 96, 105 } }, // Danubia, Occitania, Neustria, Batavia, Britannia, Hibernia, Castella, Germania
+					{ "Civilization_Era2_Carthage",                 new List<int>() { 190 } }, // Carthage
+					{ "Civilization_Era2_AncientGreece",            new List<int>() { 101 } }, // Greece
+					{ "Civilization_Era2_AksumiteEmpire",           new List<int>() { 132 } }, // Abyssinia
+					{ "Civilization_Era3_Vikings",                  new List<int>() { 107, 191, 109 } }, // Norway, Sweden
+					{ "Civilization_Era3_UmayyadCaliphate",         new List<int>() { 106 } }, // Syria
+					{ "Civilization_Era3_MongolEmpire",             new List<int>() { 225, 240, 208, 187, 206 } }, // Mongolia, Gobi, Altai, Tarim, Kazachia
+					{ "Civilization_Era3_MedievalEngland",          new List<int>() { 21 } }, // South England
+					{ "Civilization_Era3_KhmerEmpire",              new List<int>() { 38 } }, // Cambodia
+					{ "Civilization_Era3_HolyRomanEmpire",          new List<int>() { 105 } }, // Germany
+					{ "Civilization_Era3_GhanaEmpire",              new List<int>() { 125  } }, // Mauretania
+					{ "Civilization_Era3_FrankishKingdom",          new List<int>() { 24 } }, // North France
+					{ "Civilization_Era3_Byzantium",                new List<int>() { 238, 101, 250, 118, 106, 128, 127 } }, // Thracia, Greece, Lydia, Cappadocia, Syria, Egypt, Libya
+					{ "Civilization_Era3_AztecEmpire",              new List<int>() { 41 } }, // Mexica
+					{ "Civilization_Era4_VenetianRepublic",         new List<int>() { 99 } }, // North Italy
+					{ "Civilization_Era4_TokugawaShogunate",        new List<int>() { 29, 30, 165, 242 } }, // Japan
+					{ "Civilization_Era4_Spain",                    new List<int>() { 96 } }, // Castella
+					{ "Civilization_Era4_PolishKingdom",            new List<int>() { 117 } }, // Poland
+					{ "Civilization_Era4_OttomanEmpire",            new List<int>() { 250 } }, // Lydia
+					{ "Civilization_Era4_MughalEmpire",             new List<int>() { 147 } }, // North India
+					{ "Civilization_Era4_MingChina",                new List<int>() { 241 } }, // Kiangnanum
+					{ "Civilization_Era4_JoseonKorea",              new List<int>() { 159 } }, // Korea
+					{ "Civilization_Era4_IroquoisConfederacy",      new List<int>() { 63 } }, // Great Lakes
+					{ "Civilization_Era4_Holland",                  new List<int>() { 23 } }, // Holland
+					{ "Civilization_Era5_ZuluKingdom",              new List<int>() { 136 } }, // South Africa
+					{ "Civilization_Era5_Siam",                     new List<int>() { 168 } }, // Thailand
+					{ "Civilization_Era5_RussianEmpire",            new List<int>() { 122, 116, 114, 189, 148, 110, 112 } }, // Moscow, Novogardia, Biarma, Casanum, Nenetsia, Permia, Kola
+					{ "Civilization_Era5_Mexico",                   new List<int>() { 41 } }, // Mexica
+					{ "Civilization_Era5_Italy",                    new List<int>() { 100, 99, 98 } }, // Italy, Sardinia
+					{ "Civilization_Era5_Germany",                  new List<int>() { 105, 117 } }, // Germany, Poland
+					{ "Civilization_Era5_FrenchRepublic",           new List<int>() { 24, 22 } }, // France
+					{ "Civilization_Era5_BritishEmpire",            new List<int>() { 21, 20, 19 } }, // England, Scotland, Ireland
+					{ "Civilization_Era5_AustriaHungary",           new List<int>() { 104, 102 } }, // Danubia, Illyria
+					{ "Civilization_Era5_AfsharidPersia",           new List<int>() { 243, 144, 235 } }, // Persia, Media, Gedrosia
+					{ "Civilization_Era6_USSR",                     new List<int>() { 122, 116, 226, 124 } }, // Moscow, Novogardia, Voronegia, Ciscaucasia
+					{ "Civilization_Era6_USA",                      new List<int>() { 60, 61 } }, // Massachusetta, Carolinae
+					{ "Civilization_Era6_Turkey",                   new List<int>() { 250, 118 } }, // Lydia, Cappadocia
+					{ "Civilization_Era6_Sweden",                   new List<int>() { 109, 152 } }, // Suecia, Lapponia
+					{ "Civilization_Era6_Japan",                    new List<int>() { 29, 30, 165, 242 } }, // Japan
+					{ "Civilization_Era6_India",                    new List<int>() { 147, 145, 236, 237, 179, 231 } }, // India, Maharastra, Dravidia, Odisa, Casmiria, Bengala
+					{ "Civilization_Era6_Egypt",                    new List<int>() { 128 } }, // Egypt
+					{ "Civilization_Era6_China",                    new List<int>() { 229 } }, // Manchuria
+					{ "Civilization_Era6_Brazil",                   new List<int>() { 54 } }, // Brasilia Australis
+					{ "Civilization_Era6_Australia",                new List<int>() { 35, 31, 32, 33, 34, 39 } }  // Australia
+				};
 
-		static readonly List<string> nomadCultures = new List<string> { "Civilization_Era2_Huns", "Civilization_Era3_MongolEmpire" };
-
-		static readonly List<string> firstEraBackup = new List<string> { "Civilization_Era1_Assyria", };
-
-		static readonly List<string> noCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire" };
-
-		static readonly IDictionary<int, string> continentNames = new Dictionary<int, string>
+		static readonly IDictionary<int, string> continentNamesGiantEarthMap = new Dictionary<int, string>
 				{
 					{ 0, "Oceans"},
 					{ 1, "Americas"},
@@ -220,7 +270,7 @@ namespace Gedemon.TrueCultureLocation
 					{ 5, "Greenland"},
 				};
 
-		static readonly IDictionary<int, string> territoryNames = new Dictionary<int, string>
+		static readonly IDictionary<int, string> territoryNamesGiantEarthMap = new Dictionary<int, string>
 				{
 					{ 0, "Mare Beringianum"},
 					{ 1, "Chatanga"},
@@ -480,14 +530,60 @@ namespace Gedemon.TrueCultureLocation
 					//{ 255, ""}, // Last Index !
 				};
 
+		static IDictionary<int, Hexagon.OffsetCoords> ExtraPositions = new Dictionary<int, Hexagon.OffsetCoords>();
+
+		static IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsNewWorld = new Dictionary<int, Hexagon.OffsetCoords>();
+
+		static List<string>[] territoriesWithMinorFactions;
+		static List<string>[] territoriesWithMajorEmpires;
+
+		static IDictionary<string, List<int>> listMinorFactionTerritories = new Dictionary<string, List<int>>();
+		static IDictionary<string, List<int>> listMajorEmpireTerritories = new Dictionary<string, List<int>>();
+		static IDictionary<string, List<int>> listMajorEmpireCoreTerritories = new Dictionary<string, List<int>>();
+
+		static IDictionary<int, string> continentNames = new Dictionary<int, string>();
+
+		static IDictionary<int, string> territoryNames = new Dictionary<int, string>();
+
+		static readonly IDictionary<string, List<int>> listSlots = new Dictionary<string, List<int>>  // civName, list of player slots (majorEmpire.Index) starting at 0
+		{
+			//{ "Civilization_Era1_Assyria", new List<int>() { 6, 7 } },
+		};
+
+		static readonly List<string> nomadCultures = new List<string> { "Civilization_Era2_Huns", "Civilization_Era3_MongolEmpire" };
+
+		static readonly List<string> firstEraBackup = new List<string> { "Civilization_Era1_Assyria", };
+
+		static readonly List<string> noCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire" };
+
 		public static readonly int knowledgeForBackupCiv = 25;
+
 		public static readonly int maxNumTerritories = 256;
-		public static readonly List<int> CompatibleMapHash = new List<int> { 33903987 /*1.1.0*/, -1220785390 /*1.1.1*/, };
+
+		public static readonly List<int> GiantEarthMapHash = new List<int> { -819807177 /*1.1.0*/, -288044546 /*1.1.1*/, };//{ 33903987 /*1.1.0*/, -1220785390 /*1.1.1*/, };
 
 		public static int CurrentMapHash { get; set; } = 0;
-		static CultureUnlock()
+		public static bool IsMapValidforTCL { get; set; } = false;
+		public static void InitializeTCL()
 		{
-			Diagnostics.LogWarning($"[Gedemon] in CultureUnlock(), building territoriesWithMinorFactions[] and territoriesWithMajorEmpires[]");
+
+			Diagnostics.LogWarning($"[Gedemon] [CultureUnlock] Initializing TCL");
+
+			if(GiantEarthMapHash.Contains(CurrentMapHash))
+			{
+				Diagnostics.LogWarning($"[Gedemon] [CultureUnlock] Giant Earth Map detected, set default values (CurrentMapHash = {CurrentMapHash})");
+				ExtraPositions = ExtraPositionsGiantEarthMap;
+				ExtraPositionsNewWorld = ExtraPositionsNewWorldGiantEarthMap;
+				continentNames = continentNamesGiantEarthMap;
+				territoryNames = territoryNamesGiantEarthMap;
+				listMinorFactionTerritories = listMinorFactionTerritoriesGiantEarthMap;
+				listMajorEmpireTerritories = listMajorEmpireTerritoriesGiantEarthMap;
+				listMajorEmpireCoreTerritories = listMajorEmpireCoreTerritoriesGiantEarthMap;
+			}
+
+			ModLoading.BuildModdedLists();
+
+			Diagnostics.LogWarning($"[Gedemon] [CultureUnlock] building territoriesWithMinorFactions[] and territoriesWithMajorEmpires[]");
 
 			territoriesWithMinorFactions = new List<string>[maxNumTerritories];
 			territoriesWithMajorEmpires = new List<string>[maxNumTerritories];
@@ -521,7 +617,31 @@ namespace Gedemon.TrueCultureLocation
 				}
 			}
 
+			IsMapValidforTCL = ValidateMapTCL();
+
+			if (!CultureUnlock.IsCompatibleMap())
+			{
+				Diagnostics.LogError($"[Gedemon] incompatible Map");
+			}
+
 		}
+
+		public static bool ValidateMapTCL()
+        {
+			if(TrueCultureLocation.IsEnabled() && listMajorEmpireTerritories.Count == 0)
+			{
+				Diagnostics.LogError($"[Gedemon] Error : TrueCultureLocation.IsEnabled = {TrueCultureLocation.IsEnabled()} && listMajorEmpireTerritories.Count = {listMajorEmpireTerritories.Count}");
+				return false;
+            }
+
+			if (TrueCultureLocation.GetTotalEmpireSlots() >= 10 && TrueCultureLocation.GetTotalEmpireSlots() > System.Math.Max(ExtraPositions.Count, ExtraPositionsNewWorld.Count))
+			{
+				Diagnostics.LogError($"[Gedemon] Error : TotalEmpireSlots ({TrueCultureLocation.GetTotalEmpireSlots()}) > ExtraPositions ({System.Math.Max(ExtraPositions.Count, ExtraPositionsNewWorld.Count)})");
+				return false;
+			}
+
+			return true;
+        }
 		public static bool HasAnyMinorFactionPosition(int territoryIndex)
 		{
 			return territoriesWithMinorFactions[territoryIndex].Count > 0;
@@ -555,15 +675,14 @@ namespace Gedemon.TrueCultureLocation
         {
 			return territoriesWithMajorEmpires[territoryIndex];
 		}
+		public static bool HasCoreTerritories(string factionName)
+		{
+			return listMajorEmpireCoreTerritories.ContainsKey(factionName);
+		}
 
 		public static bool HasMajorTerritories(string factionName)
 		{
 			return listMajorEmpireTerritories.ContainsKey(factionName);
-		}
-
-		public static bool HasMajorTerritories(StaticString FactionName)
-		{
-			return HasMajorTerritories(FactionName.ToString());
 		}
 
 		public static bool HasMinorTerritories(string factionName)
@@ -574,6 +693,24 @@ namespace Gedemon.TrueCultureLocation
 		public static bool HasMinorTerritories(StaticString FactionName)
 		{
 			return HasMinorTerritories(FactionName.ToString());
+		}
+
+		public static bool HasCoreTerritory(string factionName, int territoryIndex)
+		{
+			if(TrueCultureLocation.KeepOnlyCoreTerritories())
+			{
+				if (HasCoreTerritories(factionName))
+					return listMajorEmpireCoreTerritories[factionName].Contains(territoryIndex);
+				else
+					return false;
+
+			}
+			return HasTerritory(factionName, territoryIndex);
+		}
+
+		public static bool HasCoreTerritory(StaticString FactionName, int territoryIndex)
+		{
+			return HasCoreTerritory(FactionName.ToString(), territoryIndex);
 		}
 
 		public static bool HasTerritory(string factionName, int territoryIndex)
@@ -591,25 +728,23 @@ namespace Gedemon.TrueCultureLocation
 			return HasTerritory(FactionName.ToString(), territoryIndex);
 		}
 
-		public static bool HasTerritory(string factionName, int territoryIndex, bool any)
+		public static bool HasCoreTerritory(string factionName, int territoryIndex, bool any)
 		{
 			if (any)
 			{
-				return HasTerritory(factionName, territoryIndex);
+				return HasCoreTerritory(factionName, territoryIndex);
 			}
 			else
 			{
-				if (HasMajorTerritories(factionName))
-					return listMajorEmpireTerritories[factionName][0] == territoryIndex;
-				else if (HasMinorTerritories(factionName))
-					return listMinorFactionTerritories[factionName][0] == territoryIndex;
+				if (HasCoreTerritories(factionName))
+                {
+					if (TrueCultureLocation.KeepOnlyCoreTerritories())
+						return listMajorEmpireCoreTerritories[factionName][0] == territoryIndex;
+					else
+						return listMajorEmpireTerritories[factionName][0] == territoryIndex;
+				}
 			}
 			return false;
-		}
-
-		public static bool HasTerritory(StaticString FactionName, int territoryIndex, bool any)
-		{
-			return HasTerritory(FactionName.ToString(), territoryIndex, any);
 		}
 
 
@@ -635,11 +770,26 @@ namespace Gedemon.TrueCultureLocation
 
 		public static List<int> GetListTerritories(string factionName)
 		{
-			return listMajorEmpireTerritories[factionName];
+			if (TrueCultureLocation.KeepOnlyCoreTerritories())
+			{
+				if (listMajorEmpireCoreTerritories.TryGetValue(factionName, out List<int> listTerritories))
+				{
+					return listTerritories;
+				}
+				else
+				{
+					return listMajorEmpireTerritories[factionName];
+				}
+			}
+            else
+			{
+				return listMajorEmpireTerritories[factionName];
+
+			}
 		}
 		public static List<int> GetListTerritories(StaticString FactionName)
 		{
-			return listMajorEmpireTerritories[FactionName.ToString()];
+			return GetListTerritories(FactionName.ToString());
 		}
 
 		public static int GetCapitalTerritoryIndex(string civilizationName)
@@ -654,7 +804,14 @@ namespace Gedemon.TrueCultureLocation
 
 		public static string GetTerritoryName(int territoryIndex)
 		{
-			// backup when territoryNames doesn't exist -> Utils.GameUtils.GetTerritoryName(territoryIndex)
+			if (territoryNames.TryGetValue(territoryIndex, out string name))
+			{
+				return name;
+			}
+			return Amplitude.Mercury.UI.Utils.GameUtils.GetTerritoryName(territoryIndex);
+		}
+		public static string GetTerritoryName(int territoryIndex, bool hasName)
+		{
 			return territoryNames[territoryIndex];
 		}
 
@@ -670,12 +827,19 @@ namespace Gedemon.TrueCultureLocation
 
 		public static Hexagon.OffsetCoords GetExtraStartingPosition(int empireIndex, bool OldWorldOnly)
 		{
-			return (OldWorldOnly ? ExtraPositions[empireIndex] : ExtraPositionsNewWorld[empireIndex]);
+			if(OldWorldOnly)
+            {
+				return ExtraPositions.ContainsKey(empireIndex) ? ExtraPositions[empireIndex] : ExtraPositionsNewWorld[empireIndex];
+			}
+			else
+			{
+				return ExtraPositionsNewWorld.ContainsKey(empireIndex) ? ExtraPositionsNewWorld[empireIndex] : ExtraPositions[empireIndex];
+			}
 		}
 
-		public static bool HasExtraStartingPosition(int empireIndex, bool OldWorldOnly) // can be picked by multiple players
+		public static bool HasExtraStartingPosition(int empireIndex, bool OldWorldOnly)
 		{
-			return (OldWorldOnly ? ExtraPositions.ContainsKey(empireIndex) : ExtraPositionsNewWorld.ContainsKey(empireIndex));
+			return (ExtraPositions.ContainsKey(empireIndex) || ExtraPositionsNewWorld.ContainsKey(empireIndex));
 		}
 
 		public static bool UseTrueCultureLocation()
@@ -688,11 +852,103 @@ namespace Gedemon.TrueCultureLocation
 		}
 		public static bool IsCompatibleMap()
 		{
-			if (CompatibleMapHash.Contains(CurrentMapHash))
+			if (IsMapValidforTCL)
 			{
 				return true;
 			}
 			return false;
+		}
+		public static void UpdateListMajorEmpireTerritories(string factionName, List<int> listTerritories)
+        {
+			if(listMajorEmpireTerritories.ContainsKey(factionName))
+            {
+				listMajorEmpireTerritories[factionName] = listTerritories;
+			}
+			else
+            {
+				listMajorEmpireTerritories.Add(factionName, listTerritories);
+			}
+		}
+		public static void UpdateListMajorEmpireCoreTerritories(string factionName, List<int> listTerritories)
+		{
+			if (listMajorEmpireCoreTerritories.ContainsKey(factionName))
+			{
+				listMajorEmpireCoreTerritories[factionName] = listTerritories;
+			}
+			else
+			{
+				listMajorEmpireCoreTerritories.Add(factionName, listTerritories);
+			}
+		}
+		public static void UpdateListMinorFactionTerritories(string factionName, List<int> listTerritories)
+		{
+			if (listMinorFactionTerritories.ContainsKey(factionName))
+			{
+				listMinorFactionTerritories[factionName] = listTerritories;
+			}
+			else
+			{
+				listMinorFactionTerritories.Add(factionName, listTerritories);
+			}
+		}
+		public static void UpdateListTerritoryNames(int territoryIndex, string name)
+		{
+			if (territoryNames.ContainsKey(territoryIndex))
+			{
+				territoryNames[territoryIndex] = name;
+			}
+			else
+			{
+				territoryNames.Add(territoryIndex, name);
+			}
+		}
+		public static void UpdateListContinentNames(int index, string name)
+		{
+			if (continentNames.ContainsKey(index))
+			{
+				continentNames[index] = name;
+			}
+			else
+			{
+				continentNames.Add(index, name);
+			}
+		}
+
+		public static void UpdateListExtraPositions(int index, Hexagon.OffsetCoords position)
+		{
+			if (ExtraPositions.ContainsKey(index))
+			{
+				ExtraPositions[index] = position;
+			}
+			else
+			{
+				ExtraPositions.Add(index, position);
+			}
+		}
+		public static void UpdateListExtraPositionsNewWorld(int index, Hexagon.OffsetCoords position)
+		{
+			if (ExtraPositionsNewWorld.ContainsKey(index))
+			{
+				ExtraPositionsNewWorld[index] = position;
+			}
+			else
+			{
+				ExtraPositionsNewWorld.Add(index, position);
+			}
+		}
+		public static void UpdateListNoCapitalTerritory(string factionName)
+		{
+			if (!noCapitalTerritory.Contains(factionName))
+			{
+				noCapitalTerritory.Add(factionName);
+			}
+		}
+		public static void UpdateListNomads(string factionName)
+		{
+			if (!nomadCultures.Contains(factionName))
+			{
+				nomadCultures.Add(factionName);
+			}
 		}
 
 		public static void LogTerritoryStats()

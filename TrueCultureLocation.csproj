@@ -81,6 +81,9 @@
     <Reference Include="BepInEx.Harmony">
       <HintPath>D:\Steam\steamapps\common\Humankind\BepInEx\core\BepInEx.Harmony.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Sirenix.Serialization, Version=3.0.3.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -92,6 +95,10 @@
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
@@ -108,7 +115,8 @@
     <Compile Include="Amplitude.Mercury.Firstpass\DepartmentOfDefensePatch.cs" />
     <Compile Include="Assembly-CSharp\GamePatch.cs" />
     <Compile Include="Amplitude.Mercury.Firstpass\MajorEmpirePatch.cs" />
-    <Compile Include="Amplitude.Mercury.Firstpass\MinorEmpirePatch.cs" />
+    <Compile Include="Amplitude.Mercury.Firstpass\MinorFactionPatch.cs" />
+    <Compile Include="ModLoading.cs" />
     <Compile Include="Types.cs" />
     <Compile Include="TerritoryChange.cs" />
     <Compile Include="CultureChange.cs" />

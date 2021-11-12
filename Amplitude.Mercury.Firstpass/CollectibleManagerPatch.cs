@@ -8,7 +8,7 @@ using Amplitude.Mercury.Data.GameOptions;
 namespace Gedemon.TrueCultureLocation
 {
 	[HarmonyPatch(typeof(CollectibleManager))]
-	public class CultureUnlock_CollectibleManager
+	public class TCL_CollectibleManager
 	{
 		[HarmonyPostfix]
 		[HarmonyPatch(nameof(InitializeOnLoad))]
@@ -26,14 +26,14 @@ namespace Gedemon.TrueCultureLocation
 			// BuildingVisualAffinityDefinition
 			// UnitVisualAffinityDefinition
 			/* 
-			IDatabase<BuildingVisualAffinityDefinition> database1 = Databases.GetDatabase<BuildingVisualAffinityDefinition>();
-			foreach (BuildingVisualAffinityDefinition data in database1)
+			var database1 = Databases.GetDatabase<Amplitude.Mercury.Data.Simulation.FactionDefinition>();
+			foreach (Amplitude.Mercury.Data.Simulation.FactionDefinition data in database1)
 			{
-				Diagnostics.LogWarning($"[Gedemon] BuildingVisualAffinityDefinition name = {data.name}");//, Name = {data.Name}");
+				//Diagnostics.LogWarning($"[Gedemon] FactionDefinition name = {data.name}");//, Name = {data.Name}");
 
 				foreach (var prop in data.GetType().GetProperties())
 				{
-					//Diagnostics.Log($"[Gedemon] {prop.Name} = {prop.GetValue(data, null)}");
+					Diagnostics.Log($"[Gedemon] {prop.Name} = {prop.GetValue(data, null)}");
 				}
 			}
 			//*/

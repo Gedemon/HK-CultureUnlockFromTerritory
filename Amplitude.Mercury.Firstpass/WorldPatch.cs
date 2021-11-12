@@ -8,23 +8,19 @@ using Amplitude.Mercury.Data.World;
 namespace Gedemon.TrueCultureLocation
 {
 	[HarmonyPatch(typeof(World))]
-	public class CultureUnlockWorld
+	public class TCL_World
 	{
 		//*
 		[HarmonyPostfix]
 		[HarmonyPatch(nameof(SetRandomContinentName))]
 		public static void SetRandomContinentName(World __instance, ref ContinentInfo continentInfo, ref List<ContinentNamingPoolDefinition> possiblePools)
 		{
-			if (CultureUnlock.IsCompatibleMap() && continentInfo.TerritoryIndexes.Length > 0)
+			if (continentInfo.TerritoryIndexes.Length > 0)
             {
-
 				Territory territory = __instance.Territories[continentInfo.TerritoryIndexes[0]];
 				int continentIndex = territory.ContinentIndex;
-				//Diagnostics.LogWarning($"[Gedemon] in SetRandomContinentName, continentIndex = {continentIndex}");
-				//Diagnostics.Log($"[Gedemon] has name = {CultureUnlock.ContinentHasName(continentIndex)} ");
 				if (CultureUnlock.ContinentHasName(continentIndex))
 				{
-					//Diagnostics.Log($"[Gedemon] get name = {CultureUnlock.GetContinentName(continentIndex)} ");
 					continentInfo.ContinentName = CultureUnlock.GetContinentName(continentIndex);
 				}
 			}
@@ -86,11 +82,11 @@ namespace Gedemon.TrueCultureLocation
 		[HarmonyPatch(nameof(LoadTerritories))]
 		public static void LoadTerritories(World __instance)
 		{
-			Diagnostics.Log($"[Gedemon] in World, LoadTerritories");
+			Diagnostics.Log($"[Gedemon] in World, LoadTerritories, PostFix");
 			Diagnostics.Log($"[Gedemon] Current Map Hash = {CultureUnlock.CurrentMapHash}");
 
 			int num = __instance.Territories.Length;
-			int maxNum = 255;
+			int maxNum = 256;
 
 			string mapString = "";
 
@@ -112,8 +108,8 @@ namespace Gedemon.TrueCultureLocation
 			Diagnostics.LogError($"[Gedemon] Calculated Current Map Hash = {CultureUnlock.CurrentMapHash}");
 			//Diagnostics.Log($"[Gedemon] Map string = {mapString}");
 
-			if (!CultureUnlock.IsCompatibleMap())
-				Diagnostics.LogError($"[Gedemon] Unknown Map");
+			CultureUnlock.InitializeTCL();
+
 		}
 		//*/
 	}

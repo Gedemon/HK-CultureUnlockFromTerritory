@@ -722,7 +722,7 @@ namespace Gedemon.TrueCultureLocation
 								Amplitude.Mercury.Simulation.Territory territory = settlement.Region.Entity.Territories[k];
 								bool anyTerritory = majorEmpire.DepartmentOfDevelopment.CurrentEraIndex == 0 || CultureUnlock.HasNoCapitalTerritory(factionName);
 								bool validSettlement = (TrueCultureLocation.GetEraIndexCityRequiredForUnlock() > majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1 || settlement.SettlementStatus == SettlementStatuses.City || CultureUnlock.IsNomadCulture(majorEmpire.FactionDefinition.name));
-								if (CultureUnlock.HasTerritory(factionName, territory.Index, anyTerritory))
+								if (CultureUnlock.HasCoreTerritory(factionName, territory.Index, anyTerritory))
 								{
 									if (validSettlement)
 									{
@@ -758,7 +758,7 @@ namespace Gedemon.TrueCultureLocation
 							for (int k = 0; k < count2; k++)
 							{
 								Territory territory = settlement.Region.Entity.Territories[k];
-								if (CultureUnlock.HasTerritory(factionName, territory.Index))
+								if (CultureUnlock.HasCoreTerritory(factionName, territory.Index))
 									hasTerritoryFromNewCulture = true;
 								else
 									territoriesRemovedFromSettlement += 1;

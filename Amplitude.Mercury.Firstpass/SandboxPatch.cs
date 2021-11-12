@@ -19,7 +19,7 @@ namespace Gedemon.TrueCultureLocation
 
 	//*
 	[HarmonyPatch(typeof(Sandbox))]
-	public class Sandbox_Patch
+	public class TCL_Sandbox
 	{
 
 		[HarmonyPatch("ThreadStart")]

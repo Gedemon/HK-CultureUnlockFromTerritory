@@ -72,7 +72,7 @@ namespace Gedemon.TrueCultureLocation
 
 						District capitalMainDistrict = Capital.GetMainDistrict();
 						Diagnostics.LogWarning($"[Gedemon] before Check Capital Territory ({Capital.SettlementStatus} {Capital.EntityName} ({CultureUnlock.GetTerritoryName(capitalMainDistrict.Territory.Entity.Index)}) is current Capital)");
-						needNewCapital = !CultureUnlock.HasTerritory(nextFactionName.ToString(), capitalMainDistrict.Territory.Entity.Index);
+						needNewCapital = !CultureUnlock.HasCoreTerritory(nextFactionName.ToString(), capitalMainDistrict.Territory.Entity.Index);
 
 						if (needNewCapital && keepTerritoryAttached)
 						{
@@ -80,7 +80,7 @@ namespace Gedemon.TrueCultureLocation
 							for (int k = 0; k < count2; k++)
 							{
 								Territory territory = Capital.Region.Entity.Territories[k];
-								if (CultureUnlock.HasTerritory(nextFactionName.ToString(), territory.Index))
+								if (CultureUnlock.HasCoreTerritory(nextFactionName.ToString(), territory.Index))
 								{
 									needNewCapital = false;
 									break;
@@ -170,7 +170,7 @@ namespace Gedemon.TrueCultureLocation
 						for (int k = 0; k < count2; k++)
 						{
 							Territory territory = settlement.Region.Entity.Territories[k];
-							if (CultureUnlock.HasTerritory(nextFactionName.ToString(), territory.Index))
+							if (CultureUnlock.HasCoreTerritory(nextFactionName.ToString(), territory.Index))
 								hasTerritoryFromNewCulture = true;
 						}
 
@@ -185,7 +185,7 @@ namespace Gedemon.TrueCultureLocation
 								District mainDistrict = settlement.GetMainDistrict();
 								int mainTerritoryIndex = mainDistrict.Territory.Entity.Index;
 
-								bool giveCity = !CultureUnlock.HasTerritory(nextFactionName.ToString(), mainTerritoryIndex);
+								bool giveCity = !CultureUnlock.HasCoreTerritory(nextFactionName.ToString(), mainTerritoryIndex);
 
 								Diagnostics.LogWarning($"[Gedemon] Settlement ID#{j}: City {settlement.EntityName} of {CultureUnlock.GetTerritoryName(mainTerritoryIndex)}, checking territories, give city = {giveCity}");
 
@@ -205,7 +205,7 @@ namespace Gedemon.TrueCultureLocation
 											citiesInitialTerritories.Add(settlement, new List<int> { territory.Index });
 										}
 
-										if (CultureUnlock.HasTerritory(nextFactionName.ToString(), territory.Index))
+										if (CultureUnlock.HasCoreTerritory(nextFactionName.ToString(), territory.Index))
 										{
 											territoriesKept.Add(territory.Index);
 
@@ -275,7 +275,7 @@ namespace Gedemon.TrueCultureLocation
 								if (settlement.SettlementStatus != SettlementStatuses.None)
 								{
 									Territory territory = settlement.Region.Entity.Territories[0];
-									if (!CultureUnlock.HasTerritory(nextFactionName.ToString(), territory.Index))
+									if (!CultureUnlock.HasCoreTerritory(nextFactionName.ToString(), territory.Index))
 									{
 										Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Add to territoriesLost for index = {territory.Index} ({CultureUnlock.GetTerritoryName(territory.Index)}), not city, not in new Culture Territory");
 										territoriesLost.Add(territory.Index);
