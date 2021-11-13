@@ -1170,20 +1170,23 @@ namespace Gedemon.TrueCultureLocation
 
 							// Gedemon <<<<
 							Diagnostics.Log($"[Gedemon] [RuntimeManager] loading asset bundle from file (path: {fileInfo.FullName} loaded: {flag}).");
-							Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains TCL.json is {assetBundle.Contains("TCL.json")}");
-							Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains CityMap.json is {assetBundle.Contains("CityMap.json")}");
-							if (assetBundle.Contains("TCL.json"))
-                            {
-								TextAsset textAsset = assetBundle.LoadAsset<TextAsset>("TCL.json");
-								//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
-								ModLoading.AddModdedTCL(textAsset.text, fileInfo);
-							}
-							if (assetBundle.Contains("CityMap.json"))
+							string[] assetFiles = assetBundle.GetAllAssetNames();
+							foreach(string assetName in assetFiles)
 							{
-								TextAsset textAsset = assetBundle.LoadAsset<TextAsset>("CityMap.json");
-								//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] CityMap.json = {textAsset.text}");
-								//
-
+								string lowerCase = assetName.ToLower();
+								if (lowerCase.EndsWith("tcl.json"))
+                                {
+									Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains *tcl.json ({assetName})");
+									TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
+									//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
+									ModLoading.AddModdedTCL(textAsset.text, fileInfo);
+								}
+								if (lowerCase.EndsWith("citymap.json"))
+								{
+									Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains *citymap.json ({assetName})");
+									TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
+									//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
+								}
 							}
 							// Gedemon >>>>>
 
