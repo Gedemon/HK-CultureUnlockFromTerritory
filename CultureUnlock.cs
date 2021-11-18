@@ -7,7 +7,9 @@ namespace Gedemon.TrueCultureLocation
 {
 	public class CultureUnlock
 	{
-		static readonly IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsGiantEarthMap = new Dictionary<int, Hexagon.OffsetCoords> // EmpireIndex (player slots)
+        #region Giant Earth Map default settings
+
+        static readonly IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsGiantEarthMap = new Dictionary<int, Hexagon.OffsetCoords> // EmpireIndex (player slots)
 				{
 					{ 0, new Hexagon.OffsetCoords(32, 41)}, // Nubia 
 					{ 1, new Hexagon.OffsetCoords(40, 51)}, // Mesopotamia 
@@ -529,6 +531,8 @@ namespace Gedemon.TrueCultureLocation
 					//{ 254, ""},
 					//{ 255, ""}, // Last Index !
 				};
+
+		#endregion
 
 		static IDictionary<int, Hexagon.OffsetCoords> ExtraPositions = new Dictionary<int, Hexagon.OffsetCoords>();
 

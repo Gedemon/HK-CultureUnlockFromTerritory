@@ -32,59 +32,86 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>D:\Steam\steamapps\common\Humankind\BepInEx\core\0Harmony.dll</HintPath>
+    <Reference Include="0Harmony, Version=2.5.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\BepInEx\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Amplitude, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\publicized_assemblies\Amplitude.dll</HintPath>
+      <HintPath>lib\publicized\Amplitude.dll</HintPath>
+    </Reference>
+    <Reference Include="Amplitude.AI">
+      <HintPath>lib\publicized\Amplitude.AI.dll</HintPath>
+    </Reference>
+    <Reference Include="Amplitude.Core, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\publicized\Amplitude.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Amplitude.EGS">
+      <HintPath>lib\publicized\Amplitude.EGS.dll</HintPath>
     </Reference>
     <Reference Include="Amplitude.Framework, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\publicized_assemblies\Amplitude.Framework.dll</HintPath>
+      <HintPath>lib\publicized\Amplitude.Framework.dll</HintPath>
     </Reference>
-    <Reference Include="Amplitude.Graphics">
-      <HintPath>..\..\..\publicized_assemblies\Amplitude.Graphics.dll</HintPath>
+    <Reference Include="Amplitude.Graphics, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\publicized\Amplitude.Graphics.dll</HintPath>
     </Reference>
-    <Reference Include="Amplitude.Mercury.AI.Brain">
-      <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.AI.Brain.dll</HintPath>
+    <Reference Include="Amplitude.IO">
+      <HintPath>lib\publicized\Amplitude.IO.dll</HintPath>
+    </Reference>
+    <Reference Include="Amplitude.Mercury.AI.Brain, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\publicized\Amplitude.Mercury.AI.Brain.dll</HintPath>
+    </Reference>
+    <Reference Include="Amplitude.Mercury.Animation">
+      <HintPath>lib\publicized\Amplitude.Mercury.Animation.dll</HintPath>
     </Reference>
     <Reference Include="Amplitude.Mercury.Data, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.Data.dll</HintPath>
+      <HintPath>lib\publicized\Amplitude.Mercury.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Amplitude.Mercury.Firstpass">
-      <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.Firstpass.dll</HintPath>
+    <Reference Include="Amplitude.Mercury.Firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\publicized\Amplitude.Mercury.Firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="Amplitude.Mercury.Fx">
-      <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.Fx.dll</HintPath>
+    <Reference Include="Amplitude.Mercury.Fx, Version=0.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\publicized\Amplitude.Mercury.Fx.dll</HintPath>
     </Reference>
     <Reference Include="Amplitude.Mercury.Terrain, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.Terrain.dll</HintPath>
+      <HintPath>lib\publicized\Amplitude.Mercury.Terrain.dll</HintPath>
     </Reference>
     <Reference Include="Amplitude.Mercury.WorldGenerator, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\publicized_assemblies\Amplitude.Mercury.WorldGenerator.dll</HintPath>
+      <HintPath>lib\publicized\Amplitude.Mercury.WorldGenerator.dll</HintPath>
     </Reference>
     <Reference Include="Amplitude.UI, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\publicized_assemblies\Amplitude.UI.dll</HintPath>
+      <HintPath>lib\publicized\Amplitude.UI.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\publicized_assemblies\Assembly-CSharp.dll</HintPath>
+      <HintPath>lib\publicized\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="BepInEx">
-      <HintPath>D:\Steam\steamapps\common\Humankind\BepInEx\core\BepInEx.dll</HintPath>
+    <Reference Include="BepInEx, Version=5.4.15.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\BepInEx\BepInEx.dll</HintPath>
     </Reference>
-    <Reference Include="BepInEx.Harmony">
-      <HintPath>D:\Steam\steamapps\common\Humankind\BepInEx\core\BepInEx.Harmony.dll</HintPath>
+    <Reference Include="BepInEx.Harmony, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\BepInEx\BepInEx.Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Sirenix.Serialization, Version=3.0.3.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="Sirenix.Serialization, Version=3.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\managed\Sirenix.Serialization.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -93,21 +120,26 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine">
-      <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\UnityEngine.dll</HintPath>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AssetBundleModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+      <HintPath>lib\managed\UnityEngine.AssetBundleModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Steam\steamapps\common\Humankind\Humankind_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>lib\managed\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\managed\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Amplitude.Framework\OptionManagerPatch.cs" />

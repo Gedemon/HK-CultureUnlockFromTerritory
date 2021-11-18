@@ -300,6 +300,7 @@ namespace Gedemon.TrueCultureLocation
 						District mainDistrict = settlement.GetMainDistrict();
 						int territoryIndex = mainDistrict.Territory.Entity.Index;
 
+						Diagnostics.LogWarning($"[Gedemon] Check if the city territory is part of the Old Empire...");
 						// Check if the city territory is part of the Old Empire
 						if (CultureUnlock.HasTerritory(OldFactionName, territoryIndex))
 						{
@@ -308,56 +309,78 @@ namespace Gedemon.TrueCultureLocation
 							continue;
 						}
 
+						Diagnostics.LogWarning($"[Gedemon] Check for MinorFaction...");
 						// Check for MinorFaction
 						if (CultureUnlock.HasAnyMinorFactionPosition(territoryIndex))
 						{
 							foreach (string minorFactionName in CultureUnlock.GetListMinorFactionsForTerritory(territoryIndex))
 							{
+								Diagnostics.LogWarning($"[Gedemon] - check {minorFactionName}");
 								StaticString factionName = new StaticString(minorFactionName);
 								FactionDefinition factionDefinition = Utils.GameUtils.GetFactionDefinition(factionName);
-								int minEraIndex = MajorEmpire.DepartmentOfDevelopment.CurrentEraIndex;
-								int maxEraIndex = Sandbox.Timeline.GetGlobalEraIndex();
-								if (minEraIndex > maxEraIndex)
-                                {
-									minEraIndex = maxEraIndex;
-								}
-								if (factionDefinition.EraIndex >= minEraIndex && factionDefinition.EraIndex <= maxEraIndex && !newMinorsSettlements.ContainsKey(factionName))
+								if (factionDefinition!=null)
 								{
-									Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} {CultureUnlock.GetTerritoryName(territoryIndex)}: Add to newMinorsSettlements for {factionName}");
-									newMinorsSettlements.Add(factionName, new List<Settlement>{ settlement });
-									listNewFactions.Add(factionName);
-									goto FoundFactionForCity;
+									int minEraIndex = MajorEmpire.DepartmentOfDevelopment.CurrentEraIndex;
+									int maxEraIndex = Sandbox.Timeline.GetGlobalEraIndex();
+									if (minEraIndex > maxEraIndex)
+									{
+										minEraIndex = maxEraIndex;
+									}
+									if (factionDefinition.EraIndex >= minEraIndex && factionDefinition.EraIndex <= maxEraIndex && !newMinorsSettlements.ContainsKey(factionName))
+									{
+										Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} {CultureUnlock.GetTerritoryName(territoryIndex)}: Add to newMinorsSettlements for {factionName}");
+										newMinorsSettlements.Add(factionName, new List<Settlement> { settlement });
+										listNewFactions.Add(factionName);
+										goto FoundFactionForCity;
+									}
+								}
+								else
+								{
+									Diagnostics.LogWarning($"[Gedemon] - factionDefinition is null...");
+
 								}
 							}
 						}
 
+						Diagnostics.LogWarning($"[Gedemon] Check for MajorFactionDefinition (to use with a Minor)...");
 						// Check for MajorFactionDefinition (to use with a Minor)
 						if (CultureUnlock.HasAnyMajorEmpirePosition(territoryIndex))
 						{
 							foreach (string majorFactionName in CultureUnlock.GetListMajorEmpiresForTerritory(territoryIndex))
 							{
+								Diagnostics.LogWarning($"[Gedemon] - check {majorFactionName}");
 								StaticString factionName = new StaticString(majorFactionName);
 								FactionDefinition factionDefinition = Utils.GameUtils.GetFactionDefinition(factionName);
-								if (factionDefinition.EraIndex >= MajorEmpire.DepartmentOfDevelopment.CurrentEraIndex && factionDefinition.EraIndex <= Sandbox.Timeline.GetGlobalEraIndex())
+								if (factionDefinition != null)
 								{
-									Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Add to newMinorsSettlements for {factionName}");
-									if (newMinorsSettlements.ContainsKey(factionName))
+									if (factionDefinition.EraIndex >= MajorEmpire.DepartmentOfDevelopment.CurrentEraIndex && factionDefinition.EraIndex <= Sandbox.Timeline.GetGlobalEraIndex())
 									{
-										newMinorsSettlements[factionName].Add(settlement);
+										Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Add to newMinorsSettlements for {factionName}");
+										if (newMinorsSettlements.ContainsKey(factionName))
+										{
+											newMinorsSettlements[factionName].Add(settlement);
+										}
+										else
+										{
+											newMinorsSettlements.Add(factionName, new List<Settlement> { settlement });
+										}
+										if (!listNewFactions.Contains(factionName))
+										{
+											listNewFactions.Add(factionName);
+										}
+										goto FoundFactionForCity;
 									}
-									else
-									{
-										newMinorsSettlements.Add(factionName, new List<Settlement> { settlement });
-									}
-									if (!listNewFactions.Contains(factionName))
-									{
-										listNewFactions.Add(factionName);
-									}
-									goto FoundFactionForCity;
+
+								}
+								else
+								{
+									Diagnostics.LogWarning($"[Gedemon] - factionDefinition is null...");
+
 								}
 							}
 						}
 
+						Diagnostics.LogWarning($"[Gedemon] Add to the rebels faction...");
 						// Add to the rebels faction
 						Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Add to newMinorsSettlements for {OldFactionName}");
 						if (newMinorsSettlements.ContainsKey(OldFactionName))

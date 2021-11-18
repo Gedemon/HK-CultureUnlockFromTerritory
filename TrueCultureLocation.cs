@@ -21,12 +21,15 @@ using Newtonsoft.Json;
 
 namespace Gedemon.TrueCultureLocation
 {
-	[BepInPlugin(pluginGuid, "True Culture Location", "1.0.1.0")]
+	[BepInPlugin(pluginGuid, "True Culture Location", pluginVersion)]
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
+		public const string pluginVersion = "1.0.2.03";
 
-		public static readonly GameOptionInfo UseTrueCultureLocation = new GameOptionInfo
+        #region Define Options
+
+        public static readonly GameOptionInfo UseTrueCultureLocation = new GameOptionInfo
 		{
 			ControlType = UIControlType.Toggle,
 			Key = "GameOption_TCL_UseTrueCultureLocation",
@@ -650,7 +653,11 @@ namespace Gedemon.TrueCultureLocation
 			}
 		};
 
-		public bool Enabled => GameOptionHelper.CheckGameOption(UseTrueCultureLocation, "True");
+        #endregion
+
+        #region Set options
+
+        public bool Enabled => GameOptionHelper.CheckGameOption(UseTrueCultureLocation, "True");
 		public bool OnlyCultureTerritory => !GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_None");
 		public bool RespawnDeadPlayer => GameOptionHelper.CheckGameOption(RespawnDeadPlayersOption, "True");
 		public bool KeepAttached => GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_KeepAttached");
@@ -672,17 +679,11 @@ namespace Gedemon.TrueCultureLocation
 		public int CompensationLevelValue => int.Parse(GameOptionHelper.GetGameOption(CompensationLevel));
 		public int EmpireIconsNumColumn => int.Parse(GameOptionHelper.GetGameOption(EmpireIconsNumColumnOption));
 
-		// Awake is called once when both the game and the plug-in are loaded
-		void Awake()
-		{
-			Harmony harmony = new Harmony(pluginGuid);
-			Instance = this;
-			harmony.PatchAll();
-		}
-		public static TrueCultureLocation Instance;
+		#endregion
 
+        #region Get Options
 
-		public static bool IsEnabled()
+        public static bool IsEnabled()
 		{
 			return Instance.Enabled;
 		}
@@ -830,7 +831,23 @@ namespace Gedemon.TrueCultureLocation
 			return slots[empireIndex].IsHuman;
         }
 
+		#endregion
+
+		public static bool IsSetMinorFactionDeadRunning { get; set; } = false;
+		public static int[] PassingTradeRoadIndexes { get; set; }
+		public static FixedPoint TradeRoadCountValue { get; set; }
+
 		public bool toggleShowTerritory = false;
+
+		// Awake is called once when both the game and the plug-in are loaded
+		void Awake()
+		{
+			Harmony harmony = new Harmony(pluginGuid);
+			Instance = this;
+			harmony.PatchAll();
+		}
+		public static TrueCultureLocation Instance;
+
 		private void Update()
 		{
 			if (Input.GetKeyDown((KeyCode)284)) // press F3 to toggle

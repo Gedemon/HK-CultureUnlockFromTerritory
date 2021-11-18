@@ -425,22 +425,157 @@ namespace Gedemon.TrueCultureLocation
 	//*/
 
 	//*
+	[HarmonyPatch(typeof(BaseHumanMinorFactionSpawner<BaseHumanSpawnerDefinition>))]
+	public class TLC_BaseHumanMinorFactionSpawner
+	{
+
+		[HarmonyPatch("SetMinorFactionDead")]
+		[HarmonyPrefix]
+		public static bool SetMinorFactionDead(BaseHumanMinorFactionSpawner<BaseHumanSpawnerDefinition> __instance, MinorEmpire minorEmpire)
+		{
+			//FactionDefinition factionDefinition = minorEmpire.FactionDefinition;
+			Diagnostics.LogWarning($"[Gedemon] in SetMinorFactionDead, Prefix, IsSetMinorFactionDeadRunning = {TrueCultureLocation.IsSetMinorFactionDeadRunning}");
+			if (CultureUnlock.UseTrueCultureLocation())
+			{
+				if(TrueCultureLocation.IsSetMinorFactionDeadRunning)
+				{
+					Diagnostics.LogError($"[Gedemon] Error : in SetMinorFactionDead, Prefix, IsSetMinorFactionDeadRunning already set to true !");
+				}
+				TrueCultureLocation.IsSetMinorFactionDeadRunning = true;
+			}
+			return true;
+		}
+
+		[HarmonyPatch("SetMinorFactionDead")]
+		[HarmonyPostfix]
+		public static void SetMinorFactionDeadpost(BaseHumanMinorFactionSpawner<BaseHumanSpawnerDefinition> __instance, MinorEmpire minorEmpire)
+		{
+			//FactionDefinition factionDefinition = minorEmpire.FactionDefinition;
+			Diagnostics.LogWarning($"[Gedemon] in SetMinorFactionDead, Postfix, IsSetMinorFactionDeadRunning = {TrueCultureLocation.IsSetMinorFactionDeadRunning}");
+			if (CultureUnlock.UseTrueCultureLocation())
+			{
+				if (!TrueCultureLocation.IsSetMinorFactionDeadRunning)
+				{
+					Diagnostics.LogError($"[Gedemon] Error : in SetMinorFactionDead, Postfix, IsSetMinorFactionDeadRunning already set to false !");
+				}
+				TrueCultureLocation.IsSetMinorFactionDeadRunning = false;
+			}
+		}
+	}
+	//*/
+
+	//*
 	[HarmonyPatch(typeof(DepartmentOfTheInterior))]
 	public class TLC_DepartmentOfTheInterior
 	{
 		[HarmonyPatch("DestroyAllDistrictsFromSettlement")]
 		[HarmonyPrefix]
-		public static bool DestroyAllDistrictsFromSettlement(DepartmentOfTheInterior __instance, Settlement settlement, DistrictDestructionSource damageSource)
+		public static bool DestroyAllDistrictsFromSettlement(DepartmentOfTheInterior __instance, Settlement settlement, ref DistrictDestructionSource damageSource)
 		{
 
 			Diagnostics.LogWarning($"[Gedemon] in DepartmentOfTheInterior, DestroyAllDistrictsFromSettlement for {settlement.EntityName}, empire index = {__instance.Empire.Index}");
 
 			if (CultureUnlock.UseTrueCultureLocation() && damageSource == DistrictDestructionSource.MinorDecay)
 			{
+				Diagnostics.LogWarning($"[Gedemon] settlement.PassingTradeRoadIndexes = {settlement.PassingTradeRoadIndexes.Count}");
+				//return false;
+				damageSource = DistrictDestructionSource.None;
+
+			}
+			return true;
+		}
+		//*
+		[HarmonyPatch("FreeSettlement")]
+		[HarmonyPrefix]
+		public static bool FreeSettlement(DepartmentOfTheInterior __instance, Settlement settlement, bool raiseSimulationEvents = true)
+		{
+
+			Diagnostics.LogWarning($"[Gedemon] in DepartmentOfTheInterior, FreeSettlement prefix for {settlement.EntityName}, empire index = {__instance.Empire.Index}, IsSetMinorFactionDeadRunning = {TrueCultureLocation.IsSetMinorFactionDeadRunning}");
+
+			if (CultureUnlock.UseTrueCultureLocation() && TrueCultureLocation.IsSetMinorFactionDeadRunning)
+			{
+				Diagnostics.LogWarning($"[Gedemon] settlement.PassingTradeRoadIndexes = {settlement.PassingTradeRoadIndexes.Count}");
+				foreach (int routeIndex in settlement.PassingTradeRoadIndexes)
+				{
+					Diagnostics.LogWarning($"[Gedemon] tradeRoadIndex = {routeIndex}");
+
+					ref TradeRoadInfo tradeRoadInfo = ref Sandbox.TradeController.TradeRoadAllocator.GetReferenceAt(routeIndex);
+
+
+					Diagnostics.LogWarning($"[Gedemon] tradeRoadInfo = {tradeRoadInfo}");
+					Diagnostics.LogWarning($"[Gedemon] tradeRoadInfo for routeIndex {routeIndex}, DestinationEmpireIndex = {tradeRoadInfo.DestinationEmpireIndex}, DepositOwnerIndex = {tradeRoadInfo.DepositOwnerIndex}, ResourceExtractor = {tradeRoadInfo.ResourceExtractor}, Flags = {tradeRoadInfo.Flags}, IsForwardTrade = {tradeRoadInfo.IsForwardTrade}, OriginEmpireIndex = {tradeRoadInfo.OriginEmpireIndex}, PoolAllocationIndex = {tradeRoadInfo.PoolAllocationIndex}, TradeRoadStatus = {tradeRoadInfo.TradeRoadStatus}");
+
+					//MajorEmpire majorEmpire = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires[tradeRoadInfo.DestinationEmpireIndex];
+					//Sandbox.TradeController.CreateRoundHousesAndJettyForTradeRoadIfNecessary(routeIndex, majorEmpire);
+					//Sandbox.TradeController.TraverseRoadPathForTradeLinkCount(routeIndex, add: true);
+					//RemovePassingTradeRoadFromSettlementIfNecessary(ref referenceAt, oldSettlement);
+					//TraverseRoadPathForTradeLinkCount(num, add: true);
+				}
+			}
+			return true;
+		}
+		//*/
+		/*
+		[HarmonyPatch("FreeSettlement")]
+		[HarmonyPostfix]
+		public static void FreeSettlementpost(DepartmentOfTheInterior __instance, Settlement settlement, bool raiseSimulationEvents = true)
+		{
+
+			Diagnostics.LogWarning($"[Gedemon] in DepartmentOfTheInterior, FreeSettlement postfix, IsSetMinorFactionDeadRunning = {TrueCultureLocation.IsSetMinorFactionDeadRunning}");
+
+			if (CultureUnlock.UseTrueCultureLocation() && TrueCultureLocation.IsSetMinorFactionDeadRunning)
+			{
+				Sandbox.TradeController.SetAvailableTradeRoadDirty();
+
+				//settlement.PassingTradeRoadIndexes = TrueCultureLocation.PassingTradeRoadIndexes;
+				//settlement.TradeRoadCount.Value = TrueCultureLocation.TradeRoadCountValue;
+
+				Diagnostics.LogWarning($"[Gedemon] PassingTradeRoadIndexes = {TrueCultureLocation.PassingTradeRoadIndexes.Length}");
+				foreach (int routeIndex in TrueCultureLocation.PassingTradeRoadIndexes)
+				{
+
+					ref TradeRoadInfo tradeRoadInfo = ref Sandbox.TradeController.TradeRoadAllocator.GetReferenceAt(routeIndex);
+
+					Diagnostics.LogWarning($"[Gedemon] CreateRoundHousesAndJettyForTradeRoadIfNecessary for routeIndex {routeIndex}, dest empire index = {tradeRoadInfo.DestinationEmpireIndex}");
+
+					MajorEmpire majorEmpire = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires[tradeRoadInfo.DestinationEmpireIndex];
+					Sandbox.TradeController.CreateRoundHousesAndJettyForTradeRoadIfNecessary(routeIndex, majorEmpire);
+					Sandbox.TradeController.TraverseRoadPathForTradeLinkCount(routeIndex, add: true);
+					//RemovePassingTradeRoadFromSettlementIfNecessary(ref referenceAt, oldSettlement);
+					//TraverseRoadPathForTradeLinkCount(num, add: true);
+				}
+
+				//Diagnostics.LogWarning($"[Gedemon] before SetSynchronizationDirty");
+				//Amplitude.Mercury.Sandbox.Sandbox.SimulationEntityRepository.SetSynchronizationDirty(settlement);
+			}
+		}
+		//*/
+
+	}
+	//*/
+
+	/*
+	[HarmonyPatch(typeof(TradeController))]
+	public class TCL_TradeController
+	{
+		[HarmonyPatch("OnTerritoryUnclaimed")]
+		[HarmonyPrefix]
+		public static bool OnTerritoryUnclaimed(TradeController __instance, int territoryIndex)
+		{
+
+			Diagnostics.LogWarning($"[Gedemon] in DepartmentOfTheInterior, OnTerritoryUnclaimed prefix, IsSetMinorFactionDeadRunning = {TrueCultureLocation.IsSetMinorFactionDeadRunning}");
+			if (CultureUnlock.UseTrueCultureLocation() && TrueCultureLocation.IsSetMinorFactionDeadRunning)
+			{
 				return false;
-            }
+			}
 			return true;
 		}
 	}
 	//*/
+
+	//Amplitude.Mercury.Sandbox.Sandbox.SimulationEntityRepository.TryGetSimulationEntity(guid, out District entity);
+	//CreateTradeRoadInfo(MajorEmpire buyer, District resourceExtractorToTrade, TradeRoadPathTypes tradeRoadPathType, out FixedPoint setupCost, out FixedPoint sellingGain)
+	//CreateForwardTradingInfo(MajorEmpire seller, MajorEmpire buyer, int forwardedTradeRoadIndex, TradeRoadPathTypes tradeRoadPathType, out FixedPoint setupCost, out FixedPoint sellingGain)
+	//TradeRoadPathTypes.Cheapest
+
 }
