@@ -2,6 +2,8 @@
 using Amplitude;
 using System.IO;
 using Newtonsoft.Json;
+using Amplitude.Mercury.Terrain;
+using static Amplitude.Mercury.Runtime.RuntimeManager;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -99,6 +101,33 @@ namespace Gedemon.TrueCultureLocation
         public static void BuildModdedLists()
         {
             Diagnostics.LogError($"[Gedemon] in ModLoading, BuildModdedLists");
+
+            string basefolder = Amplitude.Framework.Application.GameDirectory;
+            List<string> folders = new List<string> { System.IO.Path.Combine(basefolder, TerrainSave.MapsSubDirectory), System.IO.Path.Combine(basefolder, RuntimeModuleFolders.Public.Name), System.IO.Path.Combine(basefolder, RuntimeModuleFolders.Community.Name) };
+            foreach(string path in folders)
+            {
+                Diagnostics.Log($"[Gedemon] [BuildModdedLists] searching for .json files in {path}");
+                if (Directory.Exists(path))
+                {
+                    DirectoryInfo directoryInfo = new DirectoryInfo(path);
+                    if (directoryInfo.Exists)
+                    {
+                        Diagnostics.Log($"[Gedemon] [BuildModdedLists] searching *TCL.json file in {directoryInfo.FullName}");
+                        string searchPattern = "*TCL.json";
+                        //SearchOption searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                        FileInfo[] files = directoryInfo.GetFiles(searchPattern, SearchOption.AllDirectories);
+                        foreach (FileInfo fileInfo in files)
+                        {
+                            Diagnostics.LogWarning($"[Gedemon] [BuildModdedLists] loading *TCL.json file : ({fileInfo.FullName})");
+                            StreamReader stream = fileInfo.OpenText();
+                            ModLoading.AddModdedTCL(stream.ReadToEnd(), fileInfo);
+                        }
+                    }
+                }
+            }
+            //
+            //string path = Amplitude.Framework.Application.GameDirectory; // + "\\" + TerrainSave.MapsSubDirectory + "\\";
+
             foreach (KeyValuePair<FileInfo, IList<MapTCL>> kvp in listTCLMods)
             {
                 Diagnostics.Log($"[Gedemon] TCL from {kvp.Key.FullName}");
@@ -328,6 +357,7 @@ namespace Gedemon.TrueCultureLocation
                                 Diagnostics.Log($"[Gedemon] - Found NoCapital list");
                                 foreach (string factionName in mapTCL.NoCapital)
                                 {
+                                    Diagnostics.LogWarning($"[Gedemon] Updating noCapitalTerritory, adding {factionName}");
                                     CultureUnlock.UpdateListNoCapitalTerritory(factionName); // immediate update
                                 }
                             }
@@ -337,6 +367,7 @@ namespace Gedemon.TrueCultureLocation
                                 Diagnostics.Log($"[Gedemon] - Found NomadCultures list");
                                 foreach (string factionName in mapTCL.NomadCultures)
                                 {
+                                    Diagnostics.LogWarning($"[Gedemon] Updating nomadCultures, adding {factionName}");
                                     CultureUnlock.UpdateListNomads(factionName); // immediate update
                                 }
                             }

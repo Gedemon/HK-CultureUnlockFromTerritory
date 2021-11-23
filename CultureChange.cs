@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Amplitude;
 using Amplitude.Framework;
+using Amplitude.Mercury;
 using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Data.Simulation.Costs;
 using Amplitude.Mercury.Interop;
@@ -177,6 +178,56 @@ namespace Gedemon.TrueCultureLocation
 			return oldEmpire != null;
 		}
 
+		public static void FinalizeMajorEmpireSpawning(MajorEmpire majorEmpire)
+        {
+			majorEmpire.TileInfo.Frame = Amplitude.Mercury.Sandbox.Sandbox.Frame;
+			Amplitude.Mercury.Sandbox.Sandbox.World.InitializeMajorEmpireTileInfo(majorEmpire);
+			majorEmpire.TransitTileInfo.Frame = Amplitude.Mercury.Sandbox.Sandbox.Frame;
+			int length = majorEmpire.TileInfo.Length;
+			majorEmpire.TransitTileInfo.Resize(length);
+			for (int i = 0; i < length; i++)
+			{
+				TransitTileInfo value = default(TransitTileInfo);
+				value.HistoricalTransitInfoIndex = -1;
+				majorEmpire.TransitTileInfo[i] = value;
+			}
+			majorEmpire.DepartmentOfDevelopment.PickFirstEraStars();
+			majorEmpire.lastArmyMaximumSize = majorEmpire.ArmyMaximumSize.Value;
+			majorEmpire.lastArmyReinforcementCap = majorEmpire.ArmyReinforcementCap.Value;
+			majorEmpire.DepartmentOfTheInterior.ResetSettlementNames();
+			majorEmpire.DepartmentOfDefense.TryFindValidUnitFor(MilitiaHelper.MilitiaFamiliyName, out majorEmpire.DepartmentOfDefense.BestMilitiaDefinition);
+			majorEmpire.DepartmentOfDefense.TryFindValidUnitFor(SiegeUnitHelper.SiegeUnitFamilyName, out majorEmpire.DepartmentOfDefense.BestSiegeUnitDefinition);
+			majorEmpire.DepartmentOfDefense.TryFindValidUnitFor(DepartmentOfDefense.NomadicFamilyName, out majorEmpire.DepartmentOfDefense.BestNomadicUnitDefinition);
+			if (majorEmpire.DepartmentOfDevelopment.IsActionAvailable(ActionType.BuyNeighbourSettlementWithMoney))
+			{
+				majorEmpire.ExoticAbilityFlags |= EmpireExoticAbilityFlags.CanBuyNeighbourTerritoryWithMoney;
+			}
+			majorEmpire.DepartmentOfCulture.InitializeInvestResourceDepositAction();
+			if (majorEmpire.DepartmentOfDevelopment.IsActionAvailable(ActionType.ForwardTrade))
+			{
+				majorEmpire.ExoticAbilityFlags |= EmpireExoticAbilityFlags.CanForwardTrade;
+			}
+			WorldPosition worldPosition = new WorldPosition();
+			if (majorEmpire.Capital.Entity != null)
+            {
+				worldPosition = majorEmpire.Capital.Entity.WorldPosition;
+			}
+			else
+            {
+				int count = majorEmpire.Settlements.Count;
+				for (int j = 0; j < count; j++)
+				{
+					Settlement settlement = majorEmpire.Settlements[j];
+					if (settlement.SettlementStatus == SettlementStatuses.City)
+					{
+						worldPosition = settlement.WorldPosition;
+						break;
+					}
+				}
+			}
+			majorEmpire.OriginalContinentIndex = Amplitude.Mercury.Sandbox.Sandbox.World.GetContinentIndex(worldPosition.ToTileIndex());
+		}
+
 		public static void SetDiplomaticRelationFromEvolution(MajorEmpire majorEmpire, MajorEmpire oldEmpire)
 		{
 			MajorEmpire potentialLiege = majorEmpire.Liege.Entity ?? majorEmpire;
@@ -321,14 +372,14 @@ namespace Gedemon.TrueCultureLocation
 			int capacity = Sandbox.TradeController.TradeRoadAllocator.Capacity;
 			for (int tradeRoadIndex = 0; tradeRoadIndex < capacity; tradeRoadIndex++)
 			{
-				ref TradeRoadInfo tradeRoadInfo = ref Sandbox.TradeController.TradeRoadAllocator.GetReferenceAt(tradeRoadIndex);
+				TradeRoadInfo tradeRoadInfo = Sandbox.TradeController.TradeRoadAllocator.GetReferenceAt(tradeRoadIndex);
 				if (tradeRoadInfo.PoolAllocationIndex < 0 || tradeRoadInfo.TradeRoadStatus == TradeRoadStatus.Destroyed || tradeRoadInfo.DestinationEmpireIndex != empire.Index)
 				{
 					continue;
 				}
 				if (tradeRoadInfo.DestinationCity == settlement.GUID)
 				{
-					Diagnostics.LogWarning($"[Gedemon] Destroying route ending in settlmeent to prevent suspension (ID#{tradeRoadIndex}), originEmpire = {tradeRoadInfo.OriginEmpireIndex}, destinationEmpire = {tradeRoadInfo.DestinationEmpireIndex}");
+					Diagnostics.LogWarning($"[Gedemon] Destroying route ending in settlement to prevent suspension (ID#{tradeRoadIndex}), originEmpire = {tradeRoadInfo.OriginEmpireIndex}, destinationEmpire = {tradeRoadInfo.DestinationEmpireIndex}, IsRestoreDestroyedTradeRoutes = {TradeRoute.IsRestoreDestroyedTradeRoutes}");
 					Sandbox.TradeController.DestroyTradeRoad(tradeRoadIndex, TradeRoadChangeAction.TimedOut);
 				}
 			}

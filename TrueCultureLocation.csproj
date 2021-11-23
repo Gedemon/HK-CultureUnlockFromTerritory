@@ -7,7 +7,7 @@
     <ProjectGuid>{50464BFA-DCE1-4753-A76F-9C22EB3858ED}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TrueCultureLocation</RootNamespace>
+    <RootNamespace>Gedemon.TrueCultureLocation</RootNamespace>
     <AssemblyName>Gedemon.TrueCultureLocation</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -148,6 +148,7 @@
     <Compile Include="Assembly-CSharp\GamePatch.cs" />
     <Compile Include="Amplitude.Mercury.Firstpass\MajorEmpirePatch.cs" />
     <Compile Include="Amplitude.Mercury.Firstpass\MinorFactionPatch.cs" />
+    <Compile Include="TradeRoute.cs" />
     <Compile Include="ModLoading.cs" />
     <Compile Include="Types.cs" />
     <Compile Include="TerritoryChange.cs" />

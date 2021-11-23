@@ -30,7 +30,7 @@ namespace Gedemon.TrueCultureLocation
 
 		public StaticString NextFactionName { get; set; } = StaticString.Empty;
 		public StaticString OldFactionName { get; set; } = StaticString.Empty;
-		public MajorEmpire MajorEmpire { get; set; } = null;
+		public MajorEmpire majorEmpire { get; set; } = null;
 		public District PotentialCapital { get; set; } = null;
 		public int NumCitiesLost { get; set; } = 0;
 
@@ -40,13 +40,13 @@ namespace Gedemon.TrueCultureLocation
 		{
 			Diagnostics.LogWarning($"[Gedemon] initialize TerritoryChanges");
 
-			MajorEmpire = empire;
+			majorEmpire = empire;
 			NextFactionName = nextFactionName;
-			OldFactionName = MajorEmpire.FactionDefinition.Name;
+			OldFactionName = majorEmpire.FactionDefinition.Name;
 
 			listNewFactions.Add(OldFactionName);
 
-			bool isHuman = TrueCultureLocation.IsEmpireHumanSlot(MajorEmpire.Index);
+			bool isHuman = TrueCultureLocation.IsEmpireHumanSlot(majorEmpire.Index);
 			bool keepOnlyCultureTerritory = TrueCultureLocation.KeepOnlyCultureTerritory();
 			bool keepTerritoryAttached = TrueCultureLocation.KeepTerritoryAttached();
 			bool capitalChanged = false; // the Capital hasn't been changed yet
@@ -57,18 +57,18 @@ namespace Gedemon.TrueCultureLocation
 				keepOnlyCultureTerritory = false;
 			}
 
-			if (MajorEmpire.FactionDefinition.Name != nextFactionName)
+			if (majorEmpire.FactionDefinition.Name != nextFactionName)
 			{
-				if (MajorEmpire.DepartmentOfDevelopment.CurrentEraIndex != 0 && keepOnlyCultureTerritory)
+				if (majorEmpire.DepartmentOfDevelopment.CurrentEraIndex != 0 && keepOnlyCultureTerritory)
 				{
 					#region Check Capital
 
-					Diagnostics.Log($"[Gedemon] before Check for new Capital (exist = {(MajorEmpire.Capital.Entity != null)})");
-					bool hasCapital = (MajorEmpire.Capital.Entity != null);
+					Diagnostics.Log($"[Gedemon] before Check for new Capital (exist = {(majorEmpire.Capital.Entity != null)})");
+					bool hasCapital = (majorEmpire.Capital.Entity != null);
 
 					if (hasCapital)
 					{
-						Settlement Capital = MajorEmpire.Capital;
+						Settlement Capital = majorEmpire.Capital;
 
 						District capitalMainDistrict = Capital.GetMainDistrict();
 						Diagnostics.LogWarning($"[Gedemon] before Check Capital Territory ({Capital.SettlementStatus} {Capital.EntityName} ({CultureUnlock.GetTerritoryName(capitalMainDistrict.Territory.Entity.Index)}) is current Capital)");
@@ -98,14 +98,14 @@ namespace Gedemon.TrueCultureLocation
 					{
 						// need to find new Capital !
 
-						int numSettlement = MajorEmpire.Settlements.Count;
+						int numSettlement = majorEmpire.Settlements.Count;
 
 						Diagnostics.LogWarning($"[Gedemon] Searching new Capital in existing Cities first.");
 						foreach (int territoryIndex in CultureUnlock.GetListTerritories(nextFactionName.ToString()))
 						{
 							for (int m = 0; m < numSettlement; m++)
 							{
-								Settlement settlement = MajorEmpire.Settlements[m];
+								Settlement settlement = majorEmpire.Settlements[m];
 								if (settlement.SettlementStatus == SettlementStatuses.City && (settlement.CityFlags & CityFlags.Captured) == 0)
 								{
 									District potentialDistrict = settlement.GetMainDistrict();
@@ -127,7 +127,7 @@ namespace Gedemon.TrueCultureLocation
 							//Diagnostics.LogWarning($"[Gedemon] - check territory #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)})");
 							for (int n = 0; n < numSettlement; n++)
 							{
-								Settlement settlement = MajorEmpire.Settlements[n];
+								Settlement settlement = majorEmpire.Settlements[n];
 								//Diagnostics.LogWarning($"[Gedemon] - check settlement #{n} (exist = {settlement != null})");
 								if (settlement.SettlementStatus != SettlementStatuses.City)
 								{
@@ -159,10 +159,10 @@ namespace Gedemon.TrueCultureLocation
 
 					Diagnostics.Log($"[Gedemon] Sorting Territories");
 
-					int count = MajorEmpire.Settlements.Count;
+					int count = majorEmpire.Settlements.Count;
 					for (int j = 0; j < count; j++)
 					{
-						Settlement settlement = MajorEmpire.Settlements[j];
+						Settlement settlement = majorEmpire.Settlements[j];
 
 						bool hasTerritoryFromNewCulture = false;
 
@@ -213,7 +213,7 @@ namespace Gedemon.TrueCultureLocation
 											{
 
 												territoriesKeptFromLostCities.Add(territory.Index);
-												FailureFlags flag = MajorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement);
+												FailureFlags flag = majorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement);
 												if (flag == FailureFlags.None || flag == FailureFlags.CannotDetachConnectorTerritory)
 												{
 													Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Add to territoriesKept and territoriesKeptFromLostCities for index = {territory.Index} ({CultureUnlock.GetTerritoryName(territory.Index)}), is in new Culture Territory but loosing City");
@@ -221,7 +221,7 @@ namespace Gedemon.TrueCultureLocation
 												}
 												else
 												{
-													Diagnostics.LogError($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Add to territoriesKept and territoriesKeptFromLostCities but FAILED on check detach for territory index = {territory.Index} ({CultureUnlock.GetTerritoryName(territory.Index)}), {MajorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement)}, is new Culture Territory but loosing city");
+													Diagnostics.LogError($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Add to territoriesKept and territoriesKeptFromLostCities but FAILED on check detach for territory index = {territory.Index} ({CultureUnlock.GetTerritoryName(territory.Index)}), {majorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement)}, is new Culture Territory but loosing city");
 												}
 											}
 											else
@@ -235,7 +235,7 @@ namespace Gedemon.TrueCultureLocation
 
 											if (!giveCity)
 											{
-												FailureFlags flag = MajorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement);
+												FailureFlags flag = majorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement);
 												if (flag == FailureFlags.None || flag == FailureFlags.CannotDetachConnectorTerritory)
 												{
 													Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Add to territoriesLost for index = {territory.Index} ({CultureUnlock.GetTerritoryName(territory.Index)}), not in new Culture Territory and keeping city");
@@ -243,7 +243,7 @@ namespace Gedemon.TrueCultureLocation
 												}
 												else
 												{
-													Diagnostics.LogError($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Add to territoriesLost but check FAILED to detach for territory index = {territory.Index} ({CultureUnlock.GetTerritoryName(territory.Index)}), {MajorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement)}, not in new Culture Territory and keeping city");
+													Diagnostics.LogError($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Add to territoriesLost but check FAILED to detach for territory index = {territory.Index} ({CultureUnlock.GetTerritoryName(territory.Index)}), {majorEmpire.DepartmentOfTheInterior.CanDetachTerritoryFromCity(territory, settlement)}, not in new Culture Territory and keeping city");
 												}
 											}
 											else
@@ -257,7 +257,7 @@ namespace Gedemon.TrueCultureLocation
 								{
 									NumCitiesLost++;
 									settlementLost.Add(settlement);
-									FailureFlags flag = DepartmentOfTheInterior.CanLiberateSettlement(MajorEmpire, settlement);
+									FailureFlags flag = DepartmentOfTheInterior.CanLiberateSettlement(majorEmpire, settlement);
 									if (flag == FailureFlags.None || flag == FailureFlags.SettlementIsCapital)
 									{
 										Diagnostics.LogWarning($"[Gedemon] City {settlement.EntityName} of {CultureUnlock.GetTerritoryName(mainTerritoryIndex)} : Add to settlementLost");
@@ -320,7 +320,7 @@ namespace Gedemon.TrueCultureLocation
 								FactionDefinition factionDefinition = Utils.GameUtils.GetFactionDefinition(factionName);
 								if (factionDefinition!=null)
 								{
-									int minEraIndex = MajorEmpire.DepartmentOfDevelopment.CurrentEraIndex;
+									int minEraIndex = majorEmpire.DepartmentOfDevelopment.CurrentEraIndex;
 									int maxEraIndex = Sandbox.Timeline.GetGlobalEraIndex();
 									if (minEraIndex > maxEraIndex)
 									{
@@ -353,7 +353,7 @@ namespace Gedemon.TrueCultureLocation
 								FactionDefinition factionDefinition = Utils.GameUtils.GetFactionDefinition(factionName);
 								if (factionDefinition != null)
 								{
-									if (factionDefinition.EraIndex >= MajorEmpire.DepartmentOfDevelopment.CurrentEraIndex && factionDefinition.EraIndex <= Sandbox.Timeline.GetGlobalEraIndex())
+									if (factionDefinition.EraIndex >= majorEmpire.DepartmentOfDevelopment.CurrentEraIndex && factionDefinition.EraIndex <= Sandbox.Timeline.GetGlobalEraIndex())
 									{
 										Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : Add to newMinorsSettlements for {factionName}");
 										if (newMinorsSettlements.ContainsKey(factionName))

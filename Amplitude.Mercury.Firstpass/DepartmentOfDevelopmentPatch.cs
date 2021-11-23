@@ -28,6 +28,8 @@ namespace Gedemon.TrueCultureLocation
 				MajorEmpire majorEmpire = __instance.majorEmpire;
 				StaticString nextFactionName = __instance.nextFactionName;
 
+				TradeRoute.StartListingTradeRouteToRestore();
+
 				if (majorEmpire.DepartmentOfDevelopment.CurrentEraIndex != 0 && majorEmpire.FactionDefinition.Name != nextFactionName)
 				{
 
@@ -44,9 +46,9 @@ namespace Gedemon.TrueCultureLocation
 
 					TerritoryChange territoryChange = new TerritoryChange(majorEmpire, nextFactionName);
 
-                    #region 1/ stop battles for lost cities
+					#region 1/ stop battles for lost cities
 
-					if(territoryChange.NumCitiesLost > 0)
+					if (territoryChange.NumCitiesLost > 0)
                     {
 
 						Diagnostics.Log($"[Gedemon] Check to stop battles for lost cities");
@@ -302,6 +304,7 @@ namespace Gedemon.TrueCultureLocation
 							{
 								// (re)Set diplomatic relation
 								CultureChange.SetDiplomaticRelationFromEvolution(majorEmpire, oldEmpire);
+								CultureChange.FinalizeMajorEmpireSpawning(oldEmpire);
 							}
 						}
 						else
@@ -684,6 +687,8 @@ namespace Gedemon.TrueCultureLocation
 
 				CultureChange.UpdateDistrictVisuals(majorEmpire);
 				CultureChange.SetFactionSymbol(majorEmpire);
+
+				TradeRoute.RestoreTradeRoutes();
 			}
 		}
 

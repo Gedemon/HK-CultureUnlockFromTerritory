@@ -259,7 +259,7 @@ namespace Gedemon.TrueCultureLocation
 		//*/
 	}
 
-
+	/*
 	[HarmonyPatch(typeof(ArmyActionHelper))]
 	public class TCL_ArmyActionHelper
 	{
@@ -278,7 +278,7 @@ namespace Gedemon.TrueCultureLocation
 			}
 			return true;
 		}
-
 	}
+	//*/
 
 }

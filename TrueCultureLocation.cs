@@ -58,7 +58,7 @@ namespace Gedemon.TrueCultureLocation
 		{
 			Value = "TerritoryLoss_Full",
 			Title = "Keep Only New Empire",
-			Description = "Lose all territories that were not controlled by the Empire of new Culture"
+			Description = "Lose all territories that were not controlled by the Empire of the new Culture"
 		};
 
 		public static GameOptionStateInfo TerritoryLoss_None = new GameOptionStateInfo
@@ -833,7 +833,6 @@ namespace Gedemon.TrueCultureLocation
 
 		#endregion
 
-		public static bool IsSetMinorFactionDeadRunning { get; set; } = false;
 		public static int[] PassingTradeRoadIndexes { get; set; }
 		public static FixedPoint TradeRoadCountValue { get; set; }
 
@@ -1140,26 +1139,6 @@ namespace Gedemon.TrueCultureLocation
 		public static bool EnumerateRuntimeModules(Amplitude.Mercury.Runtime.RuntimeManager __instance, DirectoryInfo directoryInfo, bool recursive, Action<RuntimeModuleInfo> action = null)
 		{
 
-            //Diagnostics.LogError($"[Gedemon] [RuntimeManager] [EnumerateRuntimeModules] (UseTrueCultureLocation: {CultureUnlock.UseTrueCultureLocation()}).");
-            //if (CultureUnlock.UseTrueCultureLocation())
-			// Gedemon <<<<<
-            {
-				DirectoryInfo[] directories = directoryInfo.GetDirectories("*", SearchOption.TopDirectoryOnly);
-				foreach (DirectoryInfo obj in directories)
-				{
-					Diagnostics.Log($"[Gedemon] [RuntimeManager] searching *TCL.json file in {obj.FullName}");
-					string searchPattern = "*TCL.json";
-					SearchOption searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-					FileInfo[] files = obj.GetFiles(searchPattern, searchOption);
-					foreach (FileInfo fileInfo in files)
-					{
-						Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] loading *TCL.json file : ({fileInfo.FullName})");
-						StreamReader stream = fileInfo.OpenText();
-						ModLoading.AddModdedTCL(stream.ReadToEnd(), fileInfo);
-					}
-				}
-			}
-			// Gedemon >>>>>
 			{
 				DirectoryInfo[] directories = directoryInfo.GetDirectories("*", SearchOption.TopDirectoryOnly);
 				foreach (DirectoryInfo obj in directories)

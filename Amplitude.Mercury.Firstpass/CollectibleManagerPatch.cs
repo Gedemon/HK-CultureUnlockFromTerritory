@@ -38,6 +38,14 @@ namespace Gedemon.TrueCultureLocation
 			}
 			//*/
 
+			// Log all factions
+			var factionDefinitions = Databases.GetDatabase<Amplitude.Mercury.Data.Simulation.FactionDefinition>();
+			foreach (Amplitude.Mercury.Data.Simulation.FactionDefinition data in factionDefinitions)
+			{
+				Diagnostics.LogWarning($"[Gedemon] FactionDefinition name = {data.name}, era = {data.EraIndex}");//, Name = {data.Name}");
+			}
+
+			// Log all options
 			var gameOptionDefinitions = Databases.GetDatabase<GameOptionDefinition>();
 			foreach (var option in gameOptionDefinitions)
 			{

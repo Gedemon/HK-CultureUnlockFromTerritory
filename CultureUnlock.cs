@@ -532,6 +532,8 @@ namespace Gedemon.TrueCultureLocation
 					//{ 255, ""}, // Last Index !
 				};
 
+		public static readonly List<int> GiantEarthMapHash = new List<int> { -819807177 /*1.1.0*/, -288044546 /*1.1.1*/, };
+
 		#endregion
 
 		static IDictionary<int, Hexagon.OffsetCoords> ExtraPositions = new Dictionary<int, Hexagon.OffsetCoords>();
@@ -563,8 +565,6 @@ namespace Gedemon.TrueCultureLocation
 		public static readonly int knowledgeForBackupCiv = 25;
 
 		public static readonly int maxNumTerritories = 256;
-
-		public static readonly List<int> GiantEarthMapHash = new List<int> { -819807177 /*1.1.0*/, -288044546 /*1.1.1*/, };//{ 33903987 /*1.1.0*/, -1220785390 /*1.1.1*/, };
 
 		public static int CurrentMapHash { get; set; } = 0;
 		public static bool IsMapValidforTCL { get; set; } = false;
