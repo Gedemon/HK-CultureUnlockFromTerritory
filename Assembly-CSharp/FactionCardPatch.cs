@@ -23,7 +23,7 @@ namespace Gedemon.TrueCultureLocation
 			int baseFontSize = 14;
 
 			string factionName = __instance.NextFactionInfo.FactionDefinitionName.ToString();
-			Diagnostics.LogWarning($"[Gedemon] in InternalRefresh, {factionName}");
+			Diagnostics.LogWarning($"[Gedemon] in InternalRefresh, {factionName}, {status}");
 
 			bool flag = (status & FactionStatus.LockedByEmpireMiscFlags) != 0;
 
@@ -65,7 +65,6 @@ namespace Gedemon.TrueCultureLocation
 				else //if(__instance.isInConfirmationState)
                 {
 					__instance.lockedLabel.Text = "";
-
 
 					TerritoryChange territoryChange = new TerritoryChange(majorEmpire, __instance.NextFactionInfo.FactionDefinitionName);
 

@@ -719,6 +719,11 @@ namespace Gedemon.TrueCultureLocation
 					{
 						Settlement settlement = majorEmpire.Settlements[i];
 
+						if (settlement.SettlementStatus == SettlementStatuses.BeingSettled)
+						{
+							continue;
+						}
+
 						if ((settlement.CityFlags & CityFlags.Captured) == 0)
 						{
 							int count2 = settlement.Region.Entity.Territories.Count;

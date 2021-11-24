@@ -84,7 +84,7 @@ namespace Gedemon.TrueCultureLocation
 			{
 				MajorEmpire potentialEmpire = Sandbox.MajorEmpires[i];
 
-				if (potentialEmpire.Armies.Count == 0 && potentialEmpire.Settlements.Count == 0 && potentialEmpire.IsAlive)
+				if (potentialEmpire.Armies.Count == 0 && potentialEmpire.Settlements.Count == 0 && potentialEmpire.OccupiedCityCount.Value == 0 && potentialEmpire.IsAlive)
 				{
 					mustResurect = false;
 				}
@@ -108,7 +108,7 @@ namespace Gedemon.TrueCultureLocation
 					continue;
 				}
 
-				if (potentialEmpire.Armies.Count == 0 && potentialEmpire.Settlements.Count == 0 && (potentialEmpire.IsAlive || mustResurect))
+				if (potentialEmpire.Armies.Count == 0 && potentialEmpire.Settlements.Count == 0 && potentialEmpire.OccupiedCityCount.Value == 0 && (potentialEmpire.IsAlive || mustResurect))
 				{
 					freeEmpire = potentialEmpire;
 					return freeEmpire;
