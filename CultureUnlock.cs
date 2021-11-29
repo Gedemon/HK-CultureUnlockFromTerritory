@@ -619,6 +619,11 @@ namespace Gedemon.TrueCultureLocation
                 {
 					territoriesWithMajorEmpires[majorTerritories.Value[0]].Add(majorTerritories.Key);
 				}
+				if(!listMajorEmpireCoreTerritories.ContainsKey(majorTerritories.Key))
+				{
+					Diagnostics.LogWarning($"[Gedemon] Adding missing {majorTerritories.Key} entry to listMajorEmpireCoreTerritories (using listMajorEmpireTerritories)");
+					listMajorEmpireCoreTerritories.Add(majorTerritories.Key, majorTerritories.Value);
+				}
 			}
 
 			IsMapValidforTCL = ValidateMapTCL();
@@ -698,7 +703,19 @@ namespace Gedemon.TrueCultureLocation
 		{
 			return HasMinorTerritories(FactionName.ToString());
 		}
-
+		public static bool HasTerritory(string factionName, int territoryIndex)
+		{
+			if (HasMajorTerritories(factionName))
+				return listMajorEmpireTerritories[factionName].Contains(territoryIndex);
+			else if (HasMinorTerritories(factionName))
+				return listMinorFactionTerritories[factionName].Contains(territoryIndex);
+			else
+				return false;
+		}
+		public static bool HasTerritory(StaticString FactionName, int territoryIndex)
+		{
+			return HasTerritory(FactionName.ToString(), territoryIndex);
+		}
 		public static bool HasCoreTerritory(string factionName, int territoryIndex)
 		{
 			if(TrueCultureLocation.KeepOnlyCoreTerritories())
@@ -711,27 +728,10 @@ namespace Gedemon.TrueCultureLocation
 			}
 			return HasTerritory(factionName, territoryIndex);
 		}
-
 		public static bool HasCoreTerritory(StaticString FactionName, int territoryIndex)
 		{
 			return HasCoreTerritory(FactionName.ToString(), territoryIndex);
 		}
-
-		public static bool HasTerritory(string factionName, int territoryIndex)
-		{
-			if (HasMajorTerritories(factionName))
-				return listMajorEmpireTerritories[factionName].Contains(territoryIndex);
-			else if (HasMinorTerritories(factionName))
-				return listMinorFactionTerritories[factionName].Contains(territoryIndex);
-			else
-				return false;
-		}
-
-		public static bool HasTerritory(StaticString FactionName, int territoryIndex)
-		{
-			return HasTerritory(FactionName.ToString(), territoryIndex);
-		}
-
 		public static bool HasCoreTerritory(string factionName, int territoryIndex, bool any)
 		{
 			if (any)
