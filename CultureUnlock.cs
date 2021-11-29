@@ -560,7 +560,7 @@ namespace Gedemon.TrueCultureLocation
 
 		static readonly List<string> firstEraBackup = new List<string> { "Civilization_Era1_Assyria", };
 
-		static readonly List<string> noCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire" };
+		static readonly List<string> noCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire", "Civilization_Era4_TokugawaShogunate" };
 
 		public static readonly int knowledgeForBackupCiv = 25;
 

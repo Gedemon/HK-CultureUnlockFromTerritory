@@ -170,6 +170,30 @@ namespace Gedemon.TrueCultureLocation
 					oldEmpire.DepartmentOfScience.UpdateTechnologiesState();
 				}
 
+                // Adding civics
+                {
+					int numCivics = majorEmpire.DepartmentOfDevelopment.Civics.Length;
+					for (int c = 0; c < numCivics; c++)
+					{
+						Civic originalCivic = majorEmpire.DepartmentOfDevelopment.Civics[c];
+						if (originalCivic.CivicStatus == CivicStatuses.Enacted || originalCivic.CivicStatus == CivicStatuses.Available)
+						{
+							int civicIndex = oldEmpire.DepartmentOfDevelopment.GetCivicIndex(originalCivic.CivicDefinition.Name);
+							ref Civic newCivic = ref oldEmpire.DepartmentOfDevelopment.Civics.Data[civicIndex];
+							int choiceIndex = newCivic.CivicDefinition.GetChoiceIndex(originalCivic.ActiveChoiceName);
+							Diagnostics.LogWarning($"[Gedemon] Checking Civic {originalCivic.CivicDefinition.Name}, ActiveChoiceName = {originalCivic.ActiveChoiceName}, Spawned Empire civic status = {newCivic.CivicStatus}, Original Empire civic status = {originalCivic.CivicStatus}");
+							if (originalCivic.CivicStatus == CivicStatuses.Enacted && newCivic.CivicStatus != CivicStatuses.Enacted)
+							{
+								oldEmpire.DepartmentOfDevelopment.ActiveCivic(civicIndex, choiceIndex, raiseSimulationEvents: true);
+							}
+							if (originalCivic.CivicStatus == CivicStatuses.Available && newCivic.CivicStatus != CivicStatuses.Available)
+							{
+								oldEmpire.DepartmentOfDevelopment.UnlockCivic(civicIndex, raiseSimulationEvents: true);
+							}
+						}
+					}
+				}
+
 				Diagnostics.LogWarning($"[Gedemon] after changes, EraLevel: {oldEmpire.EraLevel.Value}");
 				oldEmpire.SetEmpireSymbol(majorEmpire.EmpireSymbolDefinition.Name);
 				SetFactionSymbol(oldEmpire);

@@ -25,7 +25,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.2.4";
+		public const string pluginVersion = "1.0.2.5";
 
         #region Define Options
 
@@ -833,9 +833,6 @@ namespace Gedemon.TrueCultureLocation
 
 		#endregion
 
-		public static int[] PassingTradeRoadIndexes { get; set; }
-		public static FixedPoint TradeRoadCountValue { get; set; }
-
 		public bool toggleShowTerritory = false;
 
 		// Awake is called once when both the game and the plug-in are loaded
@@ -844,6 +841,13 @@ namespace Gedemon.TrueCultureLocation
 			Harmony harmony = new Harmony(pluginGuid);
 			Instance = this;
 			harmony.PatchAll();
+			/*
+			Logger.LogInfo($"Patching done for {pluginGuid}, patched methods:");
+			foreach(var method in harmony.GetPatchedMethods())
+			{
+				Logger.LogInfo($" - {method.Name}"); // {method.FullDescription()}
+			}
+			//*/
 		}
 		public static TrueCultureLocation Instance;
 
