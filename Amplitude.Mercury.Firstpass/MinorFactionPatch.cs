@@ -285,12 +285,22 @@ namespace Gedemon.TrueCultureLocation
 									FactionDefinition factionDefinition = Utils.GameUtils.GetFactionDefinition(factionName);
 									if (factionDefinition != null)
 									{
-										Diagnostics.LogWarning($"[Gedemon] - {empireName}, Era Index = {factionDefinition.EraIndex}");
-										if (hasEnoughLifeTime && factionDefinition.EraIndex <= Sandbox.Timeline.GetGlobalEraIndex() - 1 && factionDefinition.EraIndex >= minorEmpire.EraIndex)
-										{
-											newfaction = factionDefinition;
-											goto FoundNewFaction;
-										}
+										Diagnostics.LogWarning($"[Gedemon] - Checking {empireName}, Era Index = {factionDefinition.EraIndex}");
+
+										if (CurrentGame.Data.IsFallenEmpire(factionName))
+											continue;
+
+										if (!hasEnoughLifeTime)
+											continue;
+
+										if (factionDefinition.EraIndex > Sandbox.Timeline.GetGlobalEraIndex())
+											continue;
+
+										if (factionDefinition.EraIndex < minorEmpire.EraIndex)
+											continue;
+
+										newfaction = factionDefinition;
+										goto FoundNewFaction;
 									}
 									else
 									{

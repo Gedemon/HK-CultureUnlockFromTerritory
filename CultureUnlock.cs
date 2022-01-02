@@ -776,19 +776,26 @@ namespace Gedemon.TrueCultureLocation
 		{
 			if (TrueCultureLocation.KeepOnlyCoreTerritories())
 			{
-				if (listMajorEmpireCoreTerritories.TryGetValue(factionName, out List<int> listTerritories))
+				if (listMajorEmpireCoreTerritories.TryGetValue(factionName, out List<int> listCoreTerritories))
+				{
+					return listCoreTerritories;
+				}
+				else if (listMajorEmpireTerritories.TryGetValue(factionName, out List<int> listTerritories))
 				{
 					return listTerritories;
 				}
-				else
-				{
-					return listMajorEmpireTerritories[factionName];
-				}
+                else
+                {
+					return new List<int>();
+                }
 			}
-            else
+            else if (listMajorEmpireTerritories.TryGetValue(factionName, out List<int> listTerritories))
 			{
-				return listMajorEmpireTerritories[factionName];
-
+				return listTerritories;
+			}
+			else
+			{
+				return new List<int>();
 			}
 		}
 		public static List<int> GetListTerritories(StaticString FactionName)

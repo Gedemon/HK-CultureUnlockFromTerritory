@@ -13,6 +13,8 @@ using System.Reflection;
 //using Amplitude.Mercury.Interop;
 using Amplitude.Framework.Networking;
 using Amplitude.Framework.Simulation;
+using Amplitude.Serialization;
+using Amplitude.Framework.Storage;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -22,11 +24,44 @@ namespace Gedemon.TrueCultureLocation
 	public class TCL_Sandbox
 	{
 
+		//*
+		[HarmonyPatch("Load")]
+		[HarmonyPatch(new Type[] { typeof(StorageContainerInfo) } )]
+		[HarmonyPrefix]
+		public static bool Load(Sandbox __instance, StorageContainerInfo storageContainerInfo)
+		{
+			{
+				Diagnostics.LogError($"[Gedemon] [Sandbox] [Load] {storageContainerInfo.GetMetadata("GameSaveMetadata::Title")}, {storageContainerInfo.GetMetadata("GameSaveMetadata::DateTime")}");
+			}
+			return true;
+		}
+		//*/
+
+		[HarmonyPatch("ThreadStarted")]
+		[HarmonyPostfix]
+		public static void ThreadStarted(Sandbox __instance)
+		{
+			Diagnostics.LogError($"[Gedemon] [ThreadStarted] postfix");
+
+			CultureChange.OnSandboxStarted();
+
+			if (!CurrentGame.Data.IsInitialized)
+            {
+				// initialize mod's stuff here
+				TrueCultureLocation.CreateStartingOutpost();
+
+				CurrentGame.Data.IsInitialized = true;
+			}
+
+		}
+
 		[HarmonyPatch("ThreadStart")]
 		[HarmonyPostfix]
 		public static void ThreadStartExit(Sandbox __instance, object parameter)
 		{
 			Diagnostics.LogError($"[Gedemon] exiting Sandbox, ThreadStart");
+			MajorEmpireSaveExtension.OnExitSandbox();
+			CultureChange.OnExitSandbox();
 		}
 
 
@@ -35,6 +70,7 @@ namespace Gedemon.TrueCultureLocation
 		public static bool ThreadStart(Sandbox __instance, object parameter)
 		{
 			Diagnostics.LogError($"[Gedemon] entering Sandbox, ThreadStart");
+			MajorEmpireSaveExtension.OnSandboxStart();
 			/*
 			Sandbox.Frame = 1;
 			SimulationEvent.CurrentPermission = SimulationEvent.Permission.Forbidden;

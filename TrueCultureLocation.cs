@@ -18,6 +18,8 @@ using Amplitude.Framework.Runtime;
 using System;
 using Amplitude.Framework.Asset;
 using Newtonsoft.Json;
+using Amplitude.Serialization;
+using Amplitude.Mercury;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -25,11 +27,11 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.2.6";
+		public const string pluginVersion = "1.0.3.0";
 
-        #region Define Options
+		#region Define Options
 
-        public static readonly GameOptionInfo UseTrueCultureLocation = new GameOptionInfo
+		public static readonly GameOptionInfo UseTrueCultureLocation = new GameOptionInfo
 		{
 			ControlType = UIControlType.Toggle,
 			Key = "GameOption_TCL_UseTrueCultureLocation",
@@ -99,7 +101,7 @@ namespace Gedemon.TrueCultureLocation
 			Title = "[TCL] Territory Loss on Culture Change",
 			Description = "Determines which territories you may loss when changing Culture",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
-			States = { TerritoryLoss_None, TerritoryLoss_KeepAttached, TerritoryLoss_Full, TerritoryLoss_Full_Core  }//, TerritoryLoss_ByStability }
+			States = { TerritoryLoss_None, TerritoryLoss_KeepAttached, TerritoryLoss_Full, TerritoryLoss_Full_Core }//, TerritoryLoss_ByStability }
 		};
 
 		private static readonly List<GameOptionStateInfo> ErasCityRequired = new List<GameOptionStateInfo>
@@ -604,6 +606,31 @@ namespace Gedemon.TrueCultureLocation
 			}
 		};
 
+		public static readonly GameOptionInfo EliminateLastEmpiresOption = new GameOptionInfo
+		{
+			ControlType = UIControlType.Toggle,
+			Key = "GameOption_TCL_EliminateLastEmpiresOption",
+			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
+			DefaultValue = "True",
+			Title = "[TCL] Eliminate Last Empires",
+			Description = "Toggle to eliminate AI Empires that are lagging in a previous Era to free Slots for new Empires (if the Respawning Dead Players option is used)",
+			States =
+			{
+				new GameOptionStateInfo
+				{
+					Title = "On",
+					Description = "On",
+					Value = "True"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "Off",
+					Description = "Off",
+					Value = "False"
+				}
+			}
+		};
+
 		public static readonly GameOptionInfo EmpireIconsNumColumnOption = new GameOptionInfo
 		{
 			ControlType = UIControlType.DropList,
@@ -653,13 +680,14 @@ namespace Gedemon.TrueCultureLocation
 			}
 		};
 
-        #endregion
+		#endregion
 
-        #region Set options
+		#region Set options
 
-        public bool Enabled => GameOptionHelper.CheckGameOption(UseTrueCultureLocation, "True");
+		public bool Enabled => GameOptionHelper.CheckGameOption(UseTrueCultureLocation, "True");
 		public bool OnlyCultureTerritory => !GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_None");
 		public bool RespawnDeadPlayer => GameOptionHelper.CheckGameOption(RespawnDeadPlayersOption, "True");
+		public bool EliminateLastEmpires => GameOptionHelper.CheckGameOption(EliminateLastEmpiresOption, "True");
 		public bool KeepAttached => GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_KeepAttached");
 		public bool KeepOnlyCore => GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_Full_Core");
 		public bool NoLossForAI => GameOptionHelper.CheckGameOption(TerritoryLossIgnoreAI, "True");
@@ -681,9 +709,9 @@ namespace Gedemon.TrueCultureLocation
 
 		#endregion
 
-        #region Get Options
+		#region Get Options
 
-        public static bool IsEnabled()
+		public static bool IsEnabled()
 		{
 			return Instance.Enabled;
 		}
@@ -694,6 +722,10 @@ namespace Gedemon.TrueCultureLocation
 		public static bool CanRespawnDeadPlayer()
 		{
 			return Instance.RespawnDeadPlayer;
+		}
+		public static bool CanEliminateLastEmpires()
+		{
+			return Instance.EliminateLastEmpires;
 		}
 		public static bool EmpireCanSpawnFromMinorFactions()
 		{
@@ -773,11 +805,11 @@ namespace Gedemon.TrueCultureLocation
 
 			Diagnostics.LogWarning($"[Gedemon] HasStartingOutpost EmpireIndex = {EmpireIndex}, IsHuman = {IsHuman},  StartingOutpostForAI = {Instance.StartingOutpostForAI}, StartingOutpostForHuman = {Instance.StartingOutpostForHuman}, option = {GameOptionHelper.GetGameOption(StartingOutpost)}");
 			if (!IsSettlingEmpire(EmpireIndex, IsHuman))
-            {
+			{
 				return false;
-            }
+			}
 			if (IsHuman)
-            {
+			{
 				return Instance.StartingOutpostForHuman;
 			}
 			else
@@ -821,15 +853,15 @@ namespace Gedemon.TrueCultureLocation
 		}
 
 		public static bool IsEmpireHumanSlot(int empireIndex)
-        {
+		{
 			ISessionService service = Services.GetService<ISessionService>();
 			ISessionSlotController slots = ((Amplitude.Mercury.Session.Session)service.Session).Slots;
 			if (empireIndex >= slots.Count)
-            {
+			{
 				return false;
-            }
+			}
 			return slots[empireIndex].IsHuman;
-        }
+		}
 
 		#endregion
 
@@ -850,6 +882,27 @@ namespace Gedemon.TrueCultureLocation
 			//*/
 		}
 		public static TrueCultureLocation Instance;
+
+		public static void CreateStartingOutpost()
+		{
+
+			int numMajor = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires.Length;
+			for (int empireIndex = 0; empireIndex < numMajor; empireIndex++)
+			{
+				MajorEmpire majorEmpire = Sandbox.MajorEmpires[empireIndex];
+				bool isHuman = TrueCultureLocation.IsEmpireHumanSlot(empireIndex);
+				WorldPosition worldPosition = new WorldPosition(World.Tables.SpawnLocations[empireIndex]);
+				SimulationEntityGUID GUID = SimulationEntityGUID.Zero;
+
+				Diagnostics.LogWarning($"[Gedemon] [CreateStartingOutpost] for {majorEmpire.majorEmpireDescriptorName}, index = {empireIndex}, IsControlledByHuman = {isHuman}"); // IsEmpireHumanSlot(int empireIndex)
+
+				if (TrueCultureLocation.HasStartingOutpost(empireIndex, isHuman)) // 
+				{
+					majorEmpire.DepartmentOfTheInterior.CreateCampAt(GUID, worldPosition, FixedPoint.Zero, isImmediate : true);
+				}
+			}
+		}
+
 
 		private void Update()
 		{
@@ -950,7 +1003,7 @@ namespace Gedemon.TrueCultureLocation
 	{
 		[HarmonyPatch("InvestProductionFor")]
 		[HarmonyPrefix]
-		public static bool InvestProductionFor(DepartmentOfIndustry __instance, ConstructionQueue constructionQueue) 
+		public static bool InvestProductionFor(DepartmentOfIndustry __instance, ConstructionQueue constructionQueue)
 		{
 
 			if (CultureUnlock.UseTrueCultureLocation())
@@ -1005,7 +1058,7 @@ namespace Gedemon.TrueCultureLocation
 									fixedPoint -= fixedPoint2;
 									construction.InvestedResource = construction.Cost;
 									__instance.NotifyEndedConstruction(constructionQueue, num2, ref construction);
-                                    Amplitude.Framework.Simulation.SimulationController.RefreshAll();
+									Amplitude.Framework.Simulation.SimulationController.RefreshAll();
 								}
 								else
 								{
@@ -1037,7 +1090,7 @@ namespace Gedemon.TrueCultureLocation
 				}
 
 				return false; // we've replaced the full method
-            }
+			}
 			return true;
 		}
 	}
@@ -1102,7 +1155,7 @@ namespace Gedemon.TrueCultureLocation
 					ref SettlementInfo reference2 = ref Snapshots.GameSnapshot.PresentationData.SettlementInfo.Data[reference.SettlementIndex];
 					if (reference2.TileIndex == reference.AdministrativeDistrictTileIndex)
 					{
-						string text = CultureUnlock.TerritoryHasName(territoryIndex) ? CultureUnlock.GetTerritoryName(territoryIndex, hasName : true) : reference2.EntityName.ToString();// reference2.EntityName.ToString();
+						string text = CultureUnlock.TerritoryHasName(territoryIndex) ? CultureUnlock.GetTerritoryName(territoryIndex, hasName: true) : reference2.EntityName.ToString();// reference2.EntityName.ToString();
 						if (flag)
 						{
 							//Color empireColor = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
@@ -1115,7 +1168,7 @@ namespace Gedemon.TrueCultureLocation
 					}
 				}
 
-				string text2 = CultureUnlock.TerritoryHasName(territoryIndex) ? CultureUnlock.GetTerritoryName(territoryIndex, hasName : true) : reference.LocalizedName ?? string.Empty;// reference.LocalizedName ?? string.Empty;
+				string text2 = CultureUnlock.TerritoryHasName(territoryIndex) ? CultureUnlock.GetTerritoryName(territoryIndex, hasName: true) : reference.LocalizedName ?? string.Empty;// reference.LocalizedName ?? string.Empty;
 				if (flag && reference.Claimed)
 				{
 					//Color empireColor2 = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
@@ -1138,7 +1191,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TCL_RuntimeManager
 	{
 		[HarmonyPatch("EnumerateRuntimeModules")]
-		[HarmonyPatch(new Type[] { typeof(DirectoryInfo), typeof(bool), typeof(Action<RuntimeModuleInfo>)})]
+		[HarmonyPatch(new Type[] { typeof(DirectoryInfo), typeof(bool), typeof(Action<RuntimeModuleInfo>) })]
 		[HarmonyPrefix]
 		public static bool EnumerateRuntimeModules(Amplitude.Mercury.Runtime.RuntimeManager __instance, DirectoryInfo directoryInfo, bool recursive, Action<RuntimeModuleInfo> action = null)
 		{
@@ -1171,11 +1224,11 @@ namespace Gedemon.TrueCultureLocation
 							// Gedemon <<<<
 							Diagnostics.Log($"[Gedemon] [RuntimeManager] loading asset bundle from file (path: {fileInfo.FullName} loaded: {flag}).");
 							string[] assetFiles = assetBundle.GetAllAssetNames();
-							foreach(string assetName in assetFiles)
+							foreach (string assetName in assetFiles)
 							{
 								string lowerCase = assetName.ToLower();
 								if (lowerCase.EndsWith("tcl.json"))
-                                {
+								{
 									Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains *tcl.json ({assetName})");
 									TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
 									//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
@@ -1217,13 +1270,13 @@ namespace Gedemon.TrueCultureLocation
 					}
 				}
 				return false;
-            }
+			}
 			return true;
 		}
 	}
-	//*/
+    //*/
 
-	/*
+    /*
 	[HarmonyPatch(typeof(EliminationController))]
 	public class EliminationController_Patch
 	{
@@ -1242,5 +1295,13 @@ namespace Gedemon.TrueCultureLocation
 		}
 	}
 	//*/
+
+    public class testSave : ISerializable
+    {
+        void ISerializable.Serialize(Serializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
 }

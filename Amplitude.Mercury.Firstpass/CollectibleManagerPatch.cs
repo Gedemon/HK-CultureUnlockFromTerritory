@@ -25,16 +25,26 @@ namespace Gedemon.TrueCultureLocation
 			// 
 			// BuildingVisualAffinityDefinition
 			// UnitVisualAffinityDefinition
+			// EmpireSymbolDefinition
+			// LocalizedStringElement
 			/* 
-			var database1 = Databases.GetDatabase<Amplitude.Mercury.Data.Simulation.FactionDefinition>();
-			foreach (Amplitude.Mercury.Data.Simulation.FactionDefinition data in database1)
+			var database1 = Databases.GetDatabase<Amplitude.Mercury.Data.Simulation.EmpireSymbolDefinition>();
+			foreach (Amplitude.Mercury.Data.Simulation.EmpireSymbolDefinition data in database1)
 			{
-				//Diagnostics.LogWarning($"[Gedemon] FactionDefinition name = {data.name}");//, Name = {data.Name}");
+				//Diagnostics.LogWarning($"[Gedemon] EmpireSymbolDefinition name = {data.name}");//, Name = {data.Name}");
 
 				foreach (var prop in data.GetType().GetProperties())
 				{
 					Diagnostics.Log($"[Gedemon] {prop.Name} = {prop.GetValue(data, null)}");
 				}
+			}
+			//*/
+
+			/*
+			var definition = Databases.GetDatabase<Amplitude.Framework.Localization.LocalizedStringElement>();
+			foreach (Amplitude.Framework.Localization.LocalizedStringElement data in definition)
+			{
+				Diagnostics.LogWarning($"[Gedemon] Localization {data.name} = {data.CompactedNodes[0].TextValue}");
 			}
 			//*/
 
