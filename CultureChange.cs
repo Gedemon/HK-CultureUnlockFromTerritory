@@ -75,6 +75,7 @@ namespace Gedemon.TrueCultureLocation
 						EmpiresPerEra.Add(empireEraIndex, new List<MajorEmpire> { majorEmpire });
 					}
 				}
+				Diagnostics.LogWarning($"[Gedemon] [CultureChange] numAwake = {numAwake}, maxAwake = {maxAwake}, maxEra = {maxEra}, minEra = {minEra}, EmpiresPerEra[minEra].Count = {EmpiresPerEra[minEra].Count}, lastEmpires = {lastEmpires}");
 				if (numAwake >= maxAwake && maxEra > minEra && EmpiresPerEra[minEra].Count <= lastEmpires)
 				{
 

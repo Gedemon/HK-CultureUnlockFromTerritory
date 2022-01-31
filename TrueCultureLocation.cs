@@ -20,6 +20,7 @@ using Amplitude.Framework.Asset;
 using Newtonsoft.Json;
 using Amplitude.Serialization;
 using Amplitude.Mercury;
+using Amplitude.Mercury.Avatar;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -27,7 +28,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.3.0";
+		public const string pluginVersion = "1.0.3.2";
 
 		#region Define Options
 
@@ -199,7 +200,7 @@ namespace Gedemon.TrueCultureLocation
 				Description = "16 Empires",
 				Value = "16"
 			},
-			//*
+			/*
 			new GameOptionStateInfo
 			{
 				Title = "17",
@@ -327,7 +328,7 @@ namespace Gedemon.TrueCultureLocation
 			Key = "GameOption_TCL_ExtraEmpireSlots",
 			DefaultValue = "0",
 			Title = "Maximum number of Competitors",
-			Description = "Add extra Empire Slots in game (AI only), allowing a maximum of 16 Empires (10 from setup + 6 extra AI slots). This can be used either on the Giant Earth Map or any random map, but no other custom map. With [TCL], Nomadic Tribes controlled by those AI players will be able to spawn as a new Empire on the location of a Culture that has not been controlled yet, or take control of some territories of an old Empire during a split. (this setting override the default Starting Positions when using the Giant Earth Map). If you don't use [TCL], you should use (AOM) 'Allow Duplicate Cultures' Mod",
+			Description = "Add extra Empire Slots in game (AI only), allowing a maximum of 16 Empires (10 from setup + 6 extra AI slots). This can be used either on custom maps compatible with this mod or any random map, but will cause an error with incompatible custom maps. With [TCL], Nomadic Tribes controlled by those AI players will be able to spawn as a new Empire on the location of a Culture that has not been controlled yet, or take control of some territories of an old Empire during a split. (this setting override the default Starting Positions when using the Giant Earth Map). If you don't use [TCL], you should use (AOM) 'Allow Duplicate Cultures' Mod",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			States = NumEmpireSlots
 		};
@@ -611,7 +612,7 @@ namespace Gedemon.TrueCultureLocation
 			ControlType = UIControlType.Toggle,
 			Key = "GameOption_TCL_EliminateLastEmpiresOption",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
-			DefaultValue = "True",
+			DefaultValue = "False",
 			Title = "[TCL] Eliminate Last Empires",
 			Description = "Toggle to eliminate AI Empires that are lagging in a previous Era to free Slots for new Empires (if the Respawning Dead Players option is used)",
 			States =
@@ -941,40 +942,6 @@ namespace Gedemon.TrueCultureLocation
 	}
 
 
-
-	/*
-	[HarmonyPatch(typeof(PresentationPawn))]
-	public class CultureUnlock_PresentationPawn
-	{
-
-		[HarmonyPrefix]
-		[HarmonyPatch(nameof(Initialize))]
-		public static bool Initialize(PresentationPawn __instance)
-		{
-			Diagnostics.LogWarning($"[Gedemon] in PresentationPawn, Initialize for {__instance.name}");
-			Diagnostics.Log($"[Gedemon] Transform localScale =  {__instance.Transform.localScale}, gameObject.name =  {__instance.Transform.gameObject.name}, lossyScale =  {__instance.Transform.lossyScale}, childCount =  {__instance.Transform.childCount}");
-
-			__instance.Transform.localScale = new Vector3(0.5f, 0.5f, 0.5f );
-			return true;
-		}		
-	}
-	//*/
-
-
-	/*
-	[HarmonyPatch(typeof(Amplitude.Mercury.Sandbox.Sandbox))]
-	public class Sandbox_Patch
-	{
-		[HarmonyPatch("ThreadStart")]
-		[HarmonyPrefix]
-		public static bool ThreadStart(Amplitude.Mercury.Sandbox.Sandbox __instance, object parameter)
-		{
-
-		}
-	}
-	//*/
-
-
 	//*
 	[HarmonyPatch(typeof(DepartmentOfScience))]
 	public class DepartmentOfScience_Patch
@@ -1196,87 +1163,104 @@ namespace Gedemon.TrueCultureLocation
 		public static bool EnumerateRuntimeModules(Amplitude.Mercury.Runtime.RuntimeManager __instance, DirectoryInfo directoryInfo, bool recursive, Action<RuntimeModuleInfo> action = null)
 		{
 
+			DirectoryInfo[] directories = directoryInfo.GetDirectories("*", SearchOption.TopDirectoryOnly);
+			foreach (DirectoryInfo obj in directories)
 			{
-				DirectoryInfo[] directories = directoryInfo.GetDirectories("*", SearchOption.TopDirectoryOnly);
-				foreach (DirectoryInfo obj in directories)
+				string searchPattern = "*.assetbundle";
+				SearchOption searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+				FileInfo[] files = obj.GetFiles(searchPattern, searchOption);
+				foreach (FileInfo fileInfo in files)
 				{
-					string searchPattern = "*.assetbundle";
-					SearchOption searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-					FileInfo[] files = obj.GetFiles(searchPattern, searchOption);
-					foreach (FileInfo fileInfo in files)
+					UnityEngine.AssetBundle assetBundle = null;
+					bool flag = false;
+					try
 					{
-						UnityEngine.AssetBundle assetBundle = null;
-						bool flag = false;
-						try
+						string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(fileInfo.Name);
+						flag = AssetDatabase.TryGetAssetBundleFromPath(fileInfo.FullName, out assetBundle);
+						if (!flag)
 						{
-							string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(fileInfo.Name);
-							flag = AssetDatabase.TryGetAssetBundleFromPath(fileInfo.FullName, out assetBundle);
-							if (!flag)
-							{
-								assetBundle = UnityEngine.AssetBundle.LoadFromFile(fileInfo.FullName);
-							}
-							if (assetBundle == null)
-							{
-								Diagnostics.LogError($"[Mercury] [RuntimeManager] Failed to load asset bundle from file (path: {fileInfo.FullName} loaded: {flag}).");
-								continue;
-							}
+							assetBundle = UnityEngine.AssetBundle.LoadFromFile(fileInfo.FullName);
+						}
+						if (assetBundle == null)
+						{
+							Diagnostics.LogError($"[Mercury] [RuntimeManager] Failed to load asset bundle from file (path: {fileInfo.FullName} loaded: {flag}).");
+							continue;
+						}
 
-							// Gedemon <<<<
-							Diagnostics.Log($"[Gedemon] [RuntimeManager] loading asset bundle from file (path: {fileInfo.FullName} loaded: {flag}).");
-							string[] assetFiles = assetBundle.GetAllAssetNames();
-							foreach (string assetName in assetFiles)
+						// Gedemon <<<<
+						Diagnostics.Log($"[Gedemon] [RuntimeManager] loading asset bundle from file (path: {fileInfo.FullName} loaded: {flag}).");
+						string[] assetFiles = assetBundle.GetAllAssetNames();
+						foreach (string assetName in assetFiles)
+						{
+							string lowerCase = assetName.ToLower();
+							if (lowerCase.EndsWith("tcl.json"))
 							{
-								string lowerCase = assetName.ToLower();
-								if (lowerCase.EndsWith("tcl.json"))
-								{
-									Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains *tcl.json ({assetName})");
-									TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
-									//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
-									ModLoading.AddModdedTCL(textAsset.text, fileInfo);
-								}
-								if (lowerCase.EndsWith("citymap.json"))
-								{
-									Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains *citymap.json ({assetName})");
-									TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
-									//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
-								}
+								Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains *tcl.json ({assetName})");
+								TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
+								//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
+								ModLoading.AddModdedTCL(textAsset.text, fileInfo);
 							}
-							// Gedemon >>>>>
-
-							RuntimeModule runtimeModule = assetBundle.LoadAsset<RuntimeModule>(fileNameWithoutExtension);
-							if (runtimeModule != null)
+							if (lowerCase.EndsWith("citymap.json"))
 							{
-								RuntimeModuleInfo runtimeModuleInfo = RuntimeModuleInfo.CreateInstance(runtimeModule);
-								runtimeModuleInfo.File = fileInfo;
-								if (__instance.TryAddRuntimeModuleInfo(runtimeModuleInfo))
-								{
-									//Diagnostics.LogError($"[Gedemon] [RuntimeManager] TryAddRuntimeModuleInfo passed,  (path: {assetBundle.LoadAsset<TextAsset>("Resources")}).");
-									action?.Invoke(runtimeModuleInfo);
-								}
+								Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains *citymap.json ({assetName})");
+								TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
+								//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
 							}
 						}
-						catch (Exception exception)
+						// Gedemon >>>>>
+
+						RuntimeModule runtimeModule = assetBundle.LoadAsset<RuntimeModule>(fileNameWithoutExtension);
+						if (runtimeModule != null)
 						{
-							Diagnostics.LogException(exception);
-						}
-						finally
-						{
-							if (assetBundle != null && !flag)
+							RuntimeModuleInfo runtimeModuleInfo = RuntimeModuleInfo.CreateInstance(runtimeModule);
+							runtimeModuleInfo.File = fileInfo;
+							if (__instance.TryAddRuntimeModuleInfo(runtimeModuleInfo))
 							{
-								assetBundle.Unload(unloadAllLoadedObjects: false);
-								assetBundle = null;
+								//Diagnostics.LogError($"[Gedemon] [RuntimeManager] TryAddRuntimeModuleInfo passed,  (path: {assetBundle.LoadAsset<TextAsset>("Resources")}).");
+								action?.Invoke(runtimeModuleInfo);
 							}
 						}
 					}
+					catch (Exception exception)
+					{
+						Diagnostics.LogException(exception);
+					}
+					finally
+					{
+						if (assetBundle != null && !flag)
+						{
+							assetBundle.Unload(unloadAllLoadedObjects: false);
+							assetBundle = null;
+						}
+					}
 				}
-				return false;
 			}
+			return false;
+		}
+	}
+	//*/
+
+	//*
+	[HarmonyPatch(typeof(AvatarManager))]
+	public class AvatarManager_Patch
+	{
+
+		[HarmonyPatch("ForceAvatarSummaryTo")]
+		[HarmonyPrefix]
+		public static bool ForceAvatarSummaryTo(AvatarManager __instance, AvatarId avatarId, ref Amplitude.Mercury.Avatar.AvatarSummary avatarSummary)
+		{
+			// compatibility fix for January 2022 patch, seems that now slots > 10 don't get a random avatar summary in session initialization
+			if (avatarSummary.ElementKeyBySlots == null)
+			{
+				__instance.GetRandomAvatarSummary(avatarId.Index, ref avatarSummary);
+			}
+
 			return true;
 		}
 	}
-    //*/
+	//*/
 
-    /*
+	/*
 	[HarmonyPatch(typeof(EliminationController))]
 	public class EliminationController_Patch
 	{
@@ -1296,12 +1280,25 @@ namespace Gedemon.TrueCultureLocation
 	}
 	//*/
 
-    public class testSave : ISerializable
-    {
-        void ISerializable.Serialize(Serializer serializer)
-        {
-            throw new NotImplementedException();
-        }
-    }
+
+
+	/*
+	[HarmonyPatch(typeof(PresentationPawn))]
+	public class CultureUnlock_PresentationPawn
+	{
+
+		[HarmonyPrefix]
+		[HarmonyPatch(nameof(Initialize))]
+		public static bool Initialize(PresentationPawn __instance)
+		{
+			Diagnostics.LogWarning($"[Gedemon] in PresentationPawn, Initialize for {__instance.name}");
+			Diagnostics.Log($"[Gedemon] Transform localScale =  {__instance.Transform.localScale}, gameObject.name =  {__instance.Transform.gameObject.name}, lossyScale =  {__instance.Transform.lossyScale}, childCount =  {__instance.Transform.childCount}");
+
+			__instance.Transform.localScale = new Vector3(0.5f, 0.5f, 0.5f );
+			return true;
+		}		
+	}
+	//*/
+
 
 }

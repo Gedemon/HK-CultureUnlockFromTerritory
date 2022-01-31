@@ -196,7 +196,13 @@ namespace Gedemon.TrueCultureLocation
 					{ "Civilization_Era6_Egypt",                    new List<int>() { 128, 233 } }, // Egypt
 					{ "Civilization_Era6_China",                    new List<int>() { 162, 163, 164, 221, 229, 208, 187, 150, 179, 173, 244, 241 } }, // China
 					{ "Civilization_Era6_Brazil",                   new List<int>() { 54, 49, 53, 46 } }, // Brazil
-					{ "Civilization_Era6_Australia",                new List<int>() { 35, 31, 32, 33, 34, 36, 37, 38, 39 } }  // Australia
+					{ "Civilization_Era6_Australia",                new List<int>() { 35, 31, 32, 33, 34, 36, 37, 38, 39 } },  // Australia
+					{ "Civilization_Era1_Bantu",                    new List<int>() { 130, 137, 131, 214, 215, 234, 222, 136 }}, //Camerunia, Congo, Kenia, Angolia, Zambia, Mozambicum, Zimbabua, Cape
+					{ "Civilization_Era2_Garamantes",               new List<int>() { 127 } }, // Libya
+					{ "Civilization_Era3_Swahili",                  new List<int>() { 131, 234 } }, // Kenia, Mozambicum 
+					{ "Civilization_Era4_Maasai",                   new List<int>() { 159 } }, // Kenya
+					{ "Civilization_Era5_Ethiopia",                 new List<int>() { 132, 209 } }, // Abyssinia, Somalia
+					{ "Civilization_Era6_Nigeria",					new List<int>() { 128, 233 } } // Beninum, Nigritania
 				};
 
 		static readonly IDictionary<string, List<int>> listMajorEmpireCoreTerritoriesGiantEarthMap = new Dictionary<string, List<int>>  // CivName, list of territory indexes
@@ -560,7 +566,7 @@ namespace Gedemon.TrueCultureLocation
 
 		static readonly List<string> firstEraBackup = new List<string> { "Civilization_Era1_Assyria", };
 
-		static readonly List<string> noCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire", "Civilization_Era4_TokugawaShogunate" };
+		static readonly List<string> noCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era1_Bantu", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire", "Civilization_Era4_TokugawaShogunate" };
 
 		public static readonly int knowledgeForBackupCiv = 25;
 
