@@ -28,7 +28,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.3.2";
+		public const string pluginVersion = "1.0.3.3";
 
 		#region Define Options
 
@@ -1244,14 +1244,14 @@ namespace Gedemon.TrueCultureLocation
 	[HarmonyPatch(typeof(AvatarManager))]
 	public class AvatarManager_Patch
 	{
-
 		[HarmonyPatch("ForceAvatarSummaryTo")]
 		[HarmonyPrefix]
 		public static bool ForceAvatarSummaryTo(AvatarManager __instance, AvatarId avatarId, ref Amplitude.Mercury.Avatar.AvatarSummary avatarSummary)
 		{
 			// compatibility fix for January 2022 patch, seems that now slots > 10 don't get a random avatar summary in session initialization
-			if (avatarSummary.ElementKeyBySlots == null)
+			if (avatarSummary.ElementKeyBySlots == null || avatarSummary.ElementKeyBySlots.Length == 0)
 			{
+				Diagnostics.LogError($"[Gedemon] [AvatarManager] ForceAvatarSummaryTo: avatarID #{avatarId.Index} has no avatar summary, calling GetRandomAvatarSummary...");
 				__instance.GetRandomAvatarSummary(avatarId.Index, ref avatarSummary);
 			}
 
