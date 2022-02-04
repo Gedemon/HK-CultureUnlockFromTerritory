@@ -4,6 +4,9 @@ using Amplitude;
 using Amplitude.Mercury.Game;
 using Amplitude.Framework.Session;
 using Amplitude.Mercury.Session;
+using Amplitude.Mercury.PlayerProfile;
+using Amplitude.Mercury.Persona;
+using Amplitude.Mercury;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -25,7 +28,15 @@ namespace Gedemon.TrueCultureLocation
 				ISessionSlotController slots = ((Amplitude.Mercury.Session.Session)service.Session).Slots;
 				if (totalEmpireSlots > slots.Count)
 				{
-					Diagnostics.LogError($"[Gedemon] Set Slots Count to {totalEmpireSlots}");
+					IPersonaListingService personaListingService = Services.GetService<IPersonaListingService>();
+					ListOfStruct<AvailablePersona> listOfAvailablePersona = new ListOfStruct<AvailablePersona>();
+					listOfAvailablePersona.Clear();
+					personaListingService.FillAvailablePersona(listOfAvailablePersona, fillOnlyUseable: true);
+					int numAvatars = listOfAvailablePersona.Length + 1; // to do, add MP avatars, not just the local human player avatar ?
+
+					Diagnostics.LogError($"[Gedemon] Asking for {totalEmpireSlots} slots, valid Avatars = {numAvatars}");
+					totalEmpireSlots = totalEmpireSlots > numAvatars ? numAvatars : totalEmpireSlots;
+					Diagnostics.LogError($"[Gedemon] Setting Slot Count to {totalEmpireSlots}");
 					slots.SetSlotCount(totalEmpireSlots);
 				}
 			}

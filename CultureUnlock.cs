@@ -621,7 +621,7 @@ namespace Gedemon.TrueCultureLocation
 						territoriesWithMajorEmpires[index].Add(majorTerritories.Key);
 					}
 				}
-				else
+				else if (majorTerritories.Value.Count > 0)
                 {
 					territoriesWithMajorEmpires[majorTerritories.Value[0]].Add(majorTerritories.Key);
 				}

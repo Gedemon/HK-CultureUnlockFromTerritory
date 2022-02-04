@@ -67,7 +67,7 @@ namespace Gedemon.TrueCultureLocation
 
     class ModLoading
     {
-        static IDictionary<FileInfo, IList<MapTCL>> listTCLMods = new Dictionary<FileInfo, IList<MapTCL>>();
+        static IDictionary<string, IList<MapTCL>> listTCLMods = new Dictionary<string, IList<MapTCL>>();
 
         static IDictionary<string, TerritoriesLoadingList> MajorEmpireTerritoriesPreList = new Dictionary<string, TerritoriesLoadingList>();
         static IDictionary<string, TerritoriesLoadingList> MajorEmpireCoreTerritoriesPreList = new Dictionary<string, TerritoriesLoadingList>();
@@ -79,9 +79,9 @@ namespace Gedemon.TrueCultureLocation
         static IDictionary<int, PositionLoadingCoords> ExtraPositionsPreList = new Dictionary<int, PositionLoadingCoords>();
         static IDictionary<int, PositionLoadingCoords> ExtraPositionsNewWorldPreList = new Dictionary<int, PositionLoadingCoords>();
 
-        public static void AddModdedTCL(string text, FileInfo fileInfo)
+        public static void AddModdedTCL(string text, string provider)
         {
-            if (!listTCLMods.ContainsKey(fileInfo))
+            if (!listTCLMods.ContainsKey(provider))
             {
 				/*
 				TestClass testClass = new TestClass();
@@ -89,38 +89,47 @@ namespace Gedemon.TrueCultureLocation
 				Diagnostics.LogError($"[Gedemon] serialized testClass = {json}");
 				//*/
 
-				Diagnostics.LogError($"[Gedemon] deserialize modded TCL from {fileInfo.FullName}");
+				Diagnostics.LogWarning($"[Gedemon] deserialize modded TCL from {provider}");
                 IList<MapTCL> moddedTCL = JsonConvert.DeserializeObject<List<MapTCL>>(text);
-                listTCLMods.Add(fileInfo, moddedTCL);
+                listTCLMods.Add(provider, moddedTCL);
                 /*
                 Diagnostics.Log($"[Gedemon] moddedTCL[0].MinorFactionTerritories = {moddedTCL[0].MinorFactionTerritories["IndependentPeople_Era1_Peaceful_SC_Dilmun"][1]}");
                 //*/
             }
         }
 
+        public static void RemoveModdedTCL(string provider)
+        {
+            if (listTCLMods.ContainsKey(provider))
+            {
+                Diagnostics.LogError($"[Gedemon] Remove Modded TCL from: {provider}).");
+                listTCLMods.Remove(provider);
+            }
+        }
+
         public static void BuildModdedLists()
         {
-            Diagnostics.LogError($"[Gedemon] in ModLoading, BuildModdedLists");
+            Diagnostics.LogError($"[Gedemon] [ModLoading] in BuildModdedLists...");
 
             string basefolder = Amplitude.Framework.Application.GameDirectory;
             List<string> folders = new List<string> { System.IO.Path.Combine(basefolder, TerrainSave.MapsSubDirectory), System.IO.Path.Combine(basefolder, RuntimeModuleFolders.Public.Name), System.IO.Path.Combine(basefolder, RuntimeModuleFolders.Community.Name) };
             foreach(string path in folders)
             {
-                Diagnostics.Log($"[Gedemon] [BuildModdedLists] searching for .json files in {path}");
+                Diagnostics.Log($"[Gedemon] searching for .json files in {path}");
                 if (Directory.Exists(path))
                 {
                     DirectoryInfo directoryInfo = new DirectoryInfo(path);
                     if (directoryInfo.Exists)
                     {
-                        Diagnostics.Log($"[Gedemon] [BuildModdedLists] searching *TCL.json file in {directoryInfo.FullName}");
+                        Diagnostics.Log($"[Gedemon] searching *TCL.json file in {directoryInfo.FullName}");
                         string searchPattern = "*TCL.json";
                         //SearchOption searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
                         FileInfo[] files = directoryInfo.GetFiles(searchPattern, SearchOption.AllDirectories);
                         foreach (FileInfo fileInfo in files)
                         {
-                            Diagnostics.LogWarning($"[Gedemon] [BuildModdedLists] loading *TCL.json file : ({fileInfo.FullName})");
+                            Diagnostics.LogWarning($"[Gedemon] loading *TCL.json file : ({fileInfo.FullName})");
                             StreamReader stream = fileInfo.OpenText();
-                            ModLoading.AddModdedTCL(stream.ReadToEnd(), fileInfo);
+                            ModLoading.AddModdedTCL(stream.ReadToEnd(), fileInfo.FullName);
                         }
                     }
                 }
@@ -128,9 +137,9 @@ namespace Gedemon.TrueCultureLocation
             //
             //string path = Amplitude.Framework.Application.GameDirectory; // + "\\" + TerrainSave.MapsSubDirectory + "\\";
 
-            foreach (KeyValuePair<FileInfo, IList<MapTCL>> kvp in listTCLMods)
+            foreach (KeyValuePair<string, IList<MapTCL>> kvp in listTCLMods)
             {
-                Diagnostics.Log($"[Gedemon] TCL from {kvp.Key.FullName}");
+                Diagnostics.LogError($"[Gedemon] [ModLoading] Applying Modded TCL from {kvp.Key}");
                 foreach (MapTCL mapTCL in kvp.Value)
                 {
                     if (mapTCL.MapTerritoryHash != null)
@@ -357,7 +366,7 @@ namespace Gedemon.TrueCultureLocation
                                 Diagnostics.Log($"[Gedemon] - Found NoCapital list");
                                 foreach (string factionName in mapTCL.NoCapital)
                                 {
-                                    Diagnostics.LogWarning($"[Gedemon] Updating noCapitalTerritory, adding {factionName}");
+                                    Diagnostics.Log($"[Gedemon] Updating noCapitalTerritory, adding {factionName}");
                                     CultureUnlock.UpdateListNoCapitalTerritory(factionName); // immediate update
                                 }
                             }
@@ -367,7 +376,7 @@ namespace Gedemon.TrueCultureLocation
                                 Diagnostics.Log($"[Gedemon] - Found NomadCultures list");
                                 foreach (string factionName in mapTCL.NomadCultures)
                                 {
-                                    Diagnostics.LogWarning($"[Gedemon] Updating nomadCultures, adding {factionName}");
+                                    Diagnostics.Log($"[Gedemon] Updating nomadCultures, adding {factionName}");
                                     CultureUnlock.UpdateListNomads(factionName); // immediate update
                                 }
                             }

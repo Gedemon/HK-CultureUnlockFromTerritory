@@ -28,7 +28,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.3.3";
+		public const string pluginVersion = "1.0.3.4";
 
 		#region Define Options
 
@@ -1154,88 +1154,78 @@ namespace Gedemon.TrueCultureLocation
 	//*/
 
 	//*
-	[HarmonyPatch(typeof(Amplitude.Mercury.Runtime.RuntimeManager))]
-	public class TCL_RuntimeManager
+	[HarmonyPatch(typeof(AssetDatabase))]
+	public class AssetDatabase_Patch
 	{
-		[HarmonyPatch("EnumerateRuntimeModules")]
-		[HarmonyPatch(new Type[] { typeof(DirectoryInfo), typeof(bool), typeof(Action<RuntimeModuleInfo>) })]
+		[HarmonyPatch("TryMountAssetBundle")]
+		[HarmonyPatch(new Type[] { typeof(string), typeof(string), typeof(uint), typeof(IAssetProvider), typeof(Amplitude.Framework.Asset.AssetBundle.Options) }, new ArgumentType[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal })]
 		[HarmonyPrefix]
-		public static bool EnumerateRuntimeModules(Amplitude.Mercury.Runtime.RuntimeManager __instance, DirectoryInfo directoryInfo, bool recursive, Action<RuntimeModuleInfo> action = null)
+		public static bool TryMountAssetBundle(string providerName, string path, uint assetBundleFlags, Amplitude.Framework.Asset.AssetBundle.Options options)
 		{
-
-			DirectoryInfo[] directories = directoryInfo.GetDirectories("*", SearchOption.TopDirectoryOnly);
-			foreach (DirectoryInfo obj in directories)
+			if(path.Contains("Community"))
 			{
-				string searchPattern = "*.assetbundle";
-				SearchOption searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-				FileInfo[] files = obj.GetFiles(searchPattern, searchOption);
-				foreach (FileInfo fileInfo in files)
+				Diagnostics.LogError($"[Gedemon] [AssetDatabase] TryMountAssetBundle from \\Community\\ : providerName = {providerName}, assetBundleFlags = {assetBundleFlags}, options = {options}");
+				Diagnostics.LogError($"[Gedemon] [AssetDatabase] Path = {path}");
+				UnityEngine.AssetBundle assetBundle = null;
+				bool flag = false;
+				try
 				{
-					UnityEngine.AssetBundle assetBundle = null;
-					bool flag = false;
-					try
+					flag = AssetDatabase.TryGetAssetBundleFromPath(path, out assetBundle);
+					if (!flag)
 					{
-						string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(fileInfo.Name);
-						flag = AssetDatabase.TryGetAssetBundleFromPath(fileInfo.FullName, out assetBundle);
-						if (!flag)
-						{
-							assetBundle = UnityEngine.AssetBundle.LoadFromFile(fileInfo.FullName);
-						}
-						if (assetBundle == null)
-						{
-							Diagnostics.LogError($"[Mercury] [RuntimeManager] Failed to load asset bundle from file (path: {fileInfo.FullName} loaded: {flag}).");
-							continue;
-						}
-
-						// Gedemon <<<<
-						Diagnostics.Log($"[Gedemon] [RuntimeManager] loading asset bundle from file (path: {fileInfo.FullName} loaded: {flag}).");
+						assetBundle = UnityEngine.AssetBundle.LoadFromFile(path);
+					}
+					if (assetBundle != null)
+					{
+						Diagnostics.Log($"[Gedemon] [AssetDatabase] GetAllAssetNames, loaded: {flag}).");
 						string[] assetFiles = assetBundle.GetAllAssetNames();
 						foreach (string assetName in assetFiles)
 						{
 							string lowerCase = assetName.ToLower();
 							if (lowerCase.EndsWith("tcl.json"))
 							{
-								Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains *tcl.json ({assetName})");
+								Diagnostics.Log($"[Gedemon] [AssetDatabase] assetBundle contains *tcl.json ({assetName})");
 								TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
 								//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
-								ModLoading.AddModdedTCL(textAsset.text, fileInfo);
+								ModLoading.AddModdedTCL(textAsset.text, providerName);
 							}
 							if (lowerCase.EndsWith("citymap.json"))
 							{
-								Diagnostics.Log($"[Gedemon] [RuntimeManager] assetBundle contains *citymap.json ({assetName})");
+								Diagnostics.Log($"[Gedemon] [AssetDatabase] assetBundle contains *citymap.json ({assetName})");
 								TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
 								//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
 							}
 						}
-						// Gedemon >>>>>
+					}
+                    else 
+					{ 
+						Diagnostics.LogError($"[Gedemon] [AssetDatabase] Failed to load asset bundle, loaded: {flag}).");
+					}
 
-						RuntimeModule runtimeModule = assetBundle.LoadAsset<RuntimeModule>(fileNameWithoutExtension);
-						if (runtimeModule != null)
-						{
-							RuntimeModuleInfo runtimeModuleInfo = RuntimeModuleInfo.CreateInstance(runtimeModule);
-							runtimeModuleInfo.File = fileInfo;
-							if (__instance.TryAddRuntimeModuleInfo(runtimeModuleInfo))
-							{
-								//Diagnostics.LogError($"[Gedemon] [RuntimeManager] TryAddRuntimeModuleInfo passed,  (path: {assetBundle.LoadAsset<TextAsset>("Resources")}).");
-								action?.Invoke(runtimeModuleInfo);
-							}
-						}
-					}
-					catch (Exception exception)
+				}
+				catch (Exception exception)
+				{
+					Diagnostics.LogException(exception);
+				}
+				finally
+				{
+					if (assetBundle != null && !flag)
 					{
-						Diagnostics.LogException(exception);
-					}
-					finally
-					{
-						if (assetBundle != null && !flag)
-						{
-							assetBundle.Unload(unloadAllLoadedObjects: false);
-							assetBundle = null;
-						}
+						assetBundle.Unload(unloadAllLoadedObjects: false);
+						assetBundle = null;
 					}
 				}
 			}
-			return false;
+			return true;
+		}
+
+		[HarmonyPatch("UnmountAssetBundle")]
+		[HarmonyPatch(new Type[] { typeof(string) })]
+		[HarmonyPrefix]
+		public static bool UnmountAssetBundle(string providerName)
+		{
+			ModLoading.RemoveModdedTCL(providerName);
+			return true;
 		}
 	}
 	//*/
