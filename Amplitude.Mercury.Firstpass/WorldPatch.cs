@@ -161,6 +161,8 @@ namespace Gedemon.TrueCultureLocation
 		[HarmonyPatch(nameof(LocalizeTerritory))]
 		public static bool LocalizeTerritory(World __instance)
 		{
+			CultureUnlock.InitializeTCL(__instance);
+
 			int length = __instance.TerritoryInfo.Length;
 			Amplitude.Framework.Localization.ILocalizationService service = Amplitude.Framework.Services.GetService<Amplitude.Framework.Localization.ILocalizationService>();
 			for (int i = 0; i < length; i++)
@@ -223,7 +225,7 @@ namespace Gedemon.TrueCultureLocation
 			Diagnostics.LogError($"[Gedemon] Calculated Current Map Hash = {CultureUnlock.CurrentMapHash}");
 			//Diagnostics.Log($"[Gedemon] Map string = {mapString}");
 
-			CultureUnlock.InitializeTCL();
+			//CultureUnlock.InitializeTCL(__instance);
 
 		}
 		//*/

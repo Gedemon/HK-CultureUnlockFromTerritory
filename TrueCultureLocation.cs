@@ -28,7 +28,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.3.4";
+		public const string pluginVersion = "1.0.4.0";
 
 		#region Define Options
 
@@ -53,6 +53,43 @@ namespace Gedemon.TrueCultureLocation
 					Title = "Off",
 					Description = "Off",
 					Value = "False"
+				}
+			}
+		};
+
+		public static readonly GameOptionInfo CreateTrueCultureLocationOption = new GameOptionInfo
+		{
+			ControlType = UIControlType.DropList,
+			Key = "GameOption_TCL_CreateTrueCultureLocation",
+			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
+			DefaultValue = "Off",
+			Title = "[TCL] Generate TCL for any Map <c=FF00FF>*Experimental*</c>",
+			Description = "Rename territories on unsupported or generated maps, based on relative distances using the Giant Earth Map coordinates, to use True Culture Location.",
+			States =
+			{
+				new GameOptionStateInfo
+				{
+					Title = "Disabled",
+					Description = "No TCL on unsupported maps",
+					Value = "Off"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "Grouped by continents",
+					Description = "Group Territories by Continents (or by SuperContinents when the map generate a low number of continents)",
+					Value = "Continents"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "By Coordinates",
+					Description = "Use Giant Earth Map territories coordinates for reference",
+					Value = "Coordinates"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "By Coordinates with shift",
+					Description = "Use Giant Earth Map territories coordinates, with Americas shifted back on the West (the Giant Earth use an unconventional presentation, with Americas on the East)",
+					Value = "ShiftedCoordinates"
 				}
 			}
 		};
@@ -702,6 +739,9 @@ namespace Gedemon.TrueCultureLocation
 		public bool empireCanSpawnFromMinorFactions => int.Parse(GameOptionHelper.GetGameOption(NewEmpireSpawningOption)) > 0;
 		public bool empireCanSpawnFromAI => int.Parse(GameOptionHelper.GetGameOption(NewEmpireSpawningOption)) > 1;
 		public bool empireCanSpawnFromHuman => int.Parse(GameOptionHelper.GetGameOption(NewEmpireSpawningOption)) > 2;
+		public bool CanCreateTrueCultureLocation => !GameOptionHelper.CheckGameOption(CreateTrueCultureLocationOption, "Off");
+		public bool UseShiftToCreateTCL => GameOptionHelper.CheckGameOption(CreateTrueCultureLocationOption, "ShiftedCoordinates");
+		public bool UseCoordinatesToCreateTCL => GameOptionHelper.CheckGameOption(CreateTrueCultureLocationOption, "Coordinates");
 		public int EraIndexCityRequiredForUnlock => int.Parse(GameOptionHelper.GetGameOption(FirstEraRequiringCityToUnlock));
 		public int TotalEmpireSlots => int.Parse(GameOptionHelper.GetGameOption(ExtraEmpireSlots));
 		public int SettlingEmpireSlots => int.Parse(GameOptionHelper.GetGameOption(SettlingEmpireSlotsOption));
@@ -799,6 +839,18 @@ namespace Gedemon.TrueCultureLocation
 		public static bool UseStartingOutpostForMinorFaction()
 		{
 			return Instance.StartingOutpostForMinorFaction;
+		}
+		public static bool CanCreateTCL()
+		{
+			return Instance.CanCreateTrueCultureLocation;
+		}
+		public static bool UseReferenceCoordinates()
+		{
+			return Instance.UseCoordinatesToCreateTCL || Instance.UseShiftToCreateTCL;
+		}
+		public static bool UseShiftedCoordinates()
+		{
+			return Instance.UseShiftToCreateTCL;
 		}
 
 		public static bool HasStartingOutpost(int EmpireIndex, bool IsHuman)

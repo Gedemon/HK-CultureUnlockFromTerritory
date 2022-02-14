@@ -144,9 +144,9 @@ namespace Gedemon.TrueCultureLocation
                 {
                     if (mapTCL.MapTerritoryHash != null)
                     {
-                        if (mapTCL.MapTerritoryHash.Contains(CultureUnlock.CurrentMapHash))
+                        if (CultureUnlock.HasValidMapHash(mapTCL.MapTerritoryHash))
                         {
-                            Diagnostics.Log($"[Gedemon] - Found current MapHash ({CultureUnlock.CurrentMapHash})");
+                            Diagnostics.Log($"[Gedemon] - Found valid MapHash (current = {CultureUnlock.CurrentMapHash})");
 
                             if(mapTCL.MajorEmpireTerritories != null)
                             {

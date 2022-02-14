@@ -15,8 +15,9 @@ namespace Gedemon.TrueCultureLocation
 		public static void InitializeOnLoad(CollectibleManager __instance)
 		{
 			Diagnostics.LogWarning($"[Gedemon] in CollectibleManager, InitializeOnLoad");
-			CultureUnlock.LogTerritoryStats();
+			MapUtils.LogTerritoryStats();
 			CultureUnlock.logEmpiresTerritories();
+			MapUtils.LogTerritoryData();
 
 			// stability level	= PublicOrderEffectDefinition, EmpireStabilityDefinition
 			// units			= PresentationUnitDefinition

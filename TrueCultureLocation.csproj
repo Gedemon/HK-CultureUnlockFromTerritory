@@ -143,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Amplitude.Framework\OptionManagerPatch.cs" />
+    <Compile Include="MapUtils.cs" />
     <Compile Include="Amplitude.Mercury.Firstpass\SandboxPatch.cs" />
     <Compile Include="Amplitude.Mercury.Firstpass\DepartmentOfDefensePatch.cs" />
     <Compile Include="Assembly-CSharp\GamePatch.cs" />
