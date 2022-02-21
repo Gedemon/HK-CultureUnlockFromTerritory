@@ -426,37 +426,6 @@ namespace Gedemon.TrueCultureLocation
 	}
 	//*/
 
-	//*
-	[HarmonyPatch(typeof(DepartmentOfTheInterior))]
-	public class TLC_DepartmentOfTheInterior
-	{
-		[HarmonyPatch("DestroyAllDistrictsFromSettlement")]
-		[HarmonyPrefix]
-		public static bool DestroyAllDistrictsFromSettlement(DepartmentOfTheInterior __instance, Settlement settlement, ref DistrictDestructionSource damageSource)
-		{
-
-			Diagnostics.LogWarning($"[Gedemon] in DepartmentOfTheInterior, DestroyAllDistrictsFromSettlement for {settlement.EntityName}, empire index = {__instance.Empire.Index}");
-
-			if (CultureUnlock.UseTrueCultureLocation() && damageSource == DistrictDestructionSource.MinorDecay)
-			{
-				// to allow to take back districts by resettling before their destruction
-				damageSource = DistrictDestructionSource.None;
-
-				if (TradeRoute.IsRestoreDestroyedTradeRoutes)
-				{
-					// destroy main district to also destroy all trade routes we want to restore (else they'll be destroyed to late for restoration, after the district decay) 
-					District mainDistrict = settlement.GetMainDistrict();
-					if (mainDistrict != null)
-					{
-						__instance.DestroyDistrict(mainDistrict, DistrictDestructionSource.MinorDecay);
-					}
-
-				}
-			}
-			return true;
-		}
-	}
-	//*/
 
 	//*
 	[HarmonyPatch(typeof(TradeController))]

@@ -43,7 +43,8 @@ namespace Gedemon.TrueCultureLocation
 		{
 			Diagnostics.LogError($"[Gedemon] [ThreadStarted] postfix");
 
-			CultureChange.OnSandboxStarted();
+			DatabaseUtils.OnSandboxStarted();
+			ModLoading.OnSandboxStarted();
 
 			if (!CurrentGame.Data.IsInitialized)
             {
@@ -61,7 +62,8 @@ namespace Gedemon.TrueCultureLocation
 		{
 			Diagnostics.LogError($"[Gedemon] exiting Sandbox, ThreadStart");
 			MajorEmpireSaveExtension.OnExitSandbox();
-			CultureChange.OnExitSandbox();
+			DatabaseUtils.OnExitSandbox();
+			ModLoading.OnExitSandbox();
 		}
 
 

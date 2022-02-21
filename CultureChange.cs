@@ -16,16 +16,18 @@ namespace Gedemon.TrueCultureLocation
 {
     class CultureChange
     {
-		public static void OnSandboxStarted()
+		public static void Load()
 		{
+			Diagnostics.LogWarning($"[Gedemon] [CultureChange] OnLoad: TrueCultureLocation.IsEnabled = {TrueCultureLocation.IsEnabled()}");
 			if (!TrueCultureLocation.IsEnabled())
 				return;
 
 			SimulationEvent<SimulationEvent_TurnEnd>.Raised += new Action<object, SimulationEvent_TurnEnd>(SimulationEventRaised_TurnEnd);
 		}
 
-		public static void OnExitSandbox()
+		public static void Unload()
 		{
+			Diagnostics.LogWarning($"[Gedemon] [CultureChange] OnUnload: TrueCultureLocation.IsEnabled = {TrueCultureLocation.IsEnabled()}");
 			if (!TrueCultureLocation.IsEnabled())
 				return;
 

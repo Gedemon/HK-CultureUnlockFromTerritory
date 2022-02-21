@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using HarmonyLib;
 using Amplitude;
 using System.IO;
 using Newtonsoft.Json;
 using Amplitude.Mercury.Terrain;
 using static Amplitude.Mercury.Runtime.RuntimeManager;
+using Amplitude.Framework.Asset;
+using UnityEngine;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -31,6 +35,15 @@ namespace Gedemon.TrueCultureLocation
         public List<string> NoCapital = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization"};
 
     }
+    public class CityPosition
+    {
+        public int TerritoryIndex { get; set; }
+        public string Name { get; set; }
+        public int Row { get; set; }
+        public int Column { get; set; }
+        public int Size { get; set; }
+        public Hexagon.OffsetCoords Position { get; set; }
+    }
     public class MapTCL
     {
         public int LoadOrder { get; set; }
@@ -40,6 +53,7 @@ namespace Gedemon.TrueCultureLocation
         public IDictionary<string, List<int>> MinorFactionTerritories { get; set; }
         public IDictionary<int, string> ContinentNames { get; set; }
         public IDictionary<int, string> TerritoryNames { get; set; }
+        public IDictionary<string, CityPosition> CityMap { get; set; }
         public IDictionary<int, Hexagon.OffsetCoords> ExtraPositions { get; set; }
         public IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsNewWorld { get; set; }
         public List<string> NoCapital { get; set; }
@@ -64,6 +78,11 @@ namespace Gedemon.TrueCultureLocation
         public int loadOrder;
         public Hexagon.OffsetCoords position;
     }
+    public class CityMapLoading
+    {
+        public int loadOrder;
+        public CityPosition cityPosition;
+    }
 
     class ModLoading
     {
@@ -76,10 +95,12 @@ namespace Gedemon.TrueCultureLocation
         static IDictionary<int, NamesLoadingString> TerritoryNamesPreList = new Dictionary<int, NamesLoadingString>();
         static IDictionary<int, NamesLoadingString> ContinentNamesPreList = new Dictionary<int, NamesLoadingString>();
 
+        static IDictionary<string, CityMapLoading> CityMapPreList = new Dictionary<string, CityMapLoading>();
+
         static IDictionary<int, PositionLoadingCoords> ExtraPositionsPreList = new Dictionary<int, PositionLoadingCoords>();
         static IDictionary<int, PositionLoadingCoords> ExtraPositionsNewWorldPreList = new Dictionary<int, PositionLoadingCoords>();
 
-        public static void AddModdedTCL(string text, string provider)
+        public static void AddTCLfromJSON(string text, string provider)
         {
             if (!listTCLMods.ContainsKey(provider))
             {
@@ -98,11 +119,24 @@ namespace Gedemon.TrueCultureLocation
             }
         }
 
+        public static void AddModdedTCL(IList<MapTCL> moddedTCL, string provider)
+        {
+            if (!listTCLMods.ContainsKey(provider))
+            {
+                Diagnostics.LogWarning($"[Gedemon] Add Modded TCL List from: {provider}.");
+                listTCLMods.Add(provider, moddedTCL);
+            }
+            else
+            {
+                Diagnostics.LogError($"[Gedemon] Error : Trying to add already loaded TCL List from: {provider}");
+            }
+        }
+
         public static void RemoveModdedTCL(string provider)
         {
             if (listTCLMods.ContainsKey(provider))
             {
-                Diagnostics.LogError($"[Gedemon] Remove Modded TCL from: {provider}).");
+                Diagnostics.LogWarning($"[Gedemon] Remove Modded TCL from: {provider}.");
                 listTCLMods.Remove(provider);
             }
         }
@@ -121,15 +155,26 @@ namespace Gedemon.TrueCultureLocation
                     DirectoryInfo directoryInfo = new DirectoryInfo(path);
                     if (directoryInfo.Exists)
                     {
-                        Diagnostics.Log($"[Gedemon] searching *TCL.json file in {directoryInfo.FullName}");
-                        string searchPattern = "*TCL.json";
+                        Diagnostics.Log($"[Gedemon] searching *TCL.json files in {directoryInfo.FullName}");
+                        string searchPatternJSON = "*TCL.json";
                         //SearchOption searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-                        FileInfo[] files = directoryInfo.GetFiles(searchPattern, SearchOption.AllDirectories);
-                        foreach (FileInfo fileInfo in files)
+                        FileInfo[] filesJSON = directoryInfo.GetFiles(searchPatternJSON, SearchOption.AllDirectories);
+                        foreach (FileInfo fileInfo in filesJSON)
                         {
                             Diagnostics.LogWarning($"[Gedemon] loading *TCL.json file : ({fileInfo.FullName})");
                             StreamReader stream = fileInfo.OpenText();
-                            ModLoading.AddModdedTCL(stream.ReadToEnd(), fileInfo.FullName);
+                            ModLoading.AddTCLfromJSON(stream.ReadToEnd(), fileInfo.FullName);
+                        }
+
+                        Diagnostics.Log($"[Gedemon] searching *.XML files in {directoryInfo.FullName}");
+                        string searchPatternXML = "*.XML";
+
+                        FileInfo[] filesXML = directoryInfo.GetFiles(searchPatternXML, SearchOption.AllDirectories);
+                        foreach (FileInfo fileInfo in filesXML)
+                        {
+                            Diagnostics.LogWarning($"[Gedemon] loading *.XML file : ({fileInfo.FullName})");
+                            //StreamReader stream = fileInfo.OpenText();
+                            DatabaseUtils.LoadXML(fileInfo.FullName, fileInfo.FullName);
                         }
                     }
                 }
@@ -435,6 +480,95 @@ namespace Gedemon.TrueCultureLocation
             }
 
         }
+
+
+        public static void OnSandboxStarted()
+        {
+        }
+        public static void OnExitSandbox()
+        {
+            //WorldCityMap.Clear();
+            //TerritoryCityMap.Clear();
+            //TranslationTable.Clear();
+        }
     }
+
+    //*
+    [HarmonyPatch(typeof(AssetDatabase))]
+    public class AssetDatabase_Patch
+    {
+        [HarmonyPatch("TryMountAssetBundle")]
+        [HarmonyPatch(new Type[] { typeof(string), typeof(string), typeof(uint), typeof(IAssetProvider), typeof(Amplitude.Framework.Asset.AssetBundle.Options) }, new ArgumentType[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal })]
+        [HarmonyPrefix]
+        public static bool TryMountAssetBundle(string providerName, string path, uint assetBundleFlags, Amplitude.Framework.Asset.AssetBundle.Options options)
+        {
+            if (path.Contains("Community"))
+            {
+                Diagnostics.LogError($"[Gedemon] [AssetDatabase] TryMountAssetBundle from \\Community\\ : providerName = {providerName}, assetBundleFlags = {assetBundleFlags}, options = {options}");
+                Diagnostics.LogError($"[Gedemon] [AssetDatabase] Path = {path}");
+                UnityEngine.AssetBundle assetBundle = null;
+                bool flag = false;
+                try
+                {
+                    flag = AssetDatabase.TryGetAssetBundleFromPath(path, out assetBundle);
+                    if (!flag)
+                    {
+                        assetBundle = UnityEngine.AssetBundle.LoadFromFile(path);
+                    }
+                    if (assetBundle != null)
+                    {
+                        Diagnostics.Log($"[Gedemon] [AssetDatabase] GetAllAssetNames, loaded: {flag}).");
+                        string[] assetFiles = assetBundle.GetAllAssetNames();
+                        foreach (string assetName in assetFiles)
+                        {
+                            string lowerCase = assetName.ToLower();
+                            if (lowerCase.EndsWith("tcl.json"))
+                            {
+                                Diagnostics.Log($"[Gedemon] [AssetDatabase] assetBundle contains *tcl.json ({assetName})");
+                                TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
+                                //Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
+                                ModLoading.AddTCLfromJSON(textAsset.text, providerName);
+                            }
+                            if (lowerCase.EndsWith(".xml"))
+                            {
+                                Diagnostics.Log($"[Gedemon] [AssetDatabase] assetBundle contains *.xml ({assetName})");
+                                TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
+                                DatabaseUtils.LoadXML(textAsset.text, providerName, inputIsText:true);
+                                //Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Diagnostics.LogError($"[Gedemon] [AssetDatabase] Failed to load asset bundle, loaded: {flag}).");
+                    }
+
+                }
+                catch (Exception exception)
+                {
+                    Diagnostics.LogException(exception);
+                }
+                finally
+                {
+                    if (assetBundle != null && !flag)
+                    {
+                        assetBundle.Unload(unloadAllLoadedObjects: false);
+                        assetBundle = null;
+                    }
+                }
+            }
+            return true;
+        }
+
+        [HarmonyPatch("UnmountAssetBundle")]
+        [HarmonyPatch(new Type[] { typeof(string) })]
+        [HarmonyPrefix]
+        public static bool UnmountAssetBundle(string providerName)
+        {
+            ModLoading.RemoveModdedTCL(providerName);
+            return true;
+        }
+    }
+    //*/
 
 }

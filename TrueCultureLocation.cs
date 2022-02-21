@@ -28,7 +28,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.4.0";
+		public const string pluginVersion = "1.0.4.1";
 
 		#region Define Options
 
@@ -1206,83 +1206,6 @@ namespace Gedemon.TrueCultureLocation
 	//*/
 
 	//*
-	[HarmonyPatch(typeof(AssetDatabase))]
-	public class AssetDatabase_Patch
-	{
-		[HarmonyPatch("TryMountAssetBundle")]
-		[HarmonyPatch(new Type[] { typeof(string), typeof(string), typeof(uint), typeof(IAssetProvider), typeof(Amplitude.Framework.Asset.AssetBundle.Options) }, new ArgumentType[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal })]
-		[HarmonyPrefix]
-		public static bool TryMountAssetBundle(string providerName, string path, uint assetBundleFlags, Amplitude.Framework.Asset.AssetBundle.Options options)
-		{
-			if(path.Contains("Community"))
-			{
-				Diagnostics.LogError($"[Gedemon] [AssetDatabase] TryMountAssetBundle from \\Community\\ : providerName = {providerName}, assetBundleFlags = {assetBundleFlags}, options = {options}");
-				Diagnostics.LogError($"[Gedemon] [AssetDatabase] Path = {path}");
-				UnityEngine.AssetBundle assetBundle = null;
-				bool flag = false;
-				try
-				{
-					flag = AssetDatabase.TryGetAssetBundleFromPath(path, out assetBundle);
-					if (!flag)
-					{
-						assetBundle = UnityEngine.AssetBundle.LoadFromFile(path);
-					}
-					if (assetBundle != null)
-					{
-						Diagnostics.Log($"[Gedemon] [AssetDatabase] GetAllAssetNames, loaded: {flag}).");
-						string[] assetFiles = assetBundle.GetAllAssetNames();
-						foreach (string assetName in assetFiles)
-						{
-							string lowerCase = assetName.ToLower();
-							if (lowerCase.EndsWith("tcl.json"))
-							{
-								Diagnostics.Log($"[Gedemon] [AssetDatabase] assetBundle contains *tcl.json ({assetName})");
-								TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
-								//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
-								ModLoading.AddModdedTCL(textAsset.text, providerName);
-							}
-							if (lowerCase.EndsWith("citymap.json"))
-							{
-								Diagnostics.Log($"[Gedemon] [AssetDatabase] assetBundle contains *citymap.json ({assetName})");
-								TextAsset textAsset = assetBundle.LoadAsset<TextAsset>(assetName);
-								//Diagnostics.LogWarning($"[Gedemon] [RuntimeManager] TCL.json = {textAsset.text}");
-							}
-						}
-					}
-                    else 
-					{ 
-						Diagnostics.LogError($"[Gedemon] [AssetDatabase] Failed to load asset bundle, loaded: {flag}).");
-					}
-
-				}
-				catch (Exception exception)
-				{
-					Diagnostics.LogException(exception);
-				}
-				finally
-				{
-					if (assetBundle != null && !flag)
-					{
-						assetBundle.Unload(unloadAllLoadedObjects: false);
-						assetBundle = null;
-					}
-				}
-			}
-			return true;
-		}
-
-		[HarmonyPatch("UnmountAssetBundle")]
-		[HarmonyPatch(new Type[] { typeof(string) })]
-		[HarmonyPrefix]
-		public static bool UnmountAssetBundle(string providerName)
-		{
-			ModLoading.RemoveModdedTCL(providerName);
-			return true;
-		}
-	}
-	//*/
-
-	//*
 	[HarmonyPatch(typeof(AvatarManager))]
 	public class AvatarManager_Patch
 	{
@@ -1299,6 +1222,30 @@ namespace Gedemon.TrueCultureLocation
 
 			return true;
 		}
+	}
+	//*/
+
+
+	//*
+	[HarmonyPatch(typeof(StatisticReporter_EndTurn))]
+	public class StatisticReporter_EndTurn_Patch
+	{
+
+		[HarmonyPrefix]
+		[HarmonyPatch(nameof(Load))]
+		public static bool Load()
+		{
+			CultureChange.Load();
+			return true;
+		}
+		
+		[HarmonyPrefix]
+		[HarmonyPatch(nameof(Unload))]
+		public static bool Unload()
+		{
+			CultureChange.Unload();
+			return true;
+		}	
 	}
 	//*/
 

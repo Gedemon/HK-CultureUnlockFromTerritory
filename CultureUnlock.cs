@@ -516,7 +516,7 @@ namespace Gedemon.TrueCultureLocation
 					{ "Civilization_Era1_Bantu",                    new List<int>() { 130, 137, 131, 214, 215, 234, 222, 136 }}, //Camerunia, Congo, Kenia, Angolia, Zambia, Mozambicum, Zimbabua, Cape
 					{ "Civilization_Era2_Garamantes",               new List<int>() { 127 } }, // Libya
 					{ "Civilization_Era3_Swahili",                  new List<int>() { 131, 234 } }, // Kenia, Mozambicum 
-					{ "Civilization_Era4_Maasai",                   new List<int>() { 159 } }, // Kenya
+					{ "Civilization_Era4_Maasai",                   new List<int>() { 131 } }, // Kenya
 					{ "Civilization_Era5_Ethiopia",                 new List<int>() { 132, 209 } }, // Abyssinia, Somalia
 					{ "Civilization_Era6_Nigeria",					new List<int>() { 128, 233 } } // Beninum, Nigritania
 				};
@@ -1498,11 +1498,16 @@ namespace Gedemon.TrueCultureLocation
 		public static bool ValidateGiantEarthReference(World currentWorld)
 		{
 			int numTerritories = currentWorld.Territories.Length;
-			int numGiantEartTerritories = TerritoryReferenceGiantEarthMap.Count;
 
 			ExtraPositions.Clear();
 			ExtraPositionsNewWorld.Clear();
 			continentNames.Clear();
+
+			int numContinents = currentWorld.ContinentInfo.Length;
+			for (int continentIndex = 1; continentIndex < numContinents; continentIndex++) // ignoring index #0 (Ocean)
+			{
+				continentNames.Add(continentIndex, RefMapContinentNameFromContinent[continentIndex]);
+			}
 
 			for (int index = 0; index < numTerritories; index++)
 			{
@@ -1537,7 +1542,6 @@ namespace Gedemon.TrueCultureLocation
 			}
 			else if(TrueCultureLocation.CanCreateTCL())
             {
-				// add option check here
 				PrepareForGiantEarthReference(currentWorld);
 			}
 
@@ -1590,20 +1594,34 @@ namespace Gedemon.TrueCultureLocation
 			if (MapCanUseGiantEarthReference)
 			{
 
-
 				IsMapValidforTCL = ValidateGiantEarthReference(currentWorld);
 
-				// add reference map continent naming here
 			}
 			else
 			{
-				// add custom map continent naming here
-
 				IsMapValidforTCL = ValidateMapTCL();
 			}
 
+			if (GiantEarthMapHash.Contains(CurrentMapHash))
+			{
+				Diagnostics.LogWarning($"[Gedemon] [CultureUnlock] Giant Earth Map detected, Building Territory CityMap...");
+				DatabaseUtils.BuildTerritoryCityMap(currentWorld);
+			}
 
-			if (!CultureUnlock.IsCompatibleMap())
+			if (CultureUnlock.IsCompatibleMap())
+            {
+				// Apply continents names
+				int numContinents = currentWorld.ContinentInfo.Length;
+				for (int continentIndex = 1; continentIndex < numContinents; continentIndex++) // ignoring index #0 (Ocean)
+				{
+					ref ContinentInfo continentInfo = ref currentWorld.ContinentInfo.Data[continentIndex];
+					if (ContinentHasName(continentIndex))
+					{
+						continentInfo.ContinentName = CultureUnlock.GetContinentName(continentIndex);
+					}
+				}
+			}
+			else
 			{
 				Diagnostics.LogError($"[Gedemon] incompatible Map");
 			}
