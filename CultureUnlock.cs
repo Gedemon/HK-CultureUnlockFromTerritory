@@ -878,27 +878,27 @@ namespace Gedemon.TrueCultureLocation
 
 		static IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsNewWorld = new Dictionary<int, Hexagon.OffsetCoords>();
 
-		static List<string>[] territoriesWithMinorFactions;
-		static List<string>[] territoriesWithMajorEmpires;
+		static List<string>[] TerritoriesWithMinorFactions;
+		static public List<string>[] TerritoriesWithMajorEmpires;
 
-		static IDictionary<string, List<int>> listMinorFactionTerritories = new Dictionary<string, List<int>>();
-		static IDictionary<string, List<int>> listMajorEmpireTerritories = new Dictionary<string, List<int>>();
-		static IDictionary<string, List<int>> listMajorEmpireCoreTerritories = new Dictionary<string, List<int>>();
+		static IDictionary<string, List<int>> ListMinorFactionTerritories = new Dictionary<string, List<int>>();
+		static IDictionary<string, List<int>> ListMajorEmpireTerritories = new Dictionary<string, List<int>>();
+		static IDictionary<string, List<int>> ListMajorEmpireCoreTerritories = new Dictionary<string, List<int>>();
 
-		static IDictionary<int, string> continentNames = new Dictionary<int, string>();
+		static IDictionary<int, string> ContinentNames = new Dictionary<int, string>();
 
-		static IDictionary<int, string> territoryNames = new Dictionary<int, string>();
+		static IDictionary<int, string> TerritoryNames = new Dictionary<int, string>();
 
-		static readonly IDictionary<string, List<int>> listSlots = new Dictionary<string, List<int>>  // civName, list of player slots (majorEmpire.Index) starting at 0
+		static readonly IDictionary<string, List<int>> ListSlots = new Dictionary<string, List<int>>  // civName, list of player slots (majorEmpire.Index) starting at 0
 		{
 			//{ "Civilization_Era1_Assyria", new List<int>() { 6, 7 } },
 		};
 
-		static readonly List<string> nomadCultures = new List<string> { "Civilization_Era2_Huns", "Civilization_Era3_MongolEmpire" };
+		static readonly List<string> NomadCultures = new List<string> { "Civilization_Era2_Huns", "Civilization_Era3_MongolEmpire" };
 
-		static readonly List<string> firstEraBackup = new List<string> { "Civilization_Era1_Assyria", };
+		static readonly List<string> FirstEraBackup = new List<string> { "Civilization_Era1_Assyria", };
 
-		static readonly List<string> noCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era1_Bantu", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire", "Civilization_Era4_TokugawaShogunate" };
+		static readonly List<string> NoCapitalTerritory = new List<string> { "Civilization_Era1_Assyria", "Civilization_Era1_HarappanCivilization", "Civilization_Era1_Nubia", "Civilization_Era1_ZhouChina", "Civilization_Era1_MycenaeanCivilization", "Civilization_Era1_Phoenicia", "Civilization_Era1_OlmecCivilization", "Civilization_Era1_Bantu", "Civilization_Era2_Huns", "Civilization_Era2_Goths", "Civilization_Era2_CelticCivilization", "Civilization_Era3_Vikings", "Civilization_Era3_MongolEmpire", "Civilization_Era4_TokugawaShogunate" };
 
 		public static readonly int knowledgeForBackupCiv = 25;
 
@@ -942,11 +942,11 @@ namespace Gedemon.TrueCultureLocation
         {
 			ExtraPositions = new Dictionary<int, Hexagon.OffsetCoords>(ExtraPositionsGiantEarthMap);
 			ExtraPositionsNewWorld = new Dictionary<int, Hexagon.OffsetCoords>(ExtraPositionsNewWorldGiantEarthMap);
-			continentNames = new Dictionary<int, string>(continentNamesGiantEarthMap);
-			territoryNames = new Dictionary<int, string>(territoryNamesGiantEarthMap);
-			listMinorFactionTerritories = new Dictionary<string, List<int>>(listMinorFactionTerritoriesGiantEarthMap);
-			listMajorEmpireTerritories = new Dictionary<string, List<int>>(listMajorEmpireTerritoriesGiantEarthMap);
-			listMajorEmpireCoreTerritories = new Dictionary<string, List<int>>(listMajorEmpireCoreTerritoriesGiantEarthMap);
+			ContinentNames = new Dictionary<int, string>(continentNamesGiantEarthMap);
+			TerritoryNames = new Dictionary<int, string>(territoryNamesGiantEarthMap);
+			ListMinorFactionTerritories = new Dictionary<string, List<int>>(listMinorFactionTerritoriesGiantEarthMap);
+			ListMajorEmpireTerritories = new Dictionary<string, List<int>>(listMajorEmpireTerritoriesGiantEarthMap);
+			ListMajorEmpireCoreTerritories = new Dictionary<string, List<int>>(listMajorEmpireCoreTerritoriesGiantEarthMap);
 		}
 
 		public static bool AreSameContinentByReference(Territory territory, CultureUnlock.TerritoryData territoryData)
@@ -1501,12 +1501,12 @@ namespace Gedemon.TrueCultureLocation
 
 			ExtraPositions.Clear();
 			ExtraPositionsNewWorld.Clear();
-			continentNames.Clear();
+			ContinentNames.Clear();
 
 			int numContinents = currentWorld.ContinentInfo.Length;
 			for (int continentIndex = 1; continentIndex < numContinents; continentIndex++) // ignoring index #0 (Ocean)
 			{
-				continentNames.Add(continentIndex, RefMapContinentNameFromContinent[continentIndex]);
+				ContinentNames.Add(continentIndex, RefMapContinentNameFromContinent[continentIndex]);
 			}
 
 			for (int index = 0; index < numTerritories; index++)
@@ -1519,13 +1519,13 @@ namespace Gedemon.TrueCultureLocation
 				if (territoryNamesGiantEarthMap.TryGetValue(refIndex, out string territoryName))
 				{
 					Diagnostics.LogWarning($"[Gedemon] index #{index}, refIndex #{refIndex}, name = {territoryName}");
-					territoryNames[index] = territoryName;
+					TerritoryNames[index] = territoryName;
 				}
 			}
 
-			UpdateTerritoryListFromReference(listMinorFactionTerritories);
-			UpdateTerritoryListFromReference(listMajorEmpireTerritories);
-			UpdateTerritoryListFromReference(listMajorEmpireCoreTerritories);
+			UpdateTerritoryListFromReference(ListMinorFactionTerritories);
+			UpdateTerritoryListFromReference(ListMajorEmpireTerritories);
+			UpdateTerritoryListFromReference(ListMajorEmpireCoreTerritories);
 
 			return true;
         }
@@ -1554,40 +1554,50 @@ namespace Gedemon.TrueCultureLocation
 
 			Diagnostics.LogWarning($"[Gedemon] [CultureUnlock] building territoriesWithMinorFactions[] and territoriesWithMajorEmpires[]");
 
-			territoriesWithMinorFactions = new List<string>[maxNumTerritories];
-			territoriesWithMajorEmpires = new List<string>[maxNumTerritories];
+			TerritoriesWithMinorFactions = new List<string>[maxNumTerritories];
+			TerritoriesWithMajorEmpires = new List<string>[maxNumTerritories];
 
 			for (int i = 0; i < maxNumTerritories; i++)
 			{
-				territoriesWithMinorFactions[i] = new List<string>();
-				territoriesWithMajorEmpires[i] = new List<string>();
+				TerritoriesWithMinorFactions[i] = new List<string>();
+				TerritoriesWithMajorEmpires[i] = new List<string>();
 			}
 
-			foreach (KeyValuePair<string, List<int>> minorTerritories in listMinorFactionTerritories)
+			foreach (KeyValuePair<string, List<int>> minorTerritories in ListMinorFactionTerritories)
 			{
+				Diagnostics.LogWarning($"[Gedemon] Adding {minorTerritories.Key} entry to TerritoriesWithMinorFactions");
 				foreach (int index in minorTerritories.Value)
 				{
-					territoriesWithMinorFactions[index].Add(minorTerritories.Key);
+					if(index < 0 || index >= TerritoriesWithMinorFactions.Length)
+					{
+						Diagnostics.LogError($"[Gedemon] index {index} is out of bound (TerritoriesWithMinorFactions.Length = {TerritoriesWithMinorFactions.Length})");
+					}
+					TerritoriesWithMinorFactions[index].Add(minorTerritories.Key);
 				}
 			}
 
-			foreach (KeyValuePair<string, List<int>> majorTerritories in listMajorEmpireTerritories)
+			foreach (KeyValuePair<string, List<int>> majorTerritories in ListMajorEmpireTerritories)
 			{
+				Diagnostics.LogWarning($"[Gedemon] Adding {majorTerritories.Key} entry to TerritoriesWithMajorEmpires");
 				if (HasNoCapitalTerritory(majorTerritories.Key))
 				{
 					foreach (int index in majorTerritories.Value)
 					{
-						territoriesWithMajorEmpires[index].Add(majorTerritories.Key);
+						if (index < 0 || index >= TerritoriesWithMajorEmpires.Length)
+						{
+							Diagnostics.LogError($"[Gedemon] index {index} is out of bound (TerritoriesWithMajorEmpires.Length = {TerritoriesWithMinorFactions.Length})");
+						}
+						TerritoriesWithMajorEmpires[index].Add(majorTerritories.Key);
 					}
 				}
 				else if (majorTerritories.Value.Count > 0)
                 {
-					territoriesWithMajorEmpires[majorTerritories.Value[0]].Add(majorTerritories.Key);
+					TerritoriesWithMajorEmpires[majorTerritories.Value[0]].Add(majorTerritories.Key);
 				}
-				if(!listMajorEmpireCoreTerritories.ContainsKey(majorTerritories.Key))
+				if(!ListMajorEmpireCoreTerritories.ContainsKey(majorTerritories.Key))
 				{
 					Diagnostics.LogWarning($"[Gedemon] Adding missing {majorTerritories.Key} entry to listMajorEmpireCoreTerritories (using listMajorEmpireTerritories)");
-					listMajorEmpireCoreTerritories.Add(majorTerritories.Key, majorTerritories.Value);
+					ListMajorEmpireCoreTerritories.Add(majorTerritories.Key, majorTerritories.Value);
 				}
 			}
 
@@ -1605,7 +1615,7 @@ namespace Gedemon.TrueCultureLocation
 			if (GiantEarthMapHash.Contains(CurrentMapHash))
 			{
 				Diagnostics.LogWarning($"[Gedemon] [CultureUnlock] Giant Earth Map detected, Building Territory CityMap...");
-				DatabaseUtils.BuildTerritoryCityMap(currentWorld);
+				CityMap.BuildTerritoryCityMap(currentWorld);
 			}
 
 			if (CultureUnlock.IsCompatibleMap())
@@ -1630,9 +1640,9 @@ namespace Gedemon.TrueCultureLocation
 
 		public static bool ValidateMapTCL()
         {
-			if(TrueCultureLocation.IsEnabled() && listMajorEmpireTerritories.Count == 0)
+			if(TrueCultureLocation.IsEnabled() && ListMajorEmpireTerritories.Count == 0)
 			{
-				Diagnostics.LogError($"[Gedemon] Error : TrueCultureLocation.IsEnabled = {TrueCultureLocation.IsEnabled()} && listMajorEmpireTerritories.Count = {listMajorEmpireTerritories.Count}");
+				Diagnostics.LogError($"[Gedemon] Error : TrueCultureLocation.IsEnabled = {TrueCultureLocation.IsEnabled()} && listMajorEmpireTerritories.Count = {ListMajorEmpireTerritories.Count}");
 				return false;
             }
 
@@ -1646,50 +1656,50 @@ namespace Gedemon.TrueCultureLocation
         }
 		public static bool HasAnyMinorFactionPosition(int territoryIndex)
 		{
-			return territoriesWithMinorFactions[territoryIndex].Count > 0;
+			return TerritoriesWithMinorFactions[territoryIndex].Count > 0;
 		}
 
 		public static bool IsMinorFactionPosition(int territoryIndex, string minorFactionName)
 		{
-			return territoriesWithMinorFactions[territoryIndex].Contains(minorFactionName);
+			return TerritoriesWithMinorFactions[territoryIndex].Contains(minorFactionName);
 		}
 
 		public static List<string> GetListMinorFactionsForTerritory(int territoryIndex)
 		{
-			return territoriesWithMinorFactions[territoryIndex];
+			return TerritoriesWithMinorFactions[territoryIndex];
 		}
 
 		public static bool HasAnyMajorEmpirePosition(int territoryIndex)
 		{
-			return territoriesWithMajorEmpires[territoryIndex].Count > 0;
+			return TerritoriesWithMajorEmpires[territoryIndex].Count > 0;
 		}
 
 		public static bool IsMajorEmpirePosition(int territoryIndex, string majorEmpireName)
 		{
-			return territoriesWithMajorEmpires[territoryIndex].Contains(majorEmpireName);
+			return TerritoriesWithMajorEmpires[territoryIndex].Contains(majorEmpireName);
 		}
 		public static bool IsMajorEmpirePosition(int territoryIndex, StaticString majorEmpireName)
 		{
-			return territoriesWithMajorEmpires[territoryIndex].Contains(majorEmpireName.ToString());
+			return TerritoriesWithMajorEmpires[territoryIndex].Contains(majorEmpireName.ToString());
 		}
 
 		public static List<string> GetListMajorEmpiresForTerritory(int territoryIndex)
         {
-			return territoriesWithMajorEmpires[territoryIndex];
+			return TerritoriesWithMajorEmpires[territoryIndex];
 		}
 		public static bool HasCoreTerritories(string factionName)
 		{
-			return listMajorEmpireCoreTerritories.ContainsKey(factionName);
+			return ListMajorEmpireCoreTerritories.ContainsKey(factionName);
 		}
 
 		public static bool HasMajorTerritories(string factionName)
 		{
-			return listMajorEmpireTerritories.ContainsKey(factionName);
+			return ListMajorEmpireTerritories.ContainsKey(factionName);
 		}
 
 		public static bool HasMinorTerritories(string factionName)
 		{
-			return listMinorFactionTerritories.ContainsKey(factionName);
+			return ListMinorFactionTerritories.ContainsKey(factionName);
 		}
 
 		public static bool HasMinorTerritories(StaticString FactionName)
@@ -1699,9 +1709,9 @@ namespace Gedemon.TrueCultureLocation
 		public static bool HasTerritory(string factionName, int territoryIndex)
 		{
 			if (HasMajorTerritories(factionName))
-				return listMajorEmpireTerritories[factionName].Contains(territoryIndex);
+				return ListMajorEmpireTerritories[factionName].Contains(territoryIndex);
 			else if (HasMinorTerritories(factionName))
-				return listMinorFactionTerritories[factionName].Contains(territoryIndex);
+				return ListMinorFactionTerritories[factionName].Contains(territoryIndex);
 			else
 				return false;
 		}
@@ -1714,7 +1724,7 @@ namespace Gedemon.TrueCultureLocation
 			if(TrueCultureLocation.KeepOnlyCoreTerritories())
 			{
 				if (HasCoreTerritories(factionName))
-					return listMajorEmpireCoreTerritories[factionName].Contains(territoryIndex);
+					return ListMajorEmpireCoreTerritories[factionName].Contains(territoryIndex);
 				else
 					return false;
 
@@ -1736,9 +1746,9 @@ namespace Gedemon.TrueCultureLocation
 				if (HasCoreTerritories(factionName))
                 {
 					if (TrueCultureLocation.KeepOnlyCoreTerritories())
-						return listMajorEmpireCoreTerritories[factionName][0] == territoryIndex;
+						return ListMajorEmpireCoreTerritories[factionName][0] == territoryIndex;
 					else
-						return listMajorEmpireTerritories[factionName][0] == territoryIndex;
+						return ListMajorEmpireTerritories[factionName][0] == territoryIndex;
 				}
 			}
 			return false;
@@ -1747,33 +1757,33 @@ namespace Gedemon.TrueCultureLocation
 
 		public static bool IsUnlockedByPlayerSlot(string civilizationName, int empireIndex)
 		{
-			return listSlots.ContainsKey(civilizationName) && listSlots[civilizationName].Contains(empireIndex);
+			return ListSlots.ContainsKey(civilizationName) && ListSlots[civilizationName].Contains(empireIndex);
 		}
 
 		public static bool IsFirstEraBackupCivilization(string civilizationName)
 		{
-			return firstEraBackup.Contains(civilizationName);
+			return FirstEraBackup.Contains(civilizationName);
 		}
 
 		public static bool IsNomadCulture(string civilizationName)
 		{
-			return nomadCultures.Contains(civilizationName);
+			return NomadCultures.Contains(civilizationName);
 		}
 
 		public static bool HasNoCapitalTerritory(string civilizationName) // can be picked by multiple players
 		{
-			return noCapitalTerritory.Contains(civilizationName);
+			return NoCapitalTerritory.Contains(civilizationName);
 		}
 
 		public static List<int> GetListTerritories(string factionName)
 		{
 			if (TrueCultureLocation.KeepOnlyCoreTerritories())
 			{
-				if (listMajorEmpireCoreTerritories.TryGetValue(factionName, out List<int> listCoreTerritories))
+				if (ListMajorEmpireCoreTerritories.TryGetValue(factionName, out List<int> listCoreTerritories))
 				{
 					return listCoreTerritories;
 				}
-				else if (listMajorEmpireTerritories.TryGetValue(factionName, out List<int> listTerritories))
+				else if (ListMajorEmpireTerritories.TryGetValue(factionName, out List<int> listTerritories))
 				{
 					return listTerritories;
 				}
@@ -1782,7 +1792,7 @@ namespace Gedemon.TrueCultureLocation
 					return new List<int>();
                 }
 			}
-            else if (listMajorEmpireTerritories.TryGetValue(factionName, out List<int> listTerritories))
+            else if (ListMajorEmpireTerritories.TryGetValue(factionName, out List<int> listTerritories))
 			{
 				return listTerritories;
 			}
@@ -1798,17 +1808,17 @@ namespace Gedemon.TrueCultureLocation
 
 		public static int GetCapitalTerritoryIndex(string civilizationName)
 		{
-			return listMajorEmpireTerritories[civilizationName][0];
+			return ListMajorEmpireTerritories[civilizationName][0];
 		}
 
 		public static bool TerritoryHasName(int territoryIndex)
 		{
-			return territoryNames.ContainsKey(territoryIndex);
+			return TerritoryNames.ContainsKey(territoryIndex);
 		}
 
 		public static string GetTerritoryName(int territoryIndex)
 		{
-			if (territoryNames.TryGetValue(territoryIndex, out string name))
+			if (TerritoryNames.TryGetValue(territoryIndex, out string name))
 			{
 				return name;
 			}
@@ -1816,17 +1826,17 @@ namespace Gedemon.TrueCultureLocation
 		}
 		public static string GetTerritoryName(int territoryIndex, bool hasName)
 		{
-			return territoryNames[territoryIndex];
+			return TerritoryNames[territoryIndex];
 		}
 
 		public static bool ContinentHasName(int continentIndex)
 		{
-			return continentNames.ContainsKey(continentIndex);
+			return ContinentNames.ContainsKey(continentIndex);
 		}
 
 		public static string GetContinentName(int continentIndex)
 		{
-			return continentNames[continentIndex];
+			return ContinentNames[continentIndex];
 		}
 
 		public static Hexagon.OffsetCoords GetExtraStartingPosition(int empireIndex, bool OldWorldOnly)
@@ -1864,57 +1874,57 @@ namespace Gedemon.TrueCultureLocation
 		}
 		public static void UpdateListMajorEmpireTerritories(string factionName, List<int> listTerritories)
         {
-			if(listMajorEmpireTerritories.ContainsKey(factionName))
+			if(ListMajorEmpireTerritories.ContainsKey(factionName))
             {
-				listMajorEmpireTerritories[factionName] = listTerritories;
+				ListMajorEmpireTerritories[factionName] = listTerritories;
 			}
 			else
             {
-				listMajorEmpireTerritories.Add(factionName, listTerritories);
+				ListMajorEmpireTerritories.Add(factionName, listTerritories);
 			}
 		}
 		public static void UpdateListMajorEmpireCoreTerritories(string factionName, List<int> listTerritories)
 		{
-			if (listMajorEmpireCoreTerritories.ContainsKey(factionName))
+			if (ListMajorEmpireCoreTerritories.ContainsKey(factionName))
 			{
-				listMajorEmpireCoreTerritories[factionName] = listTerritories;
+				ListMajorEmpireCoreTerritories[factionName] = listTerritories;
 			}
 			else
 			{
-				listMajorEmpireCoreTerritories.Add(factionName, listTerritories);
+				ListMajorEmpireCoreTerritories.Add(factionName, listTerritories);
 			}
 		}
 		public static void UpdateListMinorFactionTerritories(string factionName, List<int> listTerritories)
 		{
-			if (listMinorFactionTerritories.ContainsKey(factionName))
+			if (ListMinorFactionTerritories.ContainsKey(factionName))
 			{
-				listMinorFactionTerritories[factionName] = listTerritories;
+				ListMinorFactionTerritories[factionName] = listTerritories;
 			}
 			else
 			{
-				listMinorFactionTerritories.Add(factionName, listTerritories);
+				ListMinorFactionTerritories.Add(factionName, listTerritories);
 			}
 		}
 		public static void UpdateListTerritoryNames(int territoryIndex, string name)
 		{
-			if (territoryNames.ContainsKey(territoryIndex))
+			if (TerritoryNames.ContainsKey(territoryIndex))
 			{
-				territoryNames[territoryIndex] = name;
+				TerritoryNames[territoryIndex] = name;
 			}
 			else
 			{
-				territoryNames.Add(territoryIndex, name);
+				TerritoryNames.Add(territoryIndex, name);
 			}
 		}
 		public static void UpdateListContinentNames(int index, string name)
 		{
-			if (continentNames.ContainsKey(index))
+			if (ContinentNames.ContainsKey(index))
 			{
-				continentNames[index] = name;
+				ContinentNames[index] = name;
 			}
 			else
 			{
-				continentNames.Add(index, name);
+				ContinentNames.Add(index, name);
 			}
 		}
 
@@ -1942,22 +1952,22 @@ namespace Gedemon.TrueCultureLocation
 		}
 		public static void UpdateListNoCapitalTerritory(string factionName)
 		{
-			if (!noCapitalTerritory.Contains(factionName))
+			if (!NoCapitalTerritory.Contains(factionName))
 			{
-				noCapitalTerritory.Add(factionName);
+				NoCapitalTerritory.Add(factionName);
 			}
 		}
 		public static void UpdateListNomads(string factionName)
 		{
-			if (!nomadCultures.Contains(factionName))
+			if (!NomadCultures.Contains(factionName))
 			{
-				nomadCultures.Add(factionName);
+				NomadCultures.Add(factionName);
 			}
 		}
 
 		public static void logEmpiresTerritories()
 		{
-			foreach (KeyValuePair<string, List<int>> kvp in listMajorEmpireTerritories)
+			foreach (KeyValuePair<string, List<int>> kvp in ListMajorEmpireTerritories)
 			{
 				Diagnostics.Log($"[Gedemon] Culture : {kvp.Key}");
 				foreach (int territoryIndex in kvp.Value)

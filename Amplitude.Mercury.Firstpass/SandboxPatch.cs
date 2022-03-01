@@ -41,7 +41,7 @@ namespace Gedemon.TrueCultureLocation
 		[HarmonyPostfix]
 		public static void ThreadStarted(Sandbox __instance)
 		{
-			Diagnostics.LogError($"[Gedemon] [ThreadStarted] postfix");
+			Diagnostics.LogWarning($"[Gedemon] [ThreadStarted] postfix");
 
 			DatabaseUtils.OnSandboxStarted();
 			ModLoading.OnSandboxStarted();
@@ -60,9 +60,10 @@ namespace Gedemon.TrueCultureLocation
 		[HarmonyPostfix]
 		public static void ThreadStartExit(Sandbox __instance, object parameter)
 		{
-			Diagnostics.LogError($"[Gedemon] exiting Sandbox, ThreadStart");
+			Diagnostics.LogWarning($"[Gedemon] exiting Sandbox, ThreadStart");
 			MajorEmpireSaveExtension.OnExitSandbox();
 			DatabaseUtils.OnExitSandbox();
+			CityMap.OnExitSandbox();
 			ModLoading.OnExitSandbox();
 		}
 
@@ -71,7 +72,7 @@ namespace Gedemon.TrueCultureLocation
 		[HarmonyPrefix]
 		public static bool ThreadStart(Sandbox __instance, object parameter)
 		{
-			Diagnostics.LogError($"[Gedemon] entering Sandbox, ThreadStart");
+			Diagnostics.LogWarning($"[Gedemon] entering Sandbox, ThreadStart");
 			MajorEmpireSaveExtension.OnSandboxStart();
 			/*
 			Sandbox.Frame = 1;

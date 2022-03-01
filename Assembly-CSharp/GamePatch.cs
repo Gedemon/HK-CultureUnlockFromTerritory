@@ -22,7 +22,8 @@ namespace Gedemon.TrueCultureLocation
 			int totalEmpireSlots = TrueCultureLocation.GetTotalEmpireSlots();
 			if (totalEmpireSlots > 0)
 			{
-				Diagnostics.LogError($"[Gedemon] in Game, Worker_StartSandbox");
+				Diagnostics.LogWarning($"[Gedemon] in Game, Worker_StartSandbox");
+				Diagnostics.LogWarning($"[Gedemon] Plugin = {TrueCultureLocation.pluginGuid} Version = {TrueCultureLocation.pluginVersion}");
 				ISessionService service = Services.GetService<ISessionService>();
 
 				ISessionSlotController slots = ((Amplitude.Mercury.Session.Session)service.Session).Slots;
@@ -34,9 +35,9 @@ namespace Gedemon.TrueCultureLocation
 					personaListingService.FillAvailablePersona(listOfAvailablePersona, fillOnlyUseable: true);
 					int numAvatars = listOfAvailablePersona.Length + 1; // to do, add MP avatars, not just the local human player avatar ?
 
-					Diagnostics.LogError($"[Gedemon] Asking for {totalEmpireSlots} slots, valid Avatars = {numAvatars}");
+					Diagnostics.LogWarning($"[Gedemon] Asking for {totalEmpireSlots} slots, valid Avatars = {numAvatars}");
 					totalEmpireSlots = totalEmpireSlots > numAvatars ? numAvatars : totalEmpireSlots;
-					Diagnostics.LogError($"[Gedemon] Setting Slot Count to {totalEmpireSlots}");
+					Diagnostics.LogWarning($"[Gedemon] Setting Slot Count to {totalEmpireSlots}");
 					slots.SetSlotCount(totalEmpireSlots);
 				}
 			}

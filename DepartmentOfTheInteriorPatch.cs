@@ -45,7 +45,7 @@ namespace Gedemon.TrueCultureLocation
 		{
 
 			Diagnostics.LogWarning($"[Gedemon] [DepartmentOfTheInterior] CreateCityAt {worldPosition}, empire index = {__instance.Empire.Index}");
-			if(DatabaseUtils.TryGetCityNameAt(worldPosition, out string cityLocalizationKey))
+			if(CityMap.TryGetCityNameAt(worldPosition, __instance.Empire, out string cityLocalizationKey))
             {
 				__instance.availableSettlementNames = new List<string> { cityLocalizationKey };
 			}
@@ -60,7 +60,7 @@ namespace Gedemon.TrueCultureLocation
 		{
 
 			Diagnostics.LogWarning($"[Gedemon] [DepartmentOfTheInterior] ApplyEvolutionToSettlement_City {settlement.WorldPosition}, empire index = {__instance.Empire.Index}");
-			if (DatabaseUtils.TryGetCityNameAt(settlement.WorldPosition, out string cityLocalizationKey))
+			if (CityMap.TryGetCityNameAt(settlement.WorldPosition, __instance.Empire, out string cityLocalizationKey))
 			{
 				__instance.availableSettlementNames = new List<string> { cityLocalizationKey };
 			}

@@ -53,7 +53,7 @@ namespace Gedemon.TrueCultureLocation
         public IDictionary<string, List<int>> MinorFactionTerritories { get; set; }
         public IDictionary<int, string> ContinentNames { get; set; }
         public IDictionary<int, string> TerritoryNames { get; set; }
-        public IDictionary<string, CityPosition> CityMap { get; set; }
+        public List<CityPosition> CityMap { get; set; }
         public IDictionary<int, Hexagon.OffsetCoords> ExtraPositions { get; set; }
         public IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsNewWorld { get; set; }
         public List<string> NoCapital { get; set; }
@@ -424,6 +424,17 @@ namespace Gedemon.TrueCultureLocation
                                     Diagnostics.Log($"[Gedemon] Updating nomadCultures, adding {factionName}");
                                     CultureUnlock.UpdateListNomads(factionName); // immediate update
                                 }
+                            }
+
+                            if (mapTCL.CityMap != null)
+                            {
+                                Diagnostics.Log($"[Gedemon] - Found CityPosition list (num entries = {mapTCL.CityMap.Count})");
+                                foreach (CityPosition cityPosition in mapTCL.CityMap)
+                                {
+                                    //Diagnostics.Log($"[Gedemon] Updating WorldCityMap, adding {cityPosition.Name}");
+                                    CityMap.WorldCityMap.Add(cityPosition); // immediate update
+                                }
+                                Diagnostics.Log($"[Gedemon] Updated WorldCityMap (total num entries = {CityMap.WorldCityMap.Count})");
                             }
                         }
                     }

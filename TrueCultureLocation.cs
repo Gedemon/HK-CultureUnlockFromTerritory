@@ -28,7 +28,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.4.1";
+		public const string pluginVersion = "1.0.4.2";
 
 		#region Define Options
 
