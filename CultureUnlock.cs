@@ -1723,8 +1723,8 @@ namespace Gedemon.TrueCultureLocation
 		{
 			if(TrueCultureLocation.KeepOnlyCoreTerritories())
 			{
-				if (HasCoreTerritories(factionName))
-					return ListMajorEmpireCoreTerritories[factionName].Contains(territoryIndex);
+				if (HasCoreTerritories(factionName) && ListMajorEmpireCoreTerritories.TryGetValue(factionName, out List<int> territoryList))
+					return territoryList.Contains(territoryIndex);
 				else
 					return false;
 

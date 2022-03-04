@@ -424,6 +424,7 @@ namespace Gedemon.TrueCultureLocation
         }
         public static void OnSandboxStarted()
         {
+            //OffsetMapXML();
             UpdateTranslationDB();
         }
         public static void OnExitSandbox()
@@ -431,5 +432,28 @@ namespace Gedemon.TrueCultureLocation
             TranslationTable.Clear();
         }
 
+        public static void OffsetMapXML()
+        {
+            // fix non-encoded "&" in file
+            string text = File.ReadAllText(@"path");
+            Diagnostics.LogError($"[Gedemon] [OffsetMapXML] loading (text Length = {text.Length})");
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"&(\W|$)", match => "&amp;" + match.Value.Substring(1));
+
+            XDocument xmlDoc = XDocument.Parse(text); 
+            var items = from item in xmlDoc.Descendants("Row")
+                        where item.Attribute("X").Value != null
+                        select item;
+
+            foreach (XElement itemElement in items)
+            {
+                if (int.TryParse(itemElement.Attribute("Y").Value, out int value))
+                {
+                    value++;
+                    itemElement.SetAttributeValue("Y", value.ToString());
+                }
+            }
+
+            xmlDoc.Save("path2");
+        }
     }
 }

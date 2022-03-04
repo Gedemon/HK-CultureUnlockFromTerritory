@@ -38,6 +38,7 @@ namespace Gedemon.TrueCultureLocation
         {
             foreach (CityPosition cityPosition in WorldCityMap)
             {
+                //Diagnostics.Log($"[Gedemon] [BuildTerritoryCityMap] Adding City {cityPosition.Name} at ({cityPosition.Column},{cityPosition.Row})");
                 WorldPosition position = new WorldPosition(cityPosition.Column, cityPosition.Row);
                 int territoryIndex = currentWorld.TileInfo.Data[position.ToTileIndex()].TerritoryIndex;
 

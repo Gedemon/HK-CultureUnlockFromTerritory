@@ -25,7 +25,7 @@ namespace Gedemon.TrueCultureLocation
 
 				if (TradeRoute.IsRestoreDestroyedTradeRoutes)
 				{
-					// destroy main district to also destroy all trade routes we want to restore (else they'll be destroyed to late for restoration, after the district decay) 
+					// destroy main district to also destroy all trade routes we want to restore (else they'll be destroyed too late for restoration, after the district decay) 
 					District mainDistrict = settlement.GetMainDistrict();
 					if (mainDistrict != null)
 					{
@@ -37,6 +37,22 @@ namespace Gedemon.TrueCultureLocation
 			return true;
 		}
 		//*/
+
+		//*
+		[HarmonyPatch("DestroyDistrict")]
+		[HarmonyPrefix]
+		public static bool DestroyDistrict(DepartmentOfTheInterior __instance, District district, DistrictDestructionSource damageSource)
+		{
+
+			int tileIndex = district.WorldPosition.ToTileIndex();
+			if (CurrentGame.Data.HistoricVisualAffinity.TryGetValue(tileIndex, out StaticString visualAffinity))
+			{
+				Diagnostics.LogWarning($"[Gedemon] [DepartmentOfTheInterior] DestroyDistrict called at {district.WorldPosition} from {damageSource}, empire index = {__instance.Empire.Index}, remove Historic Visual = {visualAffinity}");
+				CurrentGame.Data.HistoricVisualAffinity.Remove(tileIndex);
+			}
+			return true;
+		}
+		//*
 
 		//*
 		[HarmonyPatch("CreateCityAt")]
@@ -67,6 +83,21 @@ namespace Gedemon.TrueCultureLocation
 			return true;
 		}
 		//*/
+
+
+		//*
+		[HarmonyPatch("ChangeSettlementOwner")]
+		[HarmonyPrefix]
+		public static bool ChangeSettlementOwner(DepartmentOfTheInterior __instance, Settlement settlement, Empire newEmpireOwner, bool keepCaptured = true)
+		{
+
+			//Diagnostics.LogWarning($"[Gedemon] [DepartmentOfTheInterior] ChangeSettlementOwner {settlement.EntityName} at {settlement.WorldPosition}, empire index = {__instance.Empire.Index}, new empire index = {newEmpireOwner.Index}");
+
+			CultureChange.SaveHistoricDistrictVisuals(settlement.Empire.Entity);
+			return true;
+		}
+		//*/
+		// private Settlement DetachTerritoryFromCityAndCreateNewSettlement(Settlement city, int territoryIndex)
 
 	}
 

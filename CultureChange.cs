@@ -14,11 +14,15 @@ using FailureFlags = Amplitude.Mercury.Simulation.FailureFlags;
 
 namespace Gedemon.TrueCultureLocation
 {
-    class CultureChange
+
+	class CultureChange
     {
+		static public IDictionary<int,StaticString> VisualAffinityCache = new Dictionary<int,StaticString>();
+
 		public static void Load()
 		{
 			Diagnostics.LogWarning($"[Gedemon] [CultureChange] OnLoad: TrueCultureLocation.IsEnabled = {TrueCultureLocation.IsEnabled()}");
+			//VisualAffinityCache.Clear();
 			if (!TrueCultureLocation.IsEnabled())
 				return;
 
@@ -28,6 +32,7 @@ namespace Gedemon.TrueCultureLocation
 		public static void Unload()
 		{
 			Diagnostics.LogWarning($"[Gedemon] [CultureChange] OnUnload: TrueCultureLocation.IsEnabled = {TrueCultureLocation.IsEnabled()}");
+			//VisualAffinityCache.Clear();
 			if (!TrueCultureLocation.IsEnabled())
 				return;
 
@@ -43,7 +48,7 @@ namespace Gedemon.TrueCultureLocation
         {
 			Diagnostics.LogWarning($"[Gedemon] [CultureChange] SimulationEventRaised_TurnEnd");
 
-            if(TrueCultureLocation.CanRespawnDeadPlayer() && TrueCultureLocation.CanEliminateLastEmpires())
+			if (TrueCultureLocation.CanRespawnDeadPlayer() && TrueCultureLocation.CanEliminateLastEmpires())
 			{
 
 				int numAwake = 0;
@@ -1138,26 +1143,78 @@ namespace Gedemon.TrueCultureLocation
 				for (int k = 0; k < count2; k++)
 				{
 					Territory territory = settlement.Region.Entity.Territories[k];
-					District district = territory.AdministrativeDistrict;
+					District adminDistrict = territory.AdministrativeDistrict;
+
 					if (CultureUnlock.HasTerritory(empire.FactionDefinition.Name.ToString(), territory.Index))
 					{
-						if (district != null)
+						if (adminDistrict != null)
 						{
-							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : update Administrative District visual in territory {district.Territory.Entity.Index}.");
-							district.InitialVisualAffinityName = DepartmentOfTheInterior.GetInitialVisualAffinityFor(empire, district.DistrictDefinition);
+							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : update Administrative District visual in territory {adminDistrict.Territory.Entity.Index}.");
+							adminDistrict.InitialVisualAffinityName = DepartmentOfTheInterior.GetInitialVisualAffinityFor(empire, adminDistrict.DistrictDefinition);
 						}
 						else
 						{
-							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : no Administrative District in territory {district.Territory.Entity.Index}.");
+							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : no Administrative District in territory {adminDistrict.Territory.Entity.Index}.");
 						}
 					}
 					else
 					{
 						// add instability here ?
 						Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : PublicOrderCurrent = {settlement.PublicOrderCurrent.Value}, PublicOrderPositiveTrend = {settlement.PublicOrderPositiveTrend.Value}, PublicOrderNegativeTrend = {settlement.PublicOrderNegativeTrend.Value}, DistanceInTerritoryToCapital = {settlement.DistanceInTerritoryToCapital.Value}.");
-						if (district != null)
-							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {district.DistrictDefinition.Name} : PublicOrderProduced = {district.PublicOrderProduced.Value}.");
+						if (adminDistrict != null)
+						{
+							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {adminDistrict.DistrictDefinition.Name} : PublicOrderProduced = {adminDistrict.PublicOrderProduced.Value}.");
+							
+						}
 
+					}
+					/*
+					int count3 = territory.Districts.Count;
+					for (int l = 0; l < count3; l++)
+					{
+						District district = territory.Districts[l];
+						if (!district.IsAdministrativeDistrict && district.DistrictType != DistrictTypes.Exploitation)
+						{
+							if (CurrentGame.Data.HistoricVisualAffinity.TryGetValue(district.WorldPosition.ToTileIndex(), out StaticString cachedVisualAffinity) && district.InitialVisualAffinityName != cachedVisualAffinity)
+							{
+								Diagnostics.LogWarning($"[Gedemon] Set different InitialVisualAffinityName = {cachedVisualAffinity} (from {district.InitialVisualAffinityName}) for {district.DistrictDefinition.Name} (tile index = {district.WorldPosition.ToTileIndex()}) at {district.WorldPosition}");
+								district.InitialVisualAffinityName = cachedVisualAffinity;
+							}
+						}
+					}
+					//*/
+				}
+			}
+
+			//VisualAffinityCache.Clear();
+		}
+		public static void SaveHistoricDistrictVisuals(Empire empire)
+		{
+			//VisualAffinityCache.Clear();
+			int count = empire.Settlements.Count;
+			for (int m = 0; m < count; m++)
+			{
+				Settlement settlement = empire.Settlements[m];
+				int count2 = settlement.Region.Entity.Territories.Count;
+				for (int k = 0; k < count2; k++)
+				{
+					Territory territory = settlement.Region.Entity.Territories[k];
+					int count3 = territory.Districts.Count;
+					for (int l = 0; l < count3; l++)
+					{
+						District district = territory.Districts[l];
+						if(district.DistrictType != DistrictTypes.Exploitation)
+						{
+							int tileIndex = district.WorldPosition.ToTileIndex();
+							if (CurrentGame.Data.HistoricVisualAffinity.ContainsKey(tileIndex))
+							{
+								CurrentGame.Data.HistoricVisualAffinity[tileIndex] = district.InitialVisualAffinityName;
+							}
+							else
+							{
+								CurrentGame.Data.HistoricVisualAffinity.Add(tileIndex, district.InitialVisualAffinityName);
+							}
+						}
 					}
 				}
 			}

@@ -23,16 +23,21 @@ namespace Gedemon.TrueCultureLocation
 			Diagnostics.LogError($"[Gedemon] in ApplyFactionChange, {__instance.majorEmpire.PersonaName} is changing faction from  {__instance.majorEmpire.FactionDefinition.Name} to {__instance.nextFactionName}");
 			Diagnostics.Log($"[Gedemon] UseTrueCultureLocation() = {CultureUnlock.UseTrueCultureLocation()}, KeepOnlyCultureTerritory =  {TrueCultureLocation.KeepOnlyCultureTerritory()},  KeepTerritoryAttached = {TrueCultureLocation.KeepTerritoryAttached()}, NoTerritoryLossForAI = {TrueCultureLocation.NoTerritoryLossForAI()}, TerritoryLossOption = {GameOptionHelper.GetGameOption(TrueCultureLocation.TerritoryLossOption)}");
 
-			if (CultureUnlock.UseTrueCultureLocation())
+			MajorEmpire majorEmpire = __instance.majorEmpire;
+			StaticString nextFactionName = __instance.nextFactionName;
+
+			if (majorEmpire.DepartmentOfDevelopment.CurrentEraIndex != 0)
 			{
-				MajorEmpire majorEmpire = __instance.majorEmpire;
-				StaticString nextFactionName = __instance.nextFactionName;
+				CultureChange.SaveHistoricDistrictVisuals(majorEmpire);
 
-				TradeRoute.StartListingTradeRouteToRestore();
-
-				if (majorEmpire.DepartmentOfDevelopment.CurrentEraIndex != 0 && majorEmpire.FactionDefinition.Name != nextFactionName)
+				if (CultureUnlock.UseTrueCultureLocation())
 				{
-					CultureChange.DoFactionChange(majorEmpire, nextFactionName);
+					TradeRoute.StartListingTradeRouteToRestore();
+
+					if (majorEmpire.FactionDefinition.Name != nextFactionName)
+					{
+						CultureChange.DoFactionChange(majorEmpire, nextFactionName);
+					}
 				}
 			}
 		}

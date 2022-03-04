@@ -11,12 +11,14 @@ namespace Gedemon.TrueCultureLocation
 
 	public class CurrentGameData : ISerializable
 	{
+		public IDictionary<int, StaticString> HistoricVisualAffinity;
 		IDictionary<string, List<int>> FallenEmpireTerritories;
 		List<StaticString> FallenEmpires;
 		public bool IsInitialized { get; set; }
 
 		public CurrentGameData()
 		{
+			HistoricVisualAffinity = new Dictionary<int, StaticString>();
 			FallenEmpires = new List<StaticString>();
 			FallenEmpireTerritories = new Dictionary<string, List<int>>();
 			IsInitialized = false;
@@ -25,18 +27,27 @@ namespace Gedemon.TrueCultureLocation
 		public void Serialize(Serializer serializer)
 		{
 			IsInitialized = serializer.SerializeElement("IsInitialized", IsInitialized);
-			FallenEmpires = serializer.SerializeElement("IsInitialized", FallenEmpires);
+			FallenEmpires = serializer.SerializeElement("FallenEmpires", FallenEmpires);
 
-			int num = serializer.SerializeElement("Count", FallenEmpireTerritories.Count);
+			int numFallen = serializer.SerializeElement("CountFallen", FallenEmpireTerritories.Count);
+			int numVisual = serializer.SerializeElement("CountVisualAffinity", HistoricVisualAffinity.Count);
+
 			switch (serializer.SerializationMode)
 			{
 				case SerializationMode.Read:
 					{
-						for (int i = 0; i < num; i++)
+						for (int i = 0; i < numFallen; i++)
 						{
 							string key = serializer.SerializeElement("Faction", string.Empty);
 							List<int> value = serializer.SerializeElement("Territories", new List<int>());
 							FallenEmpireTerritories.Add(key, value);
+						}
+
+						for (int i = 0; i < numVisual; i++)
+						{
+							int key = serializer.SerializeElement("TileIndex", -1);
+							StaticString value = serializer.SerializeElement("VisualAffinity", new StaticString(string.Empty));
+							HistoricVisualAffinity.Add(key, value);
 						}
 						break;
 					}
@@ -46,6 +57,11 @@ namespace Gedemon.TrueCultureLocation
 						{
 							serializer.SerializeElement("Faction", empireTerritories.Key);
 							serializer.SerializeElement("Territories", empireTerritories.Value);
+						}
+						foreach (KeyValuePair<int, StaticString> visualAffinities in HistoricVisualAffinity)
+						{
+							serializer.SerializeElement("TileIndex", visualAffinities.Key);
+							serializer.SerializeElement("VisualAffinity", visualAffinities.Value);
 						}
 						break;
 					}
@@ -98,7 +114,20 @@ namespace Gedemon.TrueCultureLocation
 	{
 		public static CurrentGameData Data;
 
+
+		public static void OnSandboxStart()
+		{
+						
+		}
+
+		public static void OnExitSandbox()
+		{
+			CurrentGame.Data = null;
+		}
+
 	}
+
+
 
 	[HarmonyPatch(typeof(World))]
 	public class TCL_World

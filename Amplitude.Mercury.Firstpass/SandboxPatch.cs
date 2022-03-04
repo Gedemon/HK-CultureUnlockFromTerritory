@@ -65,6 +65,7 @@ namespace Gedemon.TrueCultureLocation
 			DatabaseUtils.OnExitSandbox();
 			CityMap.OnExitSandbox();
 			ModLoading.OnExitSandbox();
+			CurrentGame.OnExitSandbox();
 		}
 
 
