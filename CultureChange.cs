@@ -240,7 +240,7 @@ namespace Gedemon.TrueCultureLocation
 					Diagnostics.LogWarning($"[Gedemon] no potential Capital District was passed, try to find one in the territory list for the new faction...");
 
 					int count = majorEmpire.Settlements.Count;
-					foreach (int territoryIndex in CultureUnlock.GetListTerritories(nextFactionName))
+					foreach (int territoryIndex in CultureUnlock.GetListTerritories(nextFactionName.ToString()))
 					{
 						for (int n = 0; n < count; n++)
 						{
@@ -1177,7 +1177,7 @@ namespace Gedemon.TrueCultureLocation
 						{
 							if (CurrentGame.Data.HistoricVisualAffinity.TryGetValue(district.WorldPosition.ToTileIndex(), out StaticString cachedVisualAffinity) && district.InitialVisualAffinityName != cachedVisualAffinity)
 							{
-								Diagnostics.LogWarning($"[Gedemon] Set different InitialVisualAffinityName = {cachedVisualAffinity} (from {district.InitialVisualAffinityName}) for {district.DistrictDefinition.Name} (tile index = {district.WorldPosition.ToTileIndex()}) at {district.WorldPosition}");
+								Diagnostics.LogWarning($"[Gedemon] Set different InitialVisualAffinityName = {cachedVisualAffinity} (from {district.InitialVisualAffinityName}) for {district.DistrictDefinition.Name} (tile index = {district.WorldPosition.ToTileIndex()}) at {district.WorldPosition})");
 								district.InitialVisualAffinityName = cachedVisualAffinity;
 							}
 						}
@@ -1186,11 +1186,9 @@ namespace Gedemon.TrueCultureLocation
 				}
 			}
 
-			//VisualAffinityCache.Clear();
 		}
 		public static void SaveHistoricDistrictVisuals(Empire empire)
 		{
-			//VisualAffinityCache.Clear();
 			int count = empire.Settlements.Count;
 			for (int m = 0; m < count; m++)
 			{
@@ -1206,13 +1204,14 @@ namespace Gedemon.TrueCultureLocation
 						if(district.DistrictType != DistrictTypes.Exploitation)
 						{
 							int tileIndex = district.WorldPosition.ToTileIndex();
-							if (CurrentGame.Data.HistoricVisualAffinity.ContainsKey(tileIndex))
+							if (CurrentGame.Data.HistoricVisualAffinity.TryGetValue(tileIndex, out DistrictVisual districtVisual))
 							{
-								CurrentGame.Data.HistoricVisualAffinity[tileIndex] = district.InitialVisualAffinityName;
+								//CurrentGame.Data.HistoricVisualAffinity[tileIndex] = districtVisual;
 							}
 							else
 							{
-								CurrentGame.Data.HistoricVisualAffinity.Add(tileIndex, district.InitialVisualAffinityName);
+								//Diagnostics.LogWarning($"[Gedemon] SaveHistoricDistrictVisuals in {CultureUnlock.GetTerritoryName(territory.Index)} for {district.DistrictDefinition.Name} : district.InitialVisualAffinityName = {district.InitialVisualAffinityName}, EraIndex = {(int)empire.EraLevel.Value}  (tile index = {district.WorldPosition.ToTileIndex()}) at {district.WorldPosition})");
+								CurrentGame.Data.HistoricVisualAffinity.Add(tileIndex, new DistrictVisual { VisualAffinity = district.InitialVisualAffinityName, EraIndex = (int)empire.EraLevel.Value });
 							}
 						}
 					}

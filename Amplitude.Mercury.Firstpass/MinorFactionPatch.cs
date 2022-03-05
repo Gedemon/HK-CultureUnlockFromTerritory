@@ -249,7 +249,7 @@ namespace Gedemon.TrueCultureLocation
 					{
 						if ((minorEmpire.Cities[c].CityFlags & CityFlags.Besieged) != 0)
 						{
-							Diagnostics.LogWarning($"[Gedemon] - {minorEmpire.Cities[c].EntityName} is under siege, can't Evolve now...");
+							Diagnostics.Log($"[Gedemon] - {minorEmpire.Cities[c].EntityName} is under siege, can't Evolve now...");
 							canEvolve = false;
 							break;
 						}
@@ -277,7 +277,7 @@ namespace Gedemon.TrueCultureLocation
 							int territoryIndex = territory.Index;
 							if (CultureUnlock.HasAnyMajorEmpirePosition(territoryIndex))
 							{
-								Diagnostics.LogWarning($"[Gedemon] Minor Faction own territory {CultureUnlock.GetTerritoryName(territoryIndex)}, a potential Major Empire location");
+								Diagnostics.Log($"[Gedemon] Minor Faction own territory {CultureUnlock.GetTerritoryName(territoryIndex)}, a potential Major Empire location");
 								List<string> majorEmpireNames = CultureUnlock.GetListMajorEmpiresForTerritory(territoryIndex);
 								foreach (string empireName in majorEmpireNames)
 								{
@@ -285,7 +285,7 @@ namespace Gedemon.TrueCultureLocation
 									FactionDefinition factionDefinition = Utils.GameUtils.GetFactionDefinition(factionName);
 									if (factionDefinition != null)
 									{
-										Diagnostics.LogWarning($"[Gedemon] - Checking {empireName}, Era Index = {factionDefinition.EraIndex}");
+										Diagnostics.Log($"[Gedemon] - Checking {empireName}, Era Index = {factionDefinition.EraIndex}, GetGlobalEraIndex = {Sandbox.Timeline.GetGlobalEraIndex()}, minorEmpire.EraIndex = {minorEmpire.EraIndex}");
 
 										if (CurrentGame.Data.IsFallenEmpire(factionName))
 											continue;

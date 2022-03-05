@@ -45,9 +45,9 @@ namespace Gedemon.TrueCultureLocation
 		{
 
 			int tileIndex = district.WorldPosition.ToTileIndex();
-			if (CurrentGame.Data.HistoricVisualAffinity.TryGetValue(tileIndex, out StaticString visualAffinity))
+			if (CurrentGame.Data.HistoricVisualAffinity.TryGetValue(tileIndex, out DistrictVisual visualAffinity))
 			{
-				Diagnostics.LogWarning($"[Gedemon] [DepartmentOfTheInterior] DestroyDistrict called at {district.WorldPosition} from {damageSource}, empire index = {__instance.Empire.Index}, remove Historic Visual = {visualAffinity}");
+				Diagnostics.LogWarning($"[Gedemon] [DepartmentOfTheInterior] DestroyDistrict called at {district.WorldPosition} from {damageSource}, empire index = {__instance.Empire.Index}, remove Historic Visual = {visualAffinity.VisualAffinity}");
 				CurrentGame.Data.HistoricVisualAffinity.Remove(tileIndex);
 			}
 			return true;

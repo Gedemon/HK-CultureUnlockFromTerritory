@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Amplitude;
 using Amplitude.Mercury;
 using Amplitude.Mercury.Interop;
@@ -1687,24 +1688,22 @@ namespace Gedemon.TrueCultureLocation
         {
 			return TerritoriesWithMajorEmpires[territoryIndex];
 		}
-		public static bool HasCoreTerritories(string factionName)
-		{
-			return ListMajorEmpireCoreTerritories.ContainsKey(factionName);
-		}
 
 		public static bool HasMajorTerritories(string factionName)
 		{
-			return ListMajorEmpireTerritories.ContainsKey(factionName);
+			if(ListMajorEmpireTerritories.TryGetValue(factionName, out List<int> territories))
+            {
+				return territories.Count > 0;
+            }
+			return false;
 		}
-
 		public static bool HasMinorTerritories(string factionName)
 		{
-			return ListMinorFactionTerritories.ContainsKey(factionName);
-		}
-
-		public static bool HasMinorTerritories(StaticString FactionName)
-		{
-			return HasMinorTerritories(FactionName.ToString());
+			if (ListMinorFactionTerritories.TryGetValue(factionName, out List<int> territories))
+			{
+				return territories.Count > 0;
+			}
+			return false;
 		}
 		public static bool HasTerritory(string factionName, int territoryIndex)
 		{
@@ -1715,25 +1714,17 @@ namespace Gedemon.TrueCultureLocation
 			else
 				return false;
 		}
-		public static bool HasTerritory(StaticString FactionName, int territoryIndex)
-		{
-			return HasTerritory(FactionName.ToString(), territoryIndex);
-		}
 		public static bool HasCoreTerritory(string factionName, int territoryIndex)
 		{
 			if(TrueCultureLocation.KeepOnlyCoreTerritories())
 			{
-				if (HasCoreTerritories(factionName) && ListMajorEmpireCoreTerritories.TryGetValue(factionName, out List<int> territoryList))
+				if (ListMajorEmpireCoreTerritories.TryGetValue(factionName, out List<int> territoryList))
 					return territoryList.Contains(territoryIndex);
 				else
 					return false;
 
 			}
 			return HasTerritory(factionName, territoryIndex);
-		}
-		public static bool HasCoreTerritory(StaticString FactionName, int territoryIndex)
-		{
-			return HasCoreTerritory(FactionName.ToString(), territoryIndex);
 		}
 		public static bool HasCoreTerritory(string factionName, int territoryIndex, bool any)
 		{
@@ -1743,12 +1734,15 @@ namespace Gedemon.TrueCultureLocation
 			}
 			else
 			{
-				if (HasCoreTerritories(factionName))
+				if (TrueCultureLocation.KeepOnlyCoreTerritories() && ListMajorEmpireCoreTerritories.TryGetValue(factionName, out List<int> coreList))
+				{
+					if(coreList.Count > 0)
+						return coreList.First() == territoryIndex;
+				}
+				else if(ListMajorEmpireTerritories.TryGetValue(factionName, out List<int> territoryList))
                 {
-					if (TrueCultureLocation.KeepOnlyCoreTerritories())
-						return ListMajorEmpireCoreTerritories[factionName][0] == territoryIndex;
-					else
-						return ListMajorEmpireTerritories[factionName][0] == territoryIndex;
+					if(territoryList.Count > 0)
+						return territoryList.First() == territoryIndex;
 				}
 			}
 			return false;
@@ -1800,10 +1794,6 @@ namespace Gedemon.TrueCultureLocation
 			{
 				return new List<int>();
 			}
-		}
-		public static List<int> GetListTerritories(StaticString FactionName)
-		{
-			return GetListTerritories(FactionName.ToString());
 		}
 
 		public static int GetCapitalTerritoryIndex(string civilizationName)

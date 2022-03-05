@@ -9,16 +9,27 @@ using Amplitude.Serialization;
 namespace Gedemon.TrueCultureLocation
 {
 
+	public class DistrictVisual : ISerializable
+    {
+		public StaticString VisualAffinity { get; set; }
+		public int EraIndex { get; set; }
+		public void Serialize(Serializer serializer)
+		{
+			EraIndex = serializer.SerializeElement("EraIndex", EraIndex);
+			VisualAffinity = serializer.SerializeElement("VisualAffinity", VisualAffinity);
+		}
+	}
+
 	public class CurrentGameData : ISerializable
 	{
-		public IDictionary<int, StaticString> HistoricVisualAffinity;
+		public IDictionary<int, DistrictVisual> HistoricVisualAffinity;
 		IDictionary<string, List<int>> FallenEmpireTerritories;
 		List<StaticString> FallenEmpires;
 		public bool IsInitialized { get; set; }
 
 		public CurrentGameData()
 		{
-			HistoricVisualAffinity = new Dictionary<int, StaticString>();
+			HistoricVisualAffinity = new Dictionary<int, DistrictVisual>();
 			FallenEmpires = new List<StaticString>();
 			FallenEmpireTerritories = new Dictionary<string, List<int>>();
 			IsInitialized = false;
@@ -46,7 +57,7 @@ namespace Gedemon.TrueCultureLocation
 						for (int i = 0; i < numVisual; i++)
 						{
 							int key = serializer.SerializeElement("TileIndex", -1);
-							StaticString value = serializer.SerializeElement("VisualAffinity", new StaticString(string.Empty));
+							DistrictVisual value = serializer.SerializeElement("VisualAffinity", new DistrictVisual());
 							HistoricVisualAffinity.Add(key, value);
 						}
 						break;
@@ -58,7 +69,7 @@ namespace Gedemon.TrueCultureLocation
 							serializer.SerializeElement("Faction", empireTerritories.Key);
 							serializer.SerializeElement("Territories", empireTerritories.Value);
 						}
-						foreach (KeyValuePair<int, StaticString> visualAffinities in HistoricVisualAffinity)
+						foreach (KeyValuePair<int, DistrictVisual> visualAffinities in HistoricVisualAffinity)
 						{
 							serializer.SerializeElement("TileIndex", visualAffinities.Key);
 							serializer.SerializeElement("VisualAffinity", visualAffinities.Value);

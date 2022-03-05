@@ -302,7 +302,7 @@ namespace Gedemon.TrueCultureLocation
 
 						Diagnostics.LogWarning($"[Gedemon] Check if the city territory is part of the Old Empire...");
 						// Check if the city territory is part of the Old Empire
-						if (CultureUnlock.HasTerritory(OldFactionName, territoryIndex))
+						if (CultureUnlock.HasTerritory(OldFactionName.ToString(), territoryIndex))
 						{
 							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} {CultureUnlock.GetTerritoryName(territoryIndex)}: Add to newMajorSettlements for replacing Empire");
 							newMajorSettlements.Add(settlement);
@@ -402,7 +402,7 @@ namespace Gedemon.TrueCultureLocation
 					foreach (int territoryIndex in territoriesLost)
                     {
 						// check if the territory is part of the Old Empire
-						if (CultureUnlock.HasTerritory(OldFactionName, territoryIndex))
+						if (CultureUnlock.HasTerritory(OldFactionName.ToString(), territoryIndex))
                         {
 							Diagnostics.LogWarning($"[Gedemon] {CultureUnlock.GetTerritoryName(territoryIndex)} (ID #{territoryIndex}): Add to newMajorTerritories for replacing Empire");
 							newMajorTerritories.Add(territoryIndex);
@@ -412,7 +412,7 @@ namespace Gedemon.TrueCultureLocation
 						// check if the territory is part of the new minor factions
 						foreach(StaticString factionName in listNewFactions)
 						{
-							if (CultureUnlock.HasTerritory(factionName, territoryIndex))
+							if (CultureUnlock.HasTerritory(factionName.ToString(), territoryIndex))
 							{
 								Diagnostics.LogWarning($"[Gedemon] {CultureUnlock.GetTerritoryName(territoryIndex)} (ID #{territoryIndex}): Add to newMinorsTerritories for {factionName}");
 								newMinorsTerritories.Add(territoryIndex, factionName);

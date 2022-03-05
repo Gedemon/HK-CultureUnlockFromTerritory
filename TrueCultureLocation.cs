@@ -29,7 +29,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.4.3";
+		public const string pluginVersion = "1.0.4.4";
 
 		#region Define Options
 
@@ -1121,6 +1121,8 @@ namespace Gedemon.TrueCultureLocation
 	[HarmonyPatch(typeof(Timeline))]
 	public class Timeline_Patch
 	{
+
+		//*
 		[HarmonyPatch("InitializeOnStart")]
 		[HarmonyPostfix]
 		public static void InitializeOnStart(Timeline __instance, SandboxStartSettings sandboxStartSettings)
@@ -1137,6 +1139,36 @@ namespace Gedemon.TrueCultureLocation
 					__instance.globalEraThresholds[l] = __instance.globalEraThresholds[l - 1] + __instance.eraDefinitions[l].BaseGlobalEraThreshold * numSettlingEmpires;
 				}
 			}
+		}
+		//*/
+
+		[HarmonyPatch("GetGlobalEraIndex")]
+		[HarmonyPrefix]
+		public static bool GetGlobalEraIndex(Timeline __instance, ref int __result)
+		{
+			int sumEras = 0;
+			int numActive = 0;
+			int topEra = 0;
+			for (int i = 0; i < Amplitude.Mercury.Sandbox.Sandbox.NumberOfMajorEmpires; i++)
+			{
+				MajorEmpire majorEmpire = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires[i];
+                if(majorEmpire.IsAlive && !CultureChange.IsSleepingEmpire(majorEmpire))
+				{
+					int empireEra = majorEmpire.DepartmentOfDevelopment.CurrentEraIndex;
+					numActive++;
+					sumEras += empireEra;
+					topEra = empireEra > topEra ? empireEra : topEra;
+				}
+			}
+
+			if(numActive > 0)
+            {
+				__result = System.Math.Max( sumEras / numActive, topEra - 1);
+				return false;
+			}
+
+			__result = __instance.StartingEraIndex;
+			return false;
 		}
 	}
 	//*/
@@ -1265,19 +1297,19 @@ namespace Gedemon.TrueCultureLocation
             }
 			if (isNewDistrict || districtInfo.DistrictDefinitionName == DepartmentOfTheInterior.CityCenterDistrictDefinitionName)
 			{
-				if(CurrentGame.Data.HistoricVisualAffinity.TryGetValue(districtInfo.TileIndex, out StaticString cachedVisualAffinity))
+				if(CurrentGame.Data.HistoricVisualAffinity.TryGetValue(districtInfo.TileIndex, out DistrictVisual cachedVisualAffinity))
 				{
-					//Diagnostics.LogError($"[Gedemon] UpdateFromDistrictInfo {districtInfo.DistrictDefinitionName}, isNewDistrict = {isNewDistrict}), TileIndex = {districtInfo.TileIndex}, VisualAffinityName = {districtInfo.VisualAffinityName}, InitialVisualAffinityName = {districtInfo.InitialVisualAffinityName}, cached = ({cachedVisualAffinity}) ");
+					//Diagnostics.LogError($"[Gedemon] UpdateFromDistrictInfo {districtInfo.DistrictDefinitionName}, isNewDistrict = {isNewDistrict}), TileIndex = {districtInfo.TileIndex}, VisualAffinityName = {districtInfo.VisualAffinityName}, InitialVisualAffinityName = {districtInfo.InitialVisualAffinityName}, cached = ({cachedVisualAffinity.VisualAffinity}) ");
 
 				}
-				if(isNewDistrict)
+				if (isNewDistrict)
 				{
 					if (CurrentGame.Data.HistoricVisualAffinity.ContainsKey(districtInfo.TileIndex))
                     {
 						//CurrentGame.Data.HistoricVisualAffinity.Remove(districtInfo.TileIndex); // need to clean somewhere else, "isNewDistrict" is true on capture)
 					}
 					ref TileInfo reference = ref Amplitude.Mercury.Sandbox.Sandbox.World.TileInfo.Data[districtInfo.TileIndex];
-					Diagnostics.LogError($"[Gedemon] UpdateFromDistrictInfo (new district)  {districtInfo.DistrictDefinitionName}, TileIndex = {districtInfo.TileIndex} ({CultureUnlock.GetTerritoryName(reference.TerritoryIndex)}), VisualAffinityName = {districtInfo.VisualAffinityName}, InitialVisualAffinityName = {districtInfo.InitialVisualAffinityName}");
+					Diagnostics.LogWarning($"[Gedemon] UpdateFromDistrictInfo (new district)  {districtInfo.DistrictDefinitionName}, TileIndex = {districtInfo.TileIndex} ({CultureUnlock.GetTerritoryName(reference.TerritoryIndex)}), VisualAffinityName = {districtInfo.VisualAffinityName}, InitialVisualAffinityName = {districtInfo.InitialVisualAffinityName}");
 				}
 				return true;
 			}
@@ -1285,16 +1317,17 @@ namespace Gedemon.TrueCultureLocation
             else
             {
 
-				if (CurrentGame.Data.HistoricVisualAffinity.TryGetValue(districtInfo.TileIndex, out StaticString cachedVisualAffinity) && districtInfo.VisualAffinityName != cachedVisualAffinity)
+				if (CurrentGame.Data.HistoricVisualAffinity.TryGetValue(districtInfo.TileIndex, out DistrictVisual historicDistrict) && districtInfo.VisualAffinityName != historicDistrict.VisualAffinity)
 				{
 
 					ref TileInfo reference = ref Amplitude.Mercury.Sandbox.Sandbox.World.TileInfo.Data[districtInfo.TileIndex];
-                    //if(CultureUnlock.GetTerritoryName(reference.TerritoryIndex) == "Britannia")
+                    //if(CultureUnlock.GetTerritoryName(reference.TerritoryIndex) == "Graecia")
 					{
-						//Diagnostics.LogWarning($"[Gedemon] UpdateFromDistrictInfo for {districtInfo.DistrictDefinitionName} at TileIndex #{districtInfo.TileIndex} ({CultureUnlock.GetTerritoryName(reference.TerritoryIndex)}) with different cached visual ({cachedVisualAffinity}) and info visual ({districtInfo.VisualAffinityName}) (initial = {districtInfo.InitialVisualAffinityName})");
+						//Diagnostics.LogWarning($"[Gedemon] UpdateFromDistrictInfo for {districtInfo.DistrictDefinitionName} at TileIndex #{districtInfo.TileIndex} ({CultureUnlock.GetTerritoryName(reference.TerritoryIndex)}) with different cached visual ({historicDistrict.VisualAffinity}, EraIndex = {historicDistrict.EraIndex}) and info visual ({districtInfo.VisualAffinityName}) (initial = {districtInfo.InitialVisualAffinityName})");
 					}
-					districtInfo.VisualAffinityName = cachedVisualAffinity;
-					districtInfo.InitialVisualAffinityName = cachedVisualAffinity;
+					districtInfo.VisualAffinityName = historicDistrict.VisualAffinity;
+					districtInfo.InitialVisualAffinityName = historicDistrict.VisualAffinity;
+					districtInfo.EraIndex = historicDistrict.EraIndex;
 
 				}
 			}
