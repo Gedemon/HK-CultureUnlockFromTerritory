@@ -168,7 +168,7 @@ namespace Gedemon.TrueCultureLocation
 			}
 		}
 		public static void DoFactionChange(MajorEmpire majorEmpire, StaticString nextFactionName, bool CanReplaceMajor = true)
-        {			
+        {
 
 			bool canUseMajorEmpire = false;
 
@@ -1130,6 +1130,25 @@ namespace Gedemon.TrueCultureLocation
 			}
 			//*/
 
+		}
+		public static void UpdateTerritoryLabels(int currentEraIndex)
+		{
+			ref Amplitude.Mercury.Terrain.TerrainLabel[] terrainLabels = ref Amplitude.Mercury.Presentation.Presentation.PresentationTerritoryHighlightController.territoryLabelsRenderer.terrainLabels;
+
+			int numTerritories = terrainLabels.Length;
+			for(int territoryIndex = 0; territoryIndex < numTerritories; territoryIndex++)
+            {
+				if(CultureUnlock.IsNextEraUnlock(territoryIndex, currentEraIndex))
+                {
+					//terrainLabels[territoryIndex].Text = "*" + CultureUnlock.GetTerritoryName(territoryIndex) + "*";
+					terrainLabels[territoryIndex].OptionalColor = UnityEngine.Color.cyan;
+				}
+				else
+				{
+					//terrainLabels[territoryIndex].Text = CultureUnlock.GetTerritoryName(territoryIndex);
+					terrainLabels[territoryIndex].OptionalColor = UnityEngine.Color.white;
+				}
+            }
 		}
 		public static void UpdateDistrictVisuals(Empire empire)
         {

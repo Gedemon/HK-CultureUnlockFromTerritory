@@ -66,6 +66,7 @@ namespace Gedemon.TrueCultureLocation
 			CityMap.OnExitSandbox();
 			ModLoading.OnExitSandbox();
 			CurrentGame.OnExitSandbox();
+			CultureUnlock.OnExitSandbox();
 		}
 
 

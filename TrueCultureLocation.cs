@@ -29,7 +29,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.4.4";
+		public const string pluginVersion = "1.0.4.5";
 
 		#region Define Options
 
@@ -1335,6 +1335,83 @@ namespace Gedemon.TrueCultureLocation
 			return true;
 		}
 	}
+
+	//*
+	[HarmonyPatch(typeof(PresentationTerritoryHighlightController))]
+	public class PresentationTerritoryHighlightController_Patch
+	{
+		/*
+		[HarmonyPatch("InitTerritoryLabels")]
+		[HarmonyPrefix]
+		public static bool InitTerritoryLabels(PresentationTerritoryHighlightController __instance)
+		{
+			// Gedemon <<<<<
+			int localEmpireIndex = SandboxManager.Sandbox.LocalEmpireIndex;
+			MajorEmpire majorEmpire = Sandbox.MajorEmpires[localEmpireIndex];
+			// Gedemon >>>>>
+
+			GameSnapshot.Data presentationData = Snapshots.GameSnapshot.PresentationData;
+			int length = presentationData.TerritoryInfo.Length;
+			__instance.territoryHighlightingInfos = new TerritoryHighlightingInfo[length];
+			__instance.territoryLabelsRenderer.InitializeLabelsSizeIFN(length);
+			int val = Presentation.WorldMapProvider.MapWidth * Presentation.WorldMapProvider.MapHeight;
+			for (int i = 0; i < length; i++)
+			{
+				ref TerritoryInfo reference = ref presentationData.TerritoryInfo.Data[i];
+				int[] tileIndexes = reference.TileIndexes;
+				int num = ((tileIndexes != null) ? tileIndexes.Length : 0);
+				if (num != 0)
+				{
+					if (PresentationTerritoryHighlightController.territoryPlacementCache.Tiles == null)
+					{
+						PresentationTerritoryHighlightController.territoryPlacementCache.Tiles = new Hexagon.OffsetCoords[num];
+					}
+					else if (PresentationTerritoryHighlightController.territoryPlacementCache.Tiles.Length < num)
+					{
+						int newSize = System.Math.Min(num * 2, val);
+						Array.Resize(ref PresentationTerritoryHighlightController.territoryPlacementCache.Tiles, newSize);
+					}
+					for (int j = 0; j < num; j++)
+					{
+						PresentationTerritoryHighlightController.territoryPlacementCache.Tiles[j] = WorldPosition.GetHexagonOffsetFromTileIndex(reference.TileIndexes[j]);
+					}
+					__instance.territoryHighlightingInfos[i] = new TerritoryHighlightingInfo
+					{
+						TerritoryIndex = i,
+						IsVisible = false
+					};
+					PresentationTerritoryHighlightController.territoryPlacementCache.TilesCount = num;
+					PresentationTerritoryHighlightController.territoryPlacementCache.Name = Amplitude.Mercury.UI.Utils.GameUtils.GetTerritoryName(i);
+
+					// Gedemon <<<<<
+					//Diagnostics.Log($"[Gedemon] Call IsNextEraUnlock for {CultureUnlock.GetTerritoryName(i)} (util name = {Amplitude.Mercury.UI.Utils.GameUtils.GetTerritoryName(i)}) index #{i} with local player era = {majorEmpire.DepartmentOfDevelopment.CurrentEraIndex}");
+					if (CultureUnlock.IsNextEraUnlock(territoryIndex: i, majorEmpire.DepartmentOfDevelopment.CurrentEraIndex))
+					{
+						PresentationTerritoryHighlightController.territoryPlacementCache.Name = "*" + Amplitude.Mercury.UI.Utils.GameUtils.GetTerritoryName(i) + "*";
+					}
+					// Gedemon >>>>>
+
+					__instance.territoryLabelsRenderer.InitializeLabel(i, ref PresentationTerritoryHighlightController.territoryPlacementCache, Amplitude.Mercury.Terrain.WorldLabelRenderer.MaterialType.Territory);
+					__instance.territoryLabelsRenderer.UpdateLabel(ref __instance.territoryHighlightingInfos[i]);
+				}
+			}
+
+			return false;
+		}
+		//*/
+
+		[HarmonyPatch("InitTerritoryLabels")]
+		[HarmonyPostfix]
+		public static void InitTerritoryLabelsPost(PresentationTerritoryHighlightController __instance)
+		{
+			int localEmpireIndex = SandboxManager.Sandbox.LocalEmpireIndex;
+			MajorEmpire majorEmpire = Sandbox.MajorEmpires[localEmpireIndex];
+			CultureChange.UpdateTerritoryLabels(majorEmpire.DepartmentOfDevelopment.CurrentEraIndex);
+		}
+	}
+	//*/
+
+	//Amplitude.Mercury.Presentation.Presentation.PresentationTerritoryHighlightController.ClearAllTerritoryVisibility(); // on era change local player
 
 	/*
 	[HarmonyPatch(typeof(EliminationController))]

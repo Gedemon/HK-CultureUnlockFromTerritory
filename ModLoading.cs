@@ -184,6 +184,22 @@ namespace Gedemon.TrueCultureLocation
 
             foreach (KeyValuePair<string, IList<MapTCL>> kvp in listTCLMods)
             {
+
+                foreach (MapTCL mapTCL in kvp.Value)
+                {
+                    if (mapTCL.MapTerritoryHash != null)
+                    {
+                        if (CultureUnlock.HasCurrentMapHash(mapTCL.MapTerritoryHash) && !CultureUnlock.HasGiantEarthMapHash(mapTCL.MapTerritoryHash))
+                        {
+                            if(CultureUnlock.MapCanUseGiantEarthReference)
+                            {
+                                Diagnostics.LogWarning($"[Gedemon] [ModLoading] Found modded data from {kvp.Key} with valid MapHash (current = {CultureUnlock.CurrentMapHash}) for a Map that is not the Giant Earth Map, Set MapCanUseGiantEarthReference to false");
+                                CultureUnlock.MapCanUseGiantEarthReference = false;
+                            }
+                        }
+                    }
+                }
+
                 Diagnostics.LogError($"[Gedemon] [ModLoading] Applying Modded TCL from {kvp.Key}");
                 foreach (MapTCL mapTCL in kvp.Value)
                 {
@@ -501,6 +517,18 @@ namespace Gedemon.TrueCultureLocation
             //WorldCityMap.Clear();
             //TerritoryCityMap.Clear();
             //TranslationTable.Clear();
+
+            MajorEmpireTerritoriesPreList.Clear();
+            MajorEmpireCoreTerritoriesPreList.Clear();
+            MinorFactionTerritoriesPreList.Clear();
+
+            TerritoryNamesPreList.Clear();
+            ContinentNamesPreList.Clear();
+
+            CityMapPreList.Clear();
+
+            ExtraPositionsPreList.Clear();
+            ExtraPositionsNewWorldPreList.Clear();
         }
     }
 

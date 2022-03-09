@@ -95,7 +95,7 @@ namespace Gedemon.TrueCultureLocation
         {
             territoryCityKey = null;
             IsGameEra = false;
-            List<string> CivilizationList = CultureUnlock.TerritoriesWithMajorEmpires[territoryIndex];
+            List<string> CivilizationList = CultureUnlock.TerritoriesUnlockingMajorEmpires[territoryIndex];
             if(CivilizationList != null)
             {
 

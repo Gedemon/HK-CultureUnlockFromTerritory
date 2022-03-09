@@ -46,7 +46,6 @@ namespace Gedemon.TrueCultureLocation
 		[HarmonyPatch(nameof(ApplyFactionChange))]
 		public static void ApplyFactionChangePost(DepartmentOfDevelopment __instance)
 		{
-
 			if (CultureUnlock.UseTrueCultureLocation())
 			{
 				MajorEmpire majorEmpire = __instance.majorEmpire;
@@ -57,6 +56,11 @@ namespace Gedemon.TrueCultureLocation
 				CultureChange.SetFactionSymbol(majorEmpire);
 
 				TradeRoute.RestoreTradeRoutes();
+			}
+
+			if (__instance.majorEmpire.Index == SandboxManager.Sandbox.LocalEmpireIndex)
+            {
+				CultureChange.UpdateTerritoryLabels(__instance.CurrentEraIndex);
 			}
 		}
 
@@ -100,7 +104,7 @@ namespace Gedemon.TrueCultureLocation
 								Amplitude.Mercury.Simulation.Territory territory = settlement.Region.Entity.Territories[k];
 								bool anyTerritory = majorEmpire.DepartmentOfDevelopment.CurrentEraIndex == 0 || CultureUnlock.HasNoCapitalTerritory(factionName);
 								bool validSettlement = (TrueCultureLocation.GetEraIndexCityRequiredForUnlock() > majorEmpire.DepartmentOfDevelopment.CurrentEraIndex + 1 || settlement.SettlementStatus == SettlementStatuses.City || CultureUnlock.IsNomadCulture(majorEmpire.FactionDefinition.name));
-								if (CultureUnlock.HasCoreTerritory(factionName, territory.Index, anyTerritory))
+								if (CultureUnlock.IsCapitalTerritory(factionName, territory.Index, anyTerritory))
 								{
 									if (validSettlement)
 									{

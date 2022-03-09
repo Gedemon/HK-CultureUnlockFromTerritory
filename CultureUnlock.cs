@@ -2,7 +2,9 @@
 using System.Linq;
 using Amplitude;
 using Amplitude.Mercury;
+using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Interop;
+using Amplitude.Mercury.Presentation;
 using Amplitude.Mercury.Simulation;
 
 namespace Gedemon.TrueCultureLocation
@@ -35,7 +37,7 @@ namespace Gedemon.TrueCultureLocation
 
 		}
 
-		public class ContinentData // Hardcoded data referencing the Giant Earth Map Continents
+		public class ContinentData // data referencing the Giant Earth Map Continents
 		{
 			public int Index { get; set; }
 			public string Name { get; set; }
@@ -324,7 +326,7 @@ namespace Gedemon.TrueCultureLocation
 				//{ new ContinentReference("Greenland", 5, 1, 170, 86) },
 			};
 
-		static int AsiastraliaSize = 66;
+		static int AsiastraliaSize = 66; // size referencing the biggest Giant Earth Map Continent
 
 		static readonly IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsGiantEarthMap = new Dictionary<int, Hexagon.OffsetCoords> // EmpireIndex (player slots)
 				{
@@ -880,7 +882,7 @@ namespace Gedemon.TrueCultureLocation
 		static IDictionary<int, Hexagon.OffsetCoords> ExtraPositionsNewWorld = new Dictionary<int, Hexagon.OffsetCoords>();
 
 		static List<string>[] TerritoriesWithMinorFactions;
-		static public List<string>[] TerritoriesWithMajorEmpires;
+		static public List<string>[] TerritoriesUnlockingMajorEmpires;
 
 		static IDictionary<string, List<int>> ListMinorFactionTerritories = new Dictionary<string, List<int>>();
 		static IDictionary<string, List<int>> ListMajorEmpireTerritories = new Dictionary<string, List<int>>();
@@ -908,6 +910,23 @@ namespace Gedemon.TrueCultureLocation
 		public static int CurrentMapHash { get; set; } = 0;
 		public static bool IsMapValidforTCL { get; set; } = false;
 		public static bool MapCanUseGiantEarthReference { get; set; } = false;
+		public static bool HasGiantEarthMapHash(List<int> listMapHash)
+		{
+			for (int i = 0; i < listMapHash.Count; i++)
+			{
+				if (GiantEarthMapHash.Contains(listMapHash[i]))
+					return true;
+			}
+			return false;
+		}
+		public static bool HasCurrentMapHash(List<int> listMapHash)
+		{
+			if (listMapHash.Contains(CultureUnlock.CurrentMapHash))
+				return true;
+						
+			return false;
+
+		}
 		public static bool HasValidMapHash(List<int> listMapHash)
 		{
 			if (listMapHash.Contains(CultureUnlock.CurrentMapHash))
@@ -941,13 +960,13 @@ namespace Gedemon.TrueCultureLocation
 
 		public static void ImportGiantEarthData()
         {
-			ExtraPositions = new Dictionary<int, Hexagon.OffsetCoords>(ExtraPositionsGiantEarthMap);
-			ExtraPositionsNewWorld = new Dictionary<int, Hexagon.OffsetCoords>(ExtraPositionsNewWorldGiantEarthMap);
-			ContinentNames = new Dictionary<int, string>(continentNamesGiantEarthMap);
-			TerritoryNames = new Dictionary<int, string>(territoryNamesGiantEarthMap);
-			ListMinorFactionTerritories = new Dictionary<string, List<int>>(listMinorFactionTerritoriesGiantEarthMap);
-			ListMajorEmpireTerritories = new Dictionary<string, List<int>>(listMajorEmpireTerritoriesGiantEarthMap);
-			ListMajorEmpireCoreTerritories = new Dictionary<string, List<int>>(listMajorEmpireCoreTerritoriesGiantEarthMap);
+			//ExtraPositions = new Dictionary<int, Hexagon.OffsetCoords>(ExtraPositionsGiantEarthMap);
+			//ExtraPositionsNewWorld = new Dictionary<int, Hexagon.OffsetCoords>(ExtraPositionsNewWorldGiantEarthMap);
+			//ContinentNames = new Dictionary<int, string>(continentNamesGiantEarthMap);
+			//TerritoryNames = new Dictionary<int, string>(territoryNamesGiantEarthMap);
+			//ListMinorFactionTerritories = new Dictionary<string, List<int>>(listMinorFactionTerritoriesGiantEarthMap);
+			//ListMajorEmpireTerritories = new Dictionary<string, List<int>>(listMajorEmpireTerritoriesGiantEarthMap);
+			//ListMajorEmpireCoreTerritories = new Dictionary<string, List<int>>(listMajorEmpireCoreTerritoriesGiantEarthMap);
 		}
 
 		public static bool AreSameContinentByReference(Territory territory, CultureUnlock.TerritoryData territoryData)
@@ -1265,7 +1284,6 @@ namespace Gedemon.TrueCultureLocation
 						return;
 					}
 				}
-
 			}
 
 			IDictionary<string, WorldPosition> territoriesToAssign = new Dictionary<string, WorldPosition>();
@@ -1496,6 +1514,60 @@ namespace Gedemon.TrueCultureLocation
 			}
 		}
 
+		public static void BuildListTerritories()
+        {
+			Diagnostics.LogWarning($"[Gedemon] [CultureUnlock] building territoriesWithMinorFactions[] and territoriesWithMajorEmpires[]");
+
+			TerritoriesWithMinorFactions = new List<string>[maxNumTerritories];
+			TerritoriesUnlockingMajorEmpires = new List<string>[maxNumTerritories];
+
+			for (int i = 0; i < maxNumTerritories; i++)
+			{
+				TerritoriesWithMinorFactions[i] = new List<string>();
+				TerritoriesUnlockingMajorEmpires[i] = new List<string>();
+			}
+
+			foreach (KeyValuePair<string, List<int>> minorTerritories in ListMinorFactionTerritories)
+			{
+				Diagnostics.LogWarning($"[Gedemon] Adding {minorTerritories.Key} entry to TerritoriesWithMinorFactions");
+				foreach (int index in minorTerritories.Value)
+				{
+					if (index < 0 || index >= TerritoriesWithMinorFactions.Length)
+					{
+						Diagnostics.LogError($"[Gedemon] index {index} is out of bound (TerritoriesWithMinorFactions.Length = {TerritoriesWithMinorFactions.Length})");
+					}
+					TerritoriesWithMinorFactions[index].Add(minorTerritories.Key);
+				}
+			}
+
+			foreach (KeyValuePair<string, List<int>> majorTerritories in ListMajorEmpireTerritories)
+			{
+				Diagnostics.LogWarning($"[Gedemon] Adding {majorTerritories.Key} entry to TerritoriesWithMajorEmpires");
+				if (HasNoCapitalTerritory(majorTerritories.Key))
+				{
+					foreach (int index in majorTerritories.Value)
+					{
+						if (index < 0 || index >= TerritoriesUnlockingMajorEmpires.Length)
+						{
+							Diagnostics.LogError($"[Gedemon] index {index} is out of bound (TerritoriesWithMajorEmpires.Length = {TerritoriesWithMinorFactions.Length})");
+						}
+						//Diagnostics.Log($"[Gedemon] adding at index {index} ({GetTerritoryName(index)})");
+						TerritoriesUnlockingMajorEmpires[index].Add(majorTerritories.Key);
+					}
+				}
+				else if (majorTerritories.Value.Count > 0)
+				{
+					//Diagnostics.Log($"[Gedemon] adding at index {majorTerritories.Value[0]} ({GetTerritoryName(majorTerritories.Value[0])})");
+					TerritoriesUnlockingMajorEmpires[majorTerritories.Value[0]].Add(majorTerritories.Key);
+				}
+				if (!ListMajorEmpireCoreTerritories.ContainsKey(majorTerritories.Key))
+				{
+					Diagnostics.LogWarning($"[Gedemon] Adding missing {majorTerritories.Key} entry to listMajorEmpireCoreTerritories (using listMajorEmpireTerritories)");
+					ListMajorEmpireCoreTerritories.Add(majorTerritories.Key, majorTerritories.Value);
+				}
+			}
+		}
+
 		public static bool ValidateGiantEarthReference(World currentWorld)
 		{
 			int numTerritories = currentWorld.Territories.Length;
@@ -1507,6 +1579,7 @@ namespace Gedemon.TrueCultureLocation
 			int numContinents = currentWorld.ContinentInfo.Length;
 			for (int continentIndex = 1; continentIndex < numContinents; continentIndex++) // ignoring index #0 (Ocean)
 			{
+				Diagnostics.Log($"[Gedemon] Set name to Continent #{continentIndex}");
 				ContinentNames.Add(continentIndex, RefMapContinentNameFromContinent[continentIndex]);
 			}
 
@@ -1528,6 +1601,14 @@ namespace Gedemon.TrueCultureLocation
 			UpdateTerritoryListFromReference(ListMajorEmpireTerritories);
 			UpdateTerritoryListFromReference(ListMajorEmpireCoreTerritories);
 
+			BuildListTerritories();
+
+			if (TrueCultureLocation.IsEnabled() && ListMajorEmpireTerritories.Count == 0)
+			{
+				Diagnostics.LogError($"[Gedemon] Error : TrueCultureLocation.IsEnabled = {TrueCultureLocation.IsEnabled()} && listMajorEmpireTerritories.Count = {ListMajorEmpireTerritories.Count}");
+				return false;
+			}
+
 			return true;
         }
 
@@ -1535,6 +1616,8 @@ namespace Gedemon.TrueCultureLocation
 		{
 
 			Diagnostics.LogWarning($"[Gedemon] [CultureUnlock] Initializing TCL");
+
+			MapCanUseGiantEarthReference = false;
 
 			if (GiantEarthMapHash.Contains(CurrentMapHash))
 			{
@@ -1553,60 +1636,9 @@ namespace Gedemon.TrueCultureLocation
 
 			ModLoading.BuildModdedLists();
 
-			Diagnostics.LogWarning($"[Gedemon] [CultureUnlock] building territoriesWithMinorFactions[] and territoriesWithMajorEmpires[]");
-
-			TerritoriesWithMinorFactions = new List<string>[maxNumTerritories];
-			TerritoriesWithMajorEmpires = new List<string>[maxNumTerritories];
-
-			for (int i = 0; i < maxNumTerritories; i++)
-			{
-				TerritoriesWithMinorFactions[i] = new List<string>();
-				TerritoriesWithMajorEmpires[i] = new List<string>();
-			}
-
-			foreach (KeyValuePair<string, List<int>> minorTerritories in ListMinorFactionTerritories)
-			{
-				Diagnostics.LogWarning($"[Gedemon] Adding {minorTerritories.Key} entry to TerritoriesWithMinorFactions");
-				foreach (int index in minorTerritories.Value)
-				{
-					if(index < 0 || index >= TerritoriesWithMinorFactions.Length)
-					{
-						Diagnostics.LogError($"[Gedemon] index {index} is out of bound (TerritoriesWithMinorFactions.Length = {TerritoriesWithMinorFactions.Length})");
-					}
-					TerritoriesWithMinorFactions[index].Add(minorTerritories.Key);
-				}
-			}
-
-			foreach (KeyValuePair<string, List<int>> majorTerritories in ListMajorEmpireTerritories)
-			{
-				Diagnostics.LogWarning($"[Gedemon] Adding {majorTerritories.Key} entry to TerritoriesWithMajorEmpires");
-				if (HasNoCapitalTerritory(majorTerritories.Key))
-				{
-					foreach (int index in majorTerritories.Value)
-					{
-						if (index < 0 || index >= TerritoriesWithMajorEmpires.Length)
-						{
-							Diagnostics.LogError($"[Gedemon] index {index} is out of bound (TerritoriesWithMajorEmpires.Length = {TerritoriesWithMinorFactions.Length})");
-						}
-						TerritoriesWithMajorEmpires[index].Add(majorTerritories.Key);
-					}
-				}
-				else if (majorTerritories.Value.Count > 0)
-                {
-					TerritoriesWithMajorEmpires[majorTerritories.Value[0]].Add(majorTerritories.Key);
-				}
-				if(!ListMajorEmpireCoreTerritories.ContainsKey(majorTerritories.Key))
-				{
-					Diagnostics.LogWarning($"[Gedemon] Adding missing {majorTerritories.Key} entry to listMajorEmpireCoreTerritories (using listMajorEmpireTerritories)");
-					ListMajorEmpireCoreTerritories.Add(majorTerritories.Key, majorTerritories.Value);
-				}
-			}
-
 			if (MapCanUseGiantEarthReference)
 			{
-
 				IsMapValidforTCL = ValidateGiantEarthReference(currentWorld);
-
 			}
 			else
 			{
@@ -1641,7 +1673,9 @@ namespace Gedemon.TrueCultureLocation
 
 		public static bool ValidateMapTCL()
         {
-			if(TrueCultureLocation.IsEnabled() && ListMajorEmpireTerritories.Count == 0)
+			BuildListTerritories();
+
+			if (TrueCultureLocation.IsEnabled() && ListMajorEmpireTerritories.Count == 0)
 			{
 				Diagnostics.LogError($"[Gedemon] Error : TrueCultureLocation.IsEnabled = {TrueCultureLocation.IsEnabled()} && listMajorEmpireTerritories.Count = {ListMajorEmpireTerritories.Count}");
 				return false;
@@ -1672,21 +1706,21 @@ namespace Gedemon.TrueCultureLocation
 
 		public static bool HasAnyMajorEmpirePosition(int territoryIndex)
 		{
-			return TerritoriesWithMajorEmpires[territoryIndex].Count > 0;
+			return TerritoriesUnlockingMajorEmpires[territoryIndex].Count > 0;
 		}
 
 		public static bool IsMajorEmpirePosition(int territoryIndex, string majorEmpireName)
 		{
-			return TerritoriesWithMajorEmpires[territoryIndex].Contains(majorEmpireName);
+			return TerritoriesUnlockingMajorEmpires[territoryIndex].Contains(majorEmpireName);
 		}
 		public static bool IsMajorEmpirePosition(int territoryIndex, StaticString majorEmpireName)
 		{
-			return TerritoriesWithMajorEmpires[territoryIndex].Contains(majorEmpireName.ToString());
+			return TerritoriesUnlockingMajorEmpires[territoryIndex].Contains(majorEmpireName.ToString());
 		}
 
 		public static List<string> GetListMajorEmpiresForTerritory(int territoryIndex)
         {
-			return TerritoriesWithMajorEmpires[territoryIndex];
+			return TerritoriesUnlockingMajorEmpires[territoryIndex];
 		}
 
 		public static bool HasMajorTerritories(string factionName)
@@ -1726,7 +1760,7 @@ namespace Gedemon.TrueCultureLocation
 			}
 			return HasTerritory(factionName, territoryIndex);
 		}
-		public static bool HasCoreTerritory(string factionName, int territoryIndex, bool any)
+		public static bool IsCapitalTerritory(string factionName, int territoryIndex, bool any)
 		{
 			if (any)
 			{
@@ -1737,17 +1771,58 @@ namespace Gedemon.TrueCultureLocation
 				if (TrueCultureLocation.KeepOnlyCoreTerritories() && ListMajorEmpireCoreTerritories.TryGetValue(factionName, out List<int> coreList))
 				{
 					if(coreList.Count > 0)
-						return coreList.First() == territoryIndex;
+						return coreList[0] == territoryIndex;
 				}
 				else if(ListMajorEmpireTerritories.TryGetValue(factionName, out List<int> territoryList))
                 {
 					if(territoryList.Count > 0)
-						return territoryList.First() == territoryIndex;
+						return territoryList[0] == territoryIndex;
 				}
 			}
 			return false;
 		}
 
+		public static bool IsNextEraUnlock(int territoryIndex, int currentEraIndex)
+		{
+
+			Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock for {GetTerritoryName(territoryIndex)} #ID = {territoryIndex} (local player era = {currentEraIndex})");
+			List<string> listMajorEmpires = TerritoriesUnlockingMajorEmpires[territoryIndex];
+
+			Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock listMajorEmpires exists = {listMajorEmpires != null}");
+
+			if (listMajorEmpires != null)
+			{
+				Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock listMajorEmpires count = {listMajorEmpires.Count}");
+
+				if (listMajorEmpires.Count > 0)
+				{
+					int nextEraIndex = currentEraIndex + 1;
+					foreach (string keyName in listMajorEmpires)
+					{
+						bool anyTerritory = HasNoCapitalTerritory(keyName);
+
+						Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock check faction = {keyName}, anyTerritory = {anyTerritory}");
+
+						if (IsCapitalTerritory(keyName, territoryIndex, anyTerritory))
+						{
+							StaticString factionName = new StaticString(keyName);
+							FactionDefinition factionDefinition = Amplitude.Mercury.Utils.GameUtils.GetFactionDefinition(factionName);
+
+							if (factionDefinition == null)
+								continue;
+
+							Diagnostics.LogError($"[Gedemon] IsNextEraUnlock for {GetTerritoryName(territoryIndex)} and {factionName} (local player era = {currentEraIndex}, next Era = {nextEraIndex}, faction era = {factionDefinition.EraIndex})");
+
+							if (factionDefinition.EraIndex == nextEraIndex)
+							{
+								return true;
+							}
+						}
+					}
+				}
+			}
+			return false;
+        }
 
 		public static bool IsUnlockedByPlayerSlot(string civilizationName, int empireIndex)
 		{
@@ -1962,9 +2037,20 @@ namespace Gedemon.TrueCultureLocation
 				Diagnostics.Log($"[Gedemon] Culture : {kvp.Key}");
 				foreach (int territoryIndex in kvp.Value)
 				{
-					Diagnostics.Log($"[Gedemon] - {GetTerritoryName(territoryIndex)}");
+					Diagnostics.Log($"[Gedemon] - {GetTerritoryName(territoryIndex)} (#{territoryIndex})");
 				}
 			}
+		}
+		public static void OnExitSandbox()
+		{
+
+			ExtraPositions.Clear();
+			ExtraPositionsNewWorld.Clear();
+			ContinentNames.Clear();
+			TerritoryNames.Clear();
+			ListMinorFactionTerritories.Clear();
+			ListMajorEmpireTerritories.Clear();
+			ListMajorEmpireCoreTerritories.Clear();
 		}
 	}
 }
