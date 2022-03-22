@@ -28,7 +28,9 @@ namespace Gedemon.TrueCultureLocation
 
         public static IDictionary<int, List<CityPosition>> TerritoryCityMap = new Dictionary<int, List<CityPosition>>();
 
-        public static IDictionary<string, List<string>> CivilizationAliases = new Dictionary<string, List<string>>();  
+        public static IDictionary<string, List<string>> CivilizationAliases = new Dictionary<string, List<string>>();
+
+        public static IDictionary<int, string> PositionCity = new Dictionary<int, string>();
 
         static bool HasLocalization(string key)
         {
@@ -51,6 +53,21 @@ namespace Gedemon.TrueCultureLocation
                     TerritoryCityMap.Add(territoryIndex, new List<CityPosition> { cityPosition });
                 }
 
+                string shortKeyName = cityPosition.Name.Substring(14);
+                if(shortKeyName.Length > 10)
+                {
+                    shortKeyName = shortKeyName.Substring(0, 10) + ".";
+                }
+
+                if (!PositionCity.ContainsKey(position.ToTileIndex()))
+                {
+                    PositionCity.Add(position.ToTileIndex(), shortKeyName);
+                }
+                else
+                {
+                    Diagnostics.LogError($"[Gedemon] [BuildTerritoryCityMap] Can't add {cityPosition.Name} : Position taken by {PositionCity[position.ToTileIndex()]} at ({cityPosition.Column},{cityPosition.Row})");
+                }
+
             }
 
             foreach (KeyValuePair<int, List<CityPosition>> kvp in TerritoryCityMap)
@@ -59,7 +76,7 @@ namespace Gedemon.TrueCultureLocation
                 List<CityPosition> cityList = kvp.Value;
                 if (cityList.Count > 0)
                 {
-                    Diagnostics.LogWarning($"[Gedemon] [BuildTerritoryCityMap] Created list of {cityList.Count} cities for Territory #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)})");
+                    //Diagnostics.LogWarning($"[Gedemon] [BuildTerritoryCityMap] Created list of {cityList.Count} cities for Territory #{territoryIndex} ({CultureUnlock.GetTerritoryName(territoryIndex)})");
                     foreach (CityPosition cityPosition in cityList)
                     {
                         //Diagnostics.Log($"[Gedemon] City {cityPosition.Name} at ({cityPosition.Column},{cityPosition.Row})");
@@ -80,7 +97,7 @@ namespace Gedemon.TrueCultureLocation
                     string alias = listAliases[i];
                     entryNum = i;
                     string testCityKey = localizationKey + "_" + alias;
-                    Diagnostics.Log($"[Gedemon] [CityMap] Check localization for a city name specific to alias {testCityKey}");
+                    //Diagnostics.Log($"[Gedemon] [CityMap] Check localization for a city name specific to alias {testCityKey}");
                     if (HasLocalization(testCityKey))
                     {
                         aliasCityKey = testCityKey;
@@ -115,7 +132,7 @@ namespace Gedemon.TrueCultureLocation
                 string eraTag = "Era" + eraIndex.ToString();
                 string testCityKey = localizationKey + "_" + eraTag;
                 eraDiff = System.Math.Abs(empireEra - eraIndex);
-                Diagnostics.Log($"[Gedemon] [CityMap] Check localization for a city name specific to era {testCityKey}");
+                //Diagnostics.Log($"[Gedemon] [CityMap] Check localization for a city name specific to era {testCityKey}");
                 if (HasLocalization(testCityKey))
                 {
                     eraCityKey = testCityKey;
@@ -128,9 +145,13 @@ namespace Gedemon.TrueCultureLocation
 
         public static bool TryGetCityNameAt(WorldPosition position, Empire empire, out string cityLocalizationKey)
         {
+            cityLocalizationKey = null;
+
+            if (!TrueCultureLocation.CanUseCityMap())
+                return false;
+
             Diagnostics.LogWarning($"[Gedemon] [CityMap] Try get City Name for position {position}");
             FactionDefinition factionDefinition = empire.FactionDefinition;
-            cityLocalizationKey = null;
             int tileIndex = position.ToTileIndex();
             int territoryIndex = Amplitude.Mercury.Sandbox.Sandbox.World.TileInfo.Data[tileIndex].TerritoryIndex;
             if (TerritoryCityMap.TryGetValue(territoryIndex, out List<CityPosition> cityList))
@@ -148,10 +169,10 @@ namespace Gedemon.TrueCultureLocation
                     string cultureCityKey = currentLocalizationKey + "_" + civilizationTag;
                     int distance = namePosition.GetDistance(tileIndex);
 
-                    Diagnostics.Log($"[Gedemon] [CityMap] Check position of {currentLocalizationKey} at distance = {distance}");
+                    //Diagnostics.Log($"[Gedemon] [CityMap] Check position of {currentLocalizationKey} at distance = {distance}");
 
                     // Check if there is a localization for a city name specific to that culture
-                    Diagnostics.Log($"[Gedemon] [CityMap] Check localization for a city name specific to culture {cultureCityKey}");
+                    //Diagnostics.Log($"[Gedemon] [CityMap] Check localization for a city name specific to culture {cultureCityKey}");
                     if (HasLocalization(cultureCityKey)) 
                     {
                         currentMatch = (int)MatchLevel.Culture;
@@ -172,7 +193,7 @@ namespace Gedemon.TrueCultureLocation
 
                     if ((distance < bestDistance && currentMatch == bestmatch) || currentMatch > bestmatch )
                     {
-                        Diagnostics.Log($"[Gedemon] [CityMap] Set new best match for {currentLocalizationKey} at distance = {distance}, match level = {currentMatch}");
+                        //Diagnostics.Log($"[Gedemon] [CityMap] Set new best match for {currentLocalizationKey} at distance = {distance}, match level = {currentMatch}");
                         cityLocalizationKey = currentLocalizationKey;
                         bestDistance = distance;
                         bestmatch = currentMatch;
@@ -193,6 +214,7 @@ namespace Gedemon.TrueCultureLocation
         {
             WorldCityMap.Clear();
             TerritoryCityMap.Clear();
+            PositionCity.Clear();
             CivilizationAliases.Clear();
         }
     }

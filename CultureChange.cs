@@ -22,7 +22,6 @@ namespace Gedemon.TrueCultureLocation
 		public static void Load()
 		{
 			Diagnostics.LogWarning($"[Gedemon] [CultureChange] OnLoad: TrueCultureLocation.IsEnabled = {TrueCultureLocation.IsEnabled()}");
-			//VisualAffinityCache.Clear();
 			if (!TrueCultureLocation.IsEnabled())
 				return;
 
@@ -32,7 +31,6 @@ namespace Gedemon.TrueCultureLocation
 		public static void Unload()
 		{
 			Diagnostics.LogWarning($"[Gedemon] [CultureChange] OnUnload: TrueCultureLocation.IsEnabled = {TrueCultureLocation.IsEnabled()}");
-			//VisualAffinityCache.Clear();
 			if (!TrueCultureLocation.IsEnabled())
 				return;
 
@@ -144,21 +142,34 @@ namespace Gedemon.TrueCultureLocation
 						if (Sandbox.MinorFactionManager.minorEmpirePool.Count < 5)
 							continue;
 
-						Diagnostics.LogWarning($"[Gedemon] [CultureChange] - all checks passed, removing Major Empire...");
+						Diagnostics.LogWarning($"[Gedemon] [CultureChange] - all checks passed, removing Major Empire (num Armies = {numArmies})");
 
 						// All check done, destroy all armies
 						for (int a = 0; a < numArmies; a++)
 						{
+							Diagnostics.LogWarning($"[Gedemon] [CultureChange] - army #{a}");
 							Army army = majorEmpire.Armies[a];
-							Amplitude.Mercury.Sandbox.Sandbox.ArmyReleaseController.AddArmyToReleasePool(army, ReleaseType.Disbanded);
+							Diagnostics.Log($"[Gedemon] [CultureChange] - Calling TryRemoveSquadron()");
 							DepartmentOfDefense.TryRemoveSquadron(army, majorEmpire.DepartmentOfDefense);
-							DepartmentOfDefense.ReleaseArmy(army);
+							Diagnostics.Log($"[Gedemon] [CultureChange] - Calling AddArmyToReleasePool()");
+							Amplitude.Mercury.Sandbox.Sandbox.ArmyReleaseController.AddArmyToReleasePool(army, ReleaseType.FailedRetreating);
+							Diagnostics.Log($"[Gedemon] [CultureChange] - Check before Calling ReleaseArmy() (army.WorldPosition.ToTileIndex() = {army.WorldPosition.ToTileIndex()})");
+							//
+							if(army.WorldPosition.ToTileIndex() != -1)
+							{
+								Diagnostics.Log($"[Gedemon] [CultureChange] - Calling ReleaseArmy()");
+								DepartmentOfDefense.ReleaseArmy(army);
+							}
+
+							Diagnostics.Log($"[Gedemon] [CultureChange] - Calling SimulationController.RefreshAll()");
 							SimulationController.RefreshAll();
 						}
 
+						Diagnostics.LogWarning($"[Gedemon] [CultureChange] - Calling DoFactionChange()");
 						// Replace by minor factions
 						DoFactionChange(majorEmpire, new StaticString("Civilization_Era0_DefaultTribe"), CanReplaceMajor : false);
 
+						Diagnostics.LogWarning($"[Gedemon] [CultureChange] - Calling AddFallenEmpire()");
 						// Mark as Fallen Empire (to not be respawned from a Minor faction)
 						CurrentGame.Data.AddFallenEmpire(majorEmpire.FactionDefinition.Name);
 
@@ -1152,6 +1163,10 @@ namespace Gedemon.TrueCultureLocation
 		}
 		public static void UpdateDistrictVisuals(Empire empire)
         {
+
+			if (!TrueCultureLocation.KeepHistoricalDistricts())
+				return;
+
 			int count = empire.Settlements.Count;
 			for (int m = 0; m < count; m++)
 			{
@@ -1187,27 +1202,16 @@ namespace Gedemon.TrueCultureLocation
 						}
 
 					}
-					/*
-					int count3 = territory.Districts.Count;
-					for (int l = 0; l < count3; l++)
-					{
-						District district = territory.Districts[l];
-						if (!district.IsAdministrativeDistrict && district.DistrictType != DistrictTypes.Exploitation)
-						{
-							if (CurrentGame.Data.HistoricVisualAffinity.TryGetValue(district.WorldPosition.ToTileIndex(), out StaticString cachedVisualAffinity) && district.InitialVisualAffinityName != cachedVisualAffinity)
-							{
-								Diagnostics.LogWarning($"[Gedemon] Set different InitialVisualAffinityName = {cachedVisualAffinity} (from {district.InitialVisualAffinityName}) for {district.DistrictDefinition.Name} (tile index = {district.WorldPosition.ToTileIndex()}) at {district.WorldPosition})");
-								district.InitialVisualAffinityName = cachedVisualAffinity;
-							}
-						}
-					}
-					//*/
 				}
 			}
 
 		}
 		public static void SaveHistoricDistrictVisuals(Empire empire)
 		{
+
+			if (!TrueCultureLocation.KeepHistoricalDistricts())
+				return;
+
 			int count = empire.Settlements.Count;
 			for (int m = 0; m < count; m++)
 			{

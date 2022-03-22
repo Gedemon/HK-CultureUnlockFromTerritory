@@ -75,7 +75,7 @@ namespace Gedemon.TrueCultureLocation
 
 			/* Gedemon <<<<< */
 
-			if (CultureUnlock.UseTrueCultureLocation())
+			if (CultureUnlock.UseTrueCultureLocation() && factionDefinition.Name != __instance.Empire.FactionDefinition.Name) // always allow transcendance
 			{
 				bool lockedByTerritory = true;
 				bool lockedByStartingSlot = true;

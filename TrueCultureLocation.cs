@@ -13,23 +13,23 @@ using Amplitude.Mercury.Session;
 using Amplitude.Mercury.Data.Simulation;
 using Amplitude.Mercury.Interop;
 using Amplitude.Mercury.Data.Simulation.Costs;
-using System.IO;
-using Amplitude.Framework.Runtime;
-using System;
-using Amplitude.Framework.Asset;
-using Newtonsoft.Json;
-using Amplitude.Serialization;
 using Amplitude.Mercury;
 using Amplitude.Mercury.Avatar;
 using Amplitude.Mercury.Presentation;
+using Amplitude.Mercury.AI.Brain.Analysis.ArmyBehavior;
+using Amplitude.AI.Heuristics;
+using Amplitude.Mercury.Terrain;
+using System;
+using DistrictTypes = Amplitude.Mercury.Simulation.DistrictTypes;
 
 namespace Gedemon.TrueCultureLocation
 {
 	[BepInPlugin(pluginGuid, "True Culture Location", pluginVersion)]
+	[BepInIncompatibility("gedemon.humankind.uchronia")]
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.4.5";
+		public const string pluginVersion = "1.0.5.0";
 
 		#region Define Options
 
@@ -388,8 +388,8 @@ namespace Gedemon.TrueCultureLocation
 			Key = "GameOption_TCL_StartingOutpost",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			DefaultValue = "Off",
-			Title = "Start with an Outpost",
-			Description = "Toggle if Empires will start with an Outpost. This setting can be used on any map.",
+			Title = "Start with an Outpost (disabled in MP)</c>",
+			Description = "Toggle if Empires will start with an Outpost. This setting can be used on any map. Currently disbled when starting a MP game as it causes desyncs",
 			States =
 			{
 				new GameOptionStateInfo
@@ -409,6 +409,81 @@ namespace Gedemon.TrueCultureLocation
 					Title = "AI Only",
 					Description = "Only AI players will start with an outpost",
 					Value = "OnlyAI"
+				}
+			}
+		};
+
+		public static readonly GameOptionInfo HistoricalDistrictsOption = new GameOptionInfo
+		{
+			ControlType = UIControlType.Toggle,
+			Key = "GameOption_TCL_HistoricalDistrictsOption",
+			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
+			DefaultValue = "True",
+			Title = "Historical Districts",
+			Description = "Toggle to keep Districts initial visual appearence",
+			States =
+			{
+				new GameOptionStateInfo
+				{
+					Title = "On",
+					Description = "On",
+					Value = "True"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "Off",
+					Description = "Off",
+					Value = "False"
+				}
+			}
+		};
+
+		public static readonly GameOptionInfo DebugCityNameOption = new GameOptionInfo
+		{
+			ControlType = UIControlType.Toggle,
+			Key = "GameOption_TCL_DebugCityNameOption",
+			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
+			DefaultValue = "False",
+			Title = "<c=FF00FF>[DEBUG]</c> Show CityMap with [F3]",
+			Description = "When ON the City Map Names will be dispalyed instead of territory names when pressing the [F3] key",
+			States =
+			{
+				new GameOptionStateInfo
+				{
+					Title = "On",
+					Description = "On",
+					Value = "True"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "Off",
+					Description = "Off",
+					Value = "False"
+				}
+			}
+		};
+
+		public static readonly GameOptionInfo CityMapOption = new GameOptionInfo
+		{
+			ControlType = UIControlType.Toggle,
+			Key = "GameOption_TCL_CityMapOption",
+			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
+			DefaultValue = "True",
+			Title = "[MAP] Use City Map for naming",
+			Description = "Toggle to use the City Map (True Location naming for cities) when possible",
+			States =
+			{
+				new GameOptionStateInfo
+				{
+					Title = "On",
+					Description = "On",
+					Value = "True"
+				},
+				new GameOptionStateInfo
+				{
+					Title = "Off",
+					Description = "Off",
+					Value = "False"
 				}
 			}
 		};
@@ -458,7 +533,7 @@ namespace Gedemon.TrueCultureLocation
 			Key = "GameOption_TCL_StartPositionList",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			DefaultValue = "Default",
-			Title = "[GEM] Starting Position List",
+			Title = "[MAP] Starting Position List",
 			Description = "Choose if you want the map's default Starting Positions or one of the alternate list (only active when compatible maps are used)",
 			States =
 			{
@@ -477,7 +552,7 @@ namespace Gedemon.TrueCultureLocation
 				new GameOptionStateInfo
 				{
 					Title = "Old World",
-					Description = "Use only the Alternate starting positions (Old World starts only if the map allows it), ignoring the map's default positions.",
+					Description = "Use only the Alternate starting positions (Old World starts only, if the map allows it), ignoring the map's default positions.",
 					Value = "OldWorld"
 				}
 			}
@@ -651,7 +726,7 @@ namespace Gedemon.TrueCultureLocation
 			Key = "GameOption_TCL_EliminateLastEmpiresOption",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			DefaultValue = "False",
-			Title = "[TCL] Eliminate Last Empires",
+			Title = "[TCL] Eliminate Last Empires <c=FF00FF>*Experimental*</c>",
 			Description = "Toggle to eliminate AI Empires that are lagging in a previous Era to free Slots for new Empires (if the Respawning Dead Players option is used)",
 			States =
 			{
@@ -727,6 +802,9 @@ namespace Gedemon.TrueCultureLocation
 		public bool OnlyCultureTerritory => !GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_None");
 		public bool RespawnDeadPlayer => GameOptionHelper.CheckGameOption(RespawnDeadPlayersOption, "True");
 		public bool EliminateLastEmpires => GameOptionHelper.CheckGameOption(EliminateLastEmpiresOption, "True");
+		public bool HistoricalDistricts => GameOptionHelper.CheckGameOption(HistoricalDistrictsOption, "True");
+		public bool DebugCityName => GameOptionHelper.CheckGameOption(DebugCityNameOption, "True");		
+		public bool UseCityMap => GameOptionHelper.CheckGameOption(CityMapOption, "True");
 		public bool KeepAttached => GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_KeepAttached");
 		public bool KeepOnlyCore => GameOptionHelper.CheckGameOption(TerritoryLossOption, "TerritoryLoss_Full_Core");
 		public bool NoLossForAI => GameOptionHelper.CheckGameOption(TerritoryLossIgnoreAI, "True");
@@ -769,6 +847,18 @@ namespace Gedemon.TrueCultureLocation
 		{
 			return Instance.EliminateLastEmpires;
 		}
+		public static bool KeepHistoricalDistricts()
+		{
+			return Instance.HistoricalDistricts;
+		}
+		public static bool IsDebugCityName()
+		{
+			return Instance.DebugCityName;
+		}		
+		public static bool CanUseCityMap()
+		{
+			return Instance.UseCityMap;
+		}		
 		public static bool EmpireCanSpawnFromMinorFactions()
 		{
 			return Instance.empireCanSpawnFromMinorFactions;
@@ -939,6 +1029,11 @@ namespace Gedemon.TrueCultureLocation
 
 		public static void CreateStartingOutpost()
 		{
+
+			ISessionService sessionService = Services.GetService<ISessionService>();
+			bool isMultiplayer = sessionService != null && sessionService.Session != null && sessionService.Session.SessionMode == SessionMode.Online;
+			if (isMultiplayer)
+				return;
 
 			int numMajor = Amplitude.Mercury.Sandbox.Sandbox.MajorEmpires.Length;
 			for (int empireIndex = 0; empireIndex < numMajor; empireIndex++)
@@ -1290,7 +1385,10 @@ namespace Gedemon.TrueCultureLocation
 		[HarmonyPatch(nameof(UpdateFromDistrictInfo))]
 		public static bool UpdateFromDistrictInfo(PresentationDistrict __instance, ref DistrictInfo districtInfo, bool isStartOrEmpireChange, bool isNewDistrict)
 		{
-			
+
+			if (!TrueCultureLocation.KeepHistoricalDistricts())
+				return true;
+
 			if (districtInfo.DistrictType == DistrictTypes.Exploitation)
             {
 				return true;
@@ -1340,26 +1438,26 @@ namespace Gedemon.TrueCultureLocation
 	[HarmonyPatch(typeof(PresentationTerritoryHighlightController))]
 	public class PresentationTerritoryHighlightController_Patch
 	{
-		/*
+
 		[HarmonyPatch("InitTerritoryLabels")]
 		[HarmonyPrefix]
 		public static bool InitTerritoryLabels(PresentationTerritoryHighlightController __instance)
 		{
-			// Gedemon <<<<<
-			int localEmpireIndex = SandboxManager.Sandbox.LocalEmpireIndex;
-			MajorEmpire majorEmpire = Sandbox.MajorEmpires[localEmpireIndex];
-			// Gedemon >>>>>
 
+			if (!TrueCultureLocation.IsDebugCityName())
+				return true;
+
+			///
 			GameSnapshot.Data presentationData = Snapshots.GameSnapshot.PresentationData;
 			int length = presentationData.TerritoryInfo.Length;
-			__instance.territoryHighlightingInfos = new TerritoryHighlightingInfo[length];
-			__instance.territoryLabelsRenderer.InitializeLabelsSizeIFN(length);
 			int val = Presentation.WorldMapProvider.MapWidth * Presentation.WorldMapProvider.MapHeight;
-			for (int i = 0; i < length; i++)
+			__instance.territoryHighlightingInfos = new TerritoryHighlightingInfo[val];
+			__instance.territoryLabelsRenderer.InitializeLabelsSizeIFN(val);
+			for (int i = 0; i < val; i++)
 			{
-				ref TerritoryInfo reference = ref presentationData.TerritoryInfo.Data[i];
-				int[] tileIndexes = reference.TileIndexes;
-				int num = ((tileIndexes != null) ? tileIndexes.Length : 0);
+				//ref TerritoryInfo reference = ref presentationData.TerritoryInfo.Data[i];
+				//int[] tileIndexes = reference.TileIndexes;
+				int num = 1;// ((tileIndexes != null) ? tileIndexes.Length : 0);
 				if (num != 0)
 				{
 					if (PresentationTerritoryHighlightController.territoryPlacementCache.Tiles == null)
@@ -1373,7 +1471,7 @@ namespace Gedemon.TrueCultureLocation
 					}
 					for (int j = 0; j < num; j++)
 					{
-						PresentationTerritoryHighlightController.territoryPlacementCache.Tiles[j] = WorldPosition.GetHexagonOffsetFromTileIndex(reference.TileIndexes[j]);
+						PresentationTerritoryHighlightController.territoryPlacementCache.Tiles[j] = WorldPosition.GetHexagonOffsetFromTileIndex(i);// reference.TileIndexes[j]);
 					}
 					__instance.territoryHighlightingInfos[i] = new TerritoryHighlightingInfo
 					{
@@ -1381,24 +1479,83 @@ namespace Gedemon.TrueCultureLocation
 						IsVisible = false
 					};
 					PresentationTerritoryHighlightController.territoryPlacementCache.TilesCount = num;
-					PresentationTerritoryHighlightController.territoryPlacementCache.Name = Amplitude.Mercury.UI.Utils.GameUtils.GetTerritoryName(i);
-
-					// Gedemon <<<<<
-					//Diagnostics.Log($"[Gedemon] Call IsNextEraUnlock for {CultureUnlock.GetTerritoryName(i)} (util name = {Amplitude.Mercury.UI.Utils.GameUtils.GetTerritoryName(i)}) index #{i} with local player era = {majorEmpire.DepartmentOfDevelopment.CurrentEraIndex}");
-					if (CultureUnlock.IsNextEraUnlock(territoryIndex: i, majorEmpire.DepartmentOfDevelopment.CurrentEraIndex))
+                    if(!CityMap.PositionCity.TryGetValue(i,out string name))
 					{
-						PresentationTerritoryHighlightController.territoryPlacementCache.Name = "*" + Amplitude.Mercury.UI.Utils.GameUtils.GetTerritoryName(i) + "*";
-					}
-					// Gedemon >>>>>
 
-					__instance.territoryLabelsRenderer.InitializeLabel(i, ref PresentationTerritoryHighlightController.territoryPlacementCache, Amplitude.Mercury.Terrain.WorldLabelRenderer.MaterialType.Territory);
+						WorldPosition position = new WorldPosition(i);
+						name = "("+position.Column.ToString()+","+position.Row.ToString()+")";
+                    }
+					PresentationTerritoryHighlightController.territoryPlacementCache.Name = name;//Amplitude.Mercury.UI.Utils.GameUtils.GetTerritoryName(i);
+					__instance.territoryLabelsRenderer.InitializeLabel(i, ref PresentationTerritoryHighlightController.territoryPlacementCache, WorldLabelRenderer.MaterialType.Territory);
 					__instance.territoryLabelsRenderer.UpdateLabel(ref __instance.territoryHighlightingInfos[i]);
 				}
-			}
 
+				ref Amplitude.Mercury.Terrain.TerrainLabel[] terrainLabels = ref Amplitude.Mercury.Presentation.Presentation.PresentationTerritoryHighlightController.territoryLabelsRenderer.terrainLabels;
+
+				int numTerritories = terrainLabels.Length;
+				bool alterne = true;
+				for (int territoryIndex = 0; territoryIndex < numTerritories; territoryIndex++)
+				{
+					if (alterne)
+					{
+						//terrainLabels[territoryIndex].Text = "*" + CultureUnlock.GetTerritoryName(territoryIndex) + "*";
+						terrainLabels[territoryIndex].OptionalColor = UnityEngine.Color.cyan;
+					}
+                    else
+					{
+						terrainLabels[territoryIndex].OptionalColor = UnityEngine.Color.white;
+						//terrainLabels[territoryIndex].Curviness = 0.75f;
+
+					}
+					alterne = !alterne;
+				}
+			}
+			///
 			return false;
 		}
-		//*/
+
+		[HarmonyPatch("InitTerritoryLabels")]
+		[HarmonyPostfix]
+		public static void InitTerritoryLabelsPost(PresentationTerritoryHighlightController __instance)
+		{
+			if (TrueCultureLocation.IsDebugCityName())
+				return;
+
+			int localEmpireIndex = SandboxManager.Sandbox.LocalEmpireIndex;
+			MajorEmpire majorEmpire = Sandbox.MajorEmpires[localEmpireIndex];
+			CultureChange.UpdateTerritoryLabels(majorEmpire.DepartmentOfDevelopment.CurrentEraIndex);
+		}
+	}
+
+	[HarmonyPatch(typeof(WorldLabelRenderer))]
+	public class WorldLabelRenderer_Patch
+	{
+
+		[HarmonyPatch("ResolveDependencies")]
+		[HarmonyPostfix]
+		public static void ResolveDependencies(ref WorldLabelRenderer __instance)
+		{
+			float baseFonSize = 5;
+			float smallFontSize = 1.75f;
+
+			if (TrueCultureLocation.IsDebugCityName())
+			{
+				Diagnostics.LogWarning($"[Gedemon] WorldLabelRenderer in ResolveDependencies: change Territories FontSize from {__instance.resolvedSettings.Materials[(int)WorldLabelRenderer.MaterialType.Territory].FontSize} to {smallFontSize} for Debugging CityMap");
+				__instance.resolvedSettings.Materials[(int)WorldLabelRenderer.MaterialType.Territory].FontSize = smallFontSize;
+			}
+			else if(__instance.resolvedSettings.Materials[(int)WorldLabelRenderer.MaterialType.Territory].FontSize != baseFonSize)
+            {
+				Diagnostics.LogWarning($"[Gedemon] WorldLabelRenderer in ResolveDependencies: restore Territories FontSize from {__instance.resolvedSettings.Materials[(int)WorldLabelRenderer.MaterialType.Territory].FontSize} to {baseFonSize}");
+				__instance.resolvedSettings.Materials[(int)WorldLabelRenderer.MaterialType.Territory].FontSize = baseFonSize;
+			}
+		}
+	}
+	//*/
+
+	/*
+	[HarmonyPatch(typeof(PresentationTerritoryHighlightController))]
+	public class PresentationTerritoryHighlightController_Patch
+	{
 
 		[HarmonyPatch("InitTerritoryLabels")]
 		[HarmonyPostfix]
@@ -1411,7 +1568,45 @@ namespace Gedemon.TrueCultureLocation
 	}
 	//*/
 
-	//Amplitude.Mercury.Presentation.Presentation.PresentationTerritoryHighlightController.ClearAllTerritoryVisibility(); // on era change local player
+
+	//*
+	[HarmonyPatch(typeof(ComputeSpecificMissions))]
+	public class ComputeSpecificMissions_Patch
+	{
+		[HarmonyPatch("ComputeTerritoryClaimScore")]
+		[HarmonyPostfix]
+		public static void ComputeTerritoryClaimScore(ComputeSpecificMissions __instance, ref HeuristicFloat __result, Amplitude.Mercury.Interop.AI.Entities.MajorEmpire majorEmpire, Amplitude.Mercury.Interop.AI.Entities.Army army, Amplitude.Mercury.AI.Brain.AnalysisData.Territory.TerritoryData territoryData)
+		{
+			bool hasSettlement = majorEmpire.Settlements.Length > 0;
+
+			float unlockMotivation = hasSettlement ? 5.0f : 15.0f;
+			Diagnostics.LogWarning($"[Gedemon] ComputeTerritoryClaimScore by {majorEmpire.FactionName} (has settlement = {majorEmpire.Settlements.Length > 0}) for ({CultureUnlock.GetTerritoryName(army.TerritoryIndex)}), result = {__result.Value}, Era = {majorEmpire.EraDefinitionIndex}");
+			if (CultureUnlock.IsNextEraUnlock(army.TerritoryIndex, majorEmpire.EraDefinitionIndex))
+			{
+				__result.Add(unlockMotivation);
+				Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock = true - New result = {__result.Value}");
+			}
+			else
+			{
+				if (!hasSettlement)
+					__result.Divide(2.0f);
+
+				Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock = false - New result = {__result.Value}");
+			}
+		}
+
+		/*
+		[HarmonyPatch("ComputeTerritoryClaimScore")]
+		[HarmonyPostfix]
+		public static void ComputeTerritoryToClaim(ComputeSpecificMissions __instance, ref HeuristicValue<int> __result, Amplitude.Mercury.AI.Brain.MajorEmpireBrain brain, Army army, bool allowRansack)
+		{
+			
+		}
+		//*/
+
+
+	}
+	//*/
 
 	/*
 	[HarmonyPatch(typeof(EliminationController))]
@@ -1432,8 +1627,6 @@ namespace Gedemon.TrueCultureLocation
 		}
 	}
 	//*/
-
-
 
 	/*
 	[HarmonyPatch(typeof(PresentationPawn))]
