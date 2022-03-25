@@ -29,7 +29,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.5.0";
+		public const string pluginVersion = "1.0.5.1";
 
 		#region Define Options
 
@@ -1607,6 +1607,54 @@ namespace Gedemon.TrueCultureLocation
 
 	}
 	//*/
+
+	[HarmonyPatch(typeof(LobbyScreen_LobbySlotsPanel))]
+	public class LobbyScreen_LobbySlotsPanel_Patch
+	{
+
+		[HarmonyPrefix]
+		[HarmonyPatch(nameof(Refresh))]
+		public static bool Refresh(LobbyScreen_LobbySlotsPanel __instance)
+		{
+			if (__instance.session == null)
+			{
+				return false;
+			}
+			for (int i = 0; i < 10; i++)
+			{
+				__instance.allLobbySlots[i].Unbind();
+			}
+			int count = System.Math.Min(10, __instance.session.Slots.Count);
+			for (int j = 0; j < count; j++)
+			{
+				LobbySlot lobbySlot = __instance.allLobbySlots[j];
+				lobbySlot.Bind(__instance.session.Slots[j], __instance.session, __instance.lobbyScreen, __instance);
+				lobbySlot.Show();
+				if (__instance.lobbySlotSettingsPanel.IsAttachedTo(lobbySlot))
+				{
+					__instance.lobbySlotSettingsPanel.Dirtyfy();
+				}
+			}
+			for (int k = count; k < 10; k++)
+			{
+				__instance.allLobbySlots[k].Hide();
+			}
+			__instance.addSlotButton.UITransform.VisibleSelf = __instance.session.IsHosting && count < __instance.lobbyScreen.AllowedMaxLobbySlots && !__instance.lobbyScreen.IsMultiplayerSave;
+
+			return false;
+		}
+
+		[HarmonyPrefix]
+		[HarmonyPatch(nameof(UpdateSlot))]
+		public static bool UpdateSlot(LobbyScreen_LobbySlotsPanel __instance, SessionSlot sessionSlot)
+		{
+			if (sessionSlot.Index >= 10)
+			{
+				return false;
+			}
+			return true;
+		}
+	}
 
 	/*
 	[HarmonyPatch(typeof(EliminationController))]
