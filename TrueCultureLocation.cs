@@ -64,7 +64,7 @@ namespace Gedemon.TrueCultureLocation
 			Key = "GameOption_TCL_CreateTrueCultureLocation",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			DefaultValue = "Off",
-			Title = "[TCL] Generate TCL for any Map <c=FF00FF>*Experimental*</c>",
+			Title = "[TCL] Generate TCL for any Map <c=FF0000>*Experimental*</c>",
 			Description = "Rename territories on unsupported or generated maps, based on relative distances using the Giant Earth Map coordinates, to use True Culture Location.",
 			States =
 			{
@@ -444,7 +444,7 @@ namespace Gedemon.TrueCultureLocation
 			Key = "GameOption_TCL_DebugCityNameOption",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			DefaultValue = "False",
-			Title = "<c=FF00FF>[DEBUG]</c> Show CityMap with [F3]",
+			Title = "<c=FF0000>[DEBUG]</c> Show CityMap with [F3]",
 			Description = "When ON the City Map Names will be dispalyed instead of territory names when pressing the [F3] key",
 			States =
 			{
@@ -726,7 +726,7 @@ namespace Gedemon.TrueCultureLocation
 			Key = "GameOption_TCL_EliminateLastEmpiresOption",
 			GroupKey = "GameOptionGroup_LobbyDifficultyOptions",
 			DefaultValue = "False",
-			Title = "[TCL] Eliminate Last Empires <c=FF00FF>*Experimental*</c>",
+			Title = "[TCL] Eliminate Last Empires <c=FF0000>*Experimental*</c>",
 			Description = "Toggle to eliminate AI Empires that are lagging in a previous Era to free Slots for new Empires (if the Respawning Dead Players option is used)",
 			States =
 			{
