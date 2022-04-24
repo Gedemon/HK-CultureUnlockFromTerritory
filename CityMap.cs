@@ -34,7 +34,8 @@ namespace Gedemon.TrueCultureLocation
 
         static bool HasLocalization(string key)
         {
-            return key != Utils.TextUtils.Localize(key);
+            bool NoWarning = true;
+            return key != Amplitude.Mercury.UI.Helpers.TextUtils.LocalizationServiceCall(key, key, new LocalizedStringParameter[0], NoWarning); // calling Localize with no warning for missing key
         }
         public static void BuildTerritoryCityMap(World currentWorld)
         {

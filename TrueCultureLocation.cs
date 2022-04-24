@@ -29,7 +29,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.5.2";
+		public const string pluginVersion = "1.0.6.0";
 
 		#region Define Options
 
@@ -1294,16 +1294,16 @@ namespace Gedemon.TrueCultureLocation
 
 			if (CultureUnlock.UseTrueCultureLocation())
 			{
-				Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: territoryIndex = {territoryIndex}");
+				//Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: territoryIndex = {territoryIndex}");
 				ref TerritoryInfo reference = ref Snapshots.GameSnapshot.PresentationData.TerritoryInfo.Data[territoryIndex];
 				bool flag = useColor != EmpireColor.None;
 				if (reference.AdministrativeDistrictGUID != 0)
 				{
-					Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: AdministrativeDistrictGUID = {reference.AdministrativeDistrictGUID}");
+					//Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: AdministrativeDistrictGUID = {reference.AdministrativeDistrictGUID}");
 					ref SettlementInfo reference2 = ref Snapshots.GameSnapshot.PresentationData.SettlementInfo.Data[reference.SettlementIndex];
 					if (reference2.TileIndex == reference.AdministrativeDistrictTileIndex)
 					{
-						Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: reference2.TileIndex = {reference2.TileIndex}, reference.AdministrativeDistrictTileIndex = {reference.AdministrativeDistrictTileIndex}");
+						//Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: reference2.TileIndex = {reference2.TileIndex}, reference.AdministrativeDistrictTileIndex = {reference.AdministrativeDistrictTileIndex}");
 						string text = CultureUnlock.TerritoryHasName(territoryIndex) ? CultureUnlock.GetTerritoryName(territoryIndex, hasName: true) : reference2.EntityName.ToString();// reference2.EntityName.ToString();
 						if (flag)
 						{
@@ -1312,16 +1312,13 @@ namespace Gedemon.TrueCultureLocation
 							//return false;
 						}
 
-						Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: 1");
 						__result = text;
 						return false;
 					}
 				}
 
-				Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: 2");
 				string text2 = CultureUnlock.TerritoryHasName(territoryIndex) ? CultureUnlock.GetTerritoryName(territoryIndex, hasName: true) : reference.LocalizedName ?? string.Empty;// reference.LocalizedName ?? string.Empty;
 
-				Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: 3");
 				if (flag && reference.Claimed)
 				{
 					//Color empireColor2 = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
