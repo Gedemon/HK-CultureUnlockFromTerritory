@@ -1144,9 +1144,12 @@ namespace Gedemon.TrueCultureLocation
 		}
 		public static void UpdateTerritoryLabels(int currentEraIndex)
 		{
+
+			//Diagnostics.LogWarning($"[Gedemon][UpdateTerritoryLabels] currentEraIndex = {currentEraIndex}");
+
 			ref Amplitude.Mercury.Terrain.TerrainLabel[] terrainLabels = ref Amplitude.Mercury.Presentation.Presentation.PresentationTerritoryHighlightController.territoryLabelsRenderer.terrainLabels;
 
-			int numTerritories = terrainLabels.Length;
+			int numTerritories = Sandbox.World.Territories.Length;// terrainLabels.Length;
 			for(int territoryIndex = 0; territoryIndex < numTerritories; territoryIndex++)
             {
 				if(CultureUnlock.IsNextEraUnlock(territoryIndex, currentEraIndex))
@@ -1183,21 +1186,21 @@ namespace Gedemon.TrueCultureLocation
 					{
 						if (adminDistrict != null)
 						{
-							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : update Administrative District visual in territory {adminDistrict.Territory.Entity.Index}.");
+							//Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : update Administrative District visual in territory {adminDistrict.Territory.Entity.Index}.");
 							adminDistrict.InitialVisualAffinityName = DepartmentOfTheInterior.GetInitialVisualAffinityFor(empire, adminDistrict.DistrictDefinition);
 						}
 						else
 						{
-							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : no Administrative District in territory {adminDistrict.Territory.Entity.Index}.");
+							//Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : no Administrative District in territory {adminDistrict.Territory.Entity.Index}.");
 						}
 					}
 					else
 					{
 						// add instability here ?
-						Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : PublicOrderCurrent = {settlement.PublicOrderCurrent.Value}, PublicOrderPositiveTrend = {settlement.PublicOrderPositiveTrend.Value}, PublicOrderNegativeTrend = {settlement.PublicOrderNegativeTrend.Value}, DistanceInTerritoryToCapital = {settlement.DistanceInTerritoryToCapital.Value}.");
+						//Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {settlement.EntityName} : PublicOrderCurrent = {settlement.PublicOrderCurrent.Value}, PublicOrderPositiveTrend = {settlement.PublicOrderPositiveTrend.Value}, PublicOrderNegativeTrend = {settlement.PublicOrderNegativeTrend.Value}, DistanceInTerritoryToCapital = {settlement.DistanceInTerritoryToCapital.Value}.");
 						if (adminDistrict != null)
 						{
-							Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {adminDistrict.DistrictDefinition.Name} : PublicOrderProduced = {adminDistrict.PublicOrderProduced.Value}.");
+							//Diagnostics.LogWarning($"[Gedemon] {settlement.SettlementStatus} {adminDistrict.DistrictDefinition.Name} : PublicOrderProduced = {adminDistrict.PublicOrderProduced.Value}.");
 							
 						}
 

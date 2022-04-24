@@ -1510,9 +1510,11 @@ namespace Gedemon.TrueCultureLocation
 					int nextEraIndex = currentEraIndex + 1;
 					foreach (string keyName in listMajorEmpires)
 					{
+						//Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock : faction = {keyName}");
+
 						bool anyTerritory = HasNoCapitalTerritory(keyName);
 
-						//Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock check faction = {keyName}, anyTerritory = {anyTerritory}");
+						//Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock anyTerritory = {anyTerritory}");
 
 						if (IsCapitalTerritory(keyName, territoryIndex, anyTerritory))
 						{

@@ -29,7 +29,7 @@ namespace Gedemon.TrueCultureLocation
 	public class TrueCultureLocation : BaseUnityPlugin
 	{
 		public const string pluginGuid = "gedemon.humankind.trueculturelocation";
-		public const string pluginVersion = "1.0.5.1";
+		public const string pluginVersion = "1.0.5.2";
 
 		#region Define Options
 
@@ -1067,7 +1067,7 @@ namespace Gedemon.TrueCultureLocation
 				if (toggleShowTerritory)
 				{
 					// hide UI
-					UIManager.IsUiVisible = false;
+					UIManager.isUiVisible = false;
 
 					// switch to DiplomaticCursor, where territories can be highlighted
 					Amplitude.Mercury.Presentation.Presentation.PresentationCursorController.ChangeToDiplomaticCursor(localEmpireIndex);
@@ -1075,7 +1075,7 @@ namespace Gedemon.TrueCultureLocation
 				else
 				{
 					// restore UI
-					UIManager.IsUiVisible = true;
+					UIManager.isUiVisible = true;
 				}
 
 				Amplitude.Mercury.Presentation.PresentationTerritoryHighlightController HighlightControllerControler = Amplitude.Mercury.Presentation.Presentation.PresentationTerritoryHighlightController;
@@ -1294,14 +1294,16 @@ namespace Gedemon.TrueCultureLocation
 
 			if (CultureUnlock.UseTrueCultureLocation())
 			{
-				//Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName");
+				Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: territoryIndex = {territoryIndex}");
 				ref TerritoryInfo reference = ref Snapshots.GameSnapshot.PresentationData.TerritoryInfo.Data[territoryIndex];
 				bool flag = useColor != EmpireColor.None;
 				if (reference.AdministrativeDistrictGUID != 0)
 				{
+					Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: AdministrativeDistrictGUID = {reference.AdministrativeDistrictGUID}");
 					ref SettlementInfo reference2 = ref Snapshots.GameSnapshot.PresentationData.SettlementInfo.Data[reference.SettlementIndex];
 					if (reference2.TileIndex == reference.AdministrativeDistrictTileIndex)
 					{
+						Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: reference2.TileIndex = {reference2.TileIndex}, reference.AdministrativeDistrictTileIndex = {reference.AdministrativeDistrictTileIndex}");
 						string text = CultureUnlock.TerritoryHasName(territoryIndex) ? CultureUnlock.GetTerritoryName(territoryIndex, hasName: true) : reference2.EntityName.ToString();// reference2.EntityName.ToString();
 						if (flag)
 						{
@@ -1310,12 +1312,16 @@ namespace Gedemon.TrueCultureLocation
 							//return false;
 						}
 
+						Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: 1");
 						__result = text;
 						return false;
 					}
 				}
 
+				Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: 2");
 				string text2 = CultureUnlock.TerritoryHasName(territoryIndex) ? CultureUnlock.GetTerritoryName(territoryIndex, hasName: true) : reference.LocalizedName ?? string.Empty;// reference.LocalizedName ?? string.Empty;
+
+				Diagnostics.Log($"[Gedemon] in GameUtils, GetTerritoryName: 3");
 				if (flag && reference.Claimed)
 				{
 					//Color empireColor2 = __instance.GetEmpireColor(reference.EmpireIndex, useColor);
@@ -1348,6 +1354,20 @@ namespace Gedemon.TrueCultureLocation
 				__instance.GetRandomAvatarSummary(avatarId.Index, ref avatarSummary);
 			}
 
+			return true;
+		}
+
+		// Compatibility fix for games with more than 10 player slots, as the slots above 10 may not have an Avatarsummary set when TryGetGender is called
+		[HarmonyPatch("TryGetGender")]
+		[HarmonyPrefix]
+		public static bool TryGetGender(AvatarManager __instance, ref bool __result, AvatarSummary avatarSummary, out Gender gender)
+		{
+			gender = Gender.Male;
+			if (avatarSummary.ElementKeyBySlots.Length == 0)
+			{
+				__result = false;
+				return false;
+			}
 			return true;
 		}
 	}
@@ -1492,7 +1512,7 @@ namespace Gedemon.TrueCultureLocation
 
 				ref Amplitude.Mercury.Terrain.TerrainLabel[] terrainLabels = ref Amplitude.Mercury.Presentation.Presentation.PresentationTerritoryHighlightController.territoryLabelsRenderer.terrainLabels;
 
-				int numTerritories = terrainLabels.Length;
+				int numTerritories = Sandbox.World.Territories.Length;//terrainLabels.Length;
 				bool alterne = true;
 				for (int territoryIndex = 0; territoryIndex < numTerritories; territoryIndex++)
 				{
@@ -1580,18 +1600,18 @@ namespace Gedemon.TrueCultureLocation
 			bool hasSettlement = majorEmpire.Settlements.Length > 0;
 
 			float unlockMotivation = hasSettlement ? 5.0f : 15.0f;
-			Diagnostics.LogWarning($"[Gedemon] ComputeTerritoryClaimScore by {majorEmpire.FactionName} (has settlement = {majorEmpire.Settlements.Length > 0}) for ({CultureUnlock.GetTerritoryName(army.TerritoryIndex)}), result = {__result.Value}, Era = {majorEmpire.EraDefinitionIndex}");
+			//Diagnostics.LogWarning($"[Gedemon] ComputeTerritoryClaimScore by {majorEmpire.FactionName} (has settlement = {majorEmpire.Settlements.Length > 0}) for ({CultureUnlock.GetTerritoryName(army.TerritoryIndex)}), result = {__result.Value}, Era = {majorEmpire.EraDefinitionIndex}");
 			if (CultureUnlock.IsNextEraUnlock(army.TerritoryIndex, majorEmpire.EraDefinitionIndex))
 			{
 				__result.Add(unlockMotivation);
-				Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock = true - New result = {__result.Value}");
+				//Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock = true - New result = {__result.Value}");
 			}
 			else
 			{
 				if (!hasSettlement)
 					__result.Divide(2.0f);
 
-				Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock = false - New result = {__result.Value}");
+				//Diagnostics.LogWarning($"[Gedemon] IsNextEraUnlock = false - New result = {__result.Value}");
 			}
 		}
 
