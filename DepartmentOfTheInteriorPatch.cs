@@ -4,6 +4,7 @@ using Amplitude;
 using Amplitude.Mercury.Interop;
 using Amplitude.Mercury;
 using System.Collections.Generic;
+using Amplitude.Framework.Simulation;
 
 namespace Gedemon.TrueCultureLocation
 {
@@ -27,9 +28,11 @@ namespace Gedemon.TrueCultureLocation
 				{
 					// destroy main district to also destroy all trade routes we want to restore (else they'll be destroyed too late for restoration, after the district decay) 
 					District mainDistrict = settlement.GetMainDistrict();
+					ReferenceCollection<District> districtCollection = new ReferenceCollection<District>();
+					districtCollection.Add(mainDistrict);
 					if (mainDistrict != null)
 					{
-						__instance.DestroyDistrict(mainDistrict, DistrictDestructionSource.MinorDecay);
+						__instance.RemoveDistrictsFromSettlement(settlement, districtCollection, DistrictDestructionSource.MinorDecay);
 					}
 
 				}
@@ -39,18 +42,21 @@ namespace Gedemon.TrueCultureLocation
 		//*/
 
 		//*
-		[HarmonyPatch("DestroyDistrict")]
+		[HarmonyPatch("RemoveDistrictsFromSettlement")]
 		[HarmonyPrefix]
-		public static bool DestroyDistrict(DepartmentOfTheInterior __instance, District district, DistrictDestructionSource damageSource)
+		public static bool RemoveDistrictsFromSettlement(DepartmentOfTheInterior __instance, Settlement settlement, ReferenceCollection<District> districts, DistrictDestructionSource damageSource)
 		{
-
-			int tileIndex = district.WorldPosition.ToTileIndex();
-			if (CurrentGame.Data.HistoricVisualAffinity.TryGetValue(tileIndex, out DistrictVisual visualAffinity))
+			if (districts != null && districts.Count > 0)
 			{
-				Diagnostics.LogWarning($"[Gedemon] [DepartmentOfTheInterior] DestroyDistrict called at {district.WorldPosition} from {damageSource}, empire index = {__instance.Empire.Index}, remove Historic Visual = {visualAffinity.VisualAffinity}");
-				CurrentGame.Data.HistoricVisualAffinity.Remove(tileIndex);
+				int tileIndex = districts[0].WorldPosition.ToTileIndex();
+				if (CurrentGame.Data.HistoricVisualAffinity.TryGetValue(tileIndex, out DistrictVisual visualAffinity))
+				{
+					//Diagnostics.LogWarning($"[Gedemon] [DepartmentOfTheInterior] RemoveDistrictsFromSettlement called at {districts[0].WorldPosition} from {damageSource}, empire index = {__instance.Empire.Index}, settlement entity name = {settlement.EntityName}, remove Historic Visual = {visualAffinity.VisualAffinity}");
+					CurrentGame.Data.HistoricVisualAffinity.Remove(tileIndex);
+				}
+				return true;
 			}
-			return true;
+			return false;
 		}
 		//*
 
@@ -61,14 +67,14 @@ namespace Gedemon.TrueCultureLocation
 		{
 
 			Diagnostics.LogWarning($"[Gedemon] [DepartmentOfTheInterior] CreateCityAt {worldPosition}, empire index = {__instance.Empire.Index}");
-			if(CityMap.TryGetCityNameAt(worldPosition, __instance.Empire, out string cityLocalizationKey))
-            {
+			if (CityMap.TryGetCityNameAt(worldPosition, __instance.Empire, out string cityLocalizationKey))
+			{
 				__instance.availableSettlementNames = new List<string> { cityLocalizationKey };
 			}
 			return true;
 		}
 		//*
-		
+
 		//*
 		[HarmonyPatch("ApplyEvolutionToSettlement_City")]
 		[HarmonyPrefix]
